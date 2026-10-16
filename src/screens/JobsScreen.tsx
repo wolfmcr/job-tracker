@@ -1,4 +1,3 @@
-import { useMutation } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import { BriefcaseIcon } from 'lucide-react'
 import { useState } from 'react'
@@ -7,17 +6,11 @@ import { JobRow } from '../components/jobs/JobRow'
 import { FAB } from '../components/ui/FAB'
 import { EmptyState } from '../components/ui/EmptyState'
 import { useJobs } from '../hooks/useJobs'
-import { toggleJobDone } from '../services/jobService'
 
 export function JobsScreen() {
   const { jobs, loading } = useJobs()
   const navigate = useNavigate()
   const [sheetOpen, setSheetOpen] = useState(false)
-
-  const toggleDone = useMutation({
-    mutationFn: ({ jobId, isDone }: { jobId: string; isDone: boolean }) =>
-      toggleJobDone(jobId, isDone),
-  })
 
   if (loading) {
     return (
@@ -44,7 +37,6 @@ export function JobsScreen() {
             <JobRow
               key={job.id}
               job={job}
-              onToggleDone={(isDone) => toggleDone.mutate({ jobId: job.id, isDone })}
               onTap={() => navigate({ to: '/jobs/$jobId', params: { jobId: job.id } })}
             />
           ))}

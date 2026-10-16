@@ -26,6 +26,14 @@ export async function archiveJob(jobId: string) {
   })
 }
 
+export async function completeJob(jobId: string) {
+  await updateDoc(doc(db, 'jobs', jobId), {
+    isDone: true,
+    isArchived: true,
+    updatedAt: serverTimestamp(),
+  })
+}
+
 export async function addShoppingItem(jobId: string, qty: string, name: string) {
   await addDoc(collection(db, 'jobs', jobId, 'shoppingItems'), {
     qty,

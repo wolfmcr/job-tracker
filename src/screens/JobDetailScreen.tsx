@@ -9,6 +9,7 @@ import {
   addShoppingItem,
   addTodoItem,
   archiveJob,
+  completeJob,
   deleteShoppingItem,
   deleteTodoItem,
   toggleShoppingItem,
@@ -27,6 +28,15 @@ export function JobDetailScreen() {
   if (!job) return null
 
   const mapsUrl = `https://maps.google.com/?q=${encodeURIComponent(job.address)}`
+
+  const sortedShopping = [...shoppingItems].sort((a, b) => Number(a.isGot) - Number(b.isGot))
+  const sortedTodos = [...todoItems].sort((a, b) => Number(a.isDone) - Number(b.isDone))
+
+  async function handleComplete() {
+    if (!window.confirm(`Mark "${job!.name}" as complete and archive it?`)) return
+    await completeJob(jobId)
+    navigate({ to: '/jobs' })
+  }
 
   async function handleArchive() {
     if (!window.confirm(`Archive "${job!.name}"?`)) return
@@ -56,7 +66,7 @@ export function JobDetailScreen() {
       {/* Shopping list */}
       <div className="mt-2">
         <p className="px-4 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wide">Shopping</p>
-        {shoppingItems.map(item => (
+        {sortedShopping.map(item => (
           <ShoppingItemRow
             key={item.id}
             item={item}
@@ -74,7 +84,7 @@ export function JobDetailScreen() {
       {/* To-do list */}
       <div className="mt-4">
         <p className="px-4 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wide">To-Do</p>
-        {todoItems.map(item => (
+        {sortedTodos.map(item => (
           <TodoItemRow
             key={item.id}
             item={item}
@@ -88,14 +98,21 @@ export function JobDetailScreen() {
         />
       </div>
 
-      {/* Archive */}
-      <div className="mt-8 px-4">
+      {/* Actions */}
+      <div className="mt-8 px-4 flex flex-col gap-3">
+        <button
+          type="button"
+          onClick={handleComplete}
+          className="w-full py-3 bg-green-600 text-white font-semibold rounded-xl text-sm active:bg-green-700"
+        >
+          Complete job
+        </button>
         <button
           type="button"
           onClick={handleArchive}
           className="w-full py-3 border border-gray-200 rounded-xl text-sm text-gray-400"
         >
-          Archive job
+          Archive without completing
         </button>
       </div>
     </div>
