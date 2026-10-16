@@ -1,19 +1,60 @@
-import { createRootRoute, createRoute, createRouter, Outlet, RouterProvider } from '@tanstack/react-router'
+import { createRootRoute, createRoute, createRouter, Outlet, redirect, RouterProvider } from '@tanstack/react-router'
+import { AppShell } from './components/layout/AppShell'
 import { useAuth } from './hooks/useAuth'
+import { JobsScreen } from './screens/JobsScreen'
 import { LoginScreen } from './screens/LoginScreen'
 
-function AppPlaceholder() {
+function PlaceholderScreen({ name }: { name: string }) {
   return (
-    <div className="flex flex-col items-center justify-center min-h-dvh text-gray-500 gap-2">
-      <p className="font-medium text-gray-700">Signed in successfully.</p>
-      <p className="text-sm">App screens coming soon…</p>
+    <div className="flex items-center justify-center py-20 text-gray-400 px-4">
+      <p>{name} — coming soon</p>
     </div>
   )
 }
 
 const rootRoute = createRootRoute({ component: () => <Outlet /> })
-const indexRoute = createRoute({ getParentRoute: () => rootRoute, path: '/', component: AppPlaceholder })
-const routeTree = rootRoute.addChildren([indexRoute])
+
+const indexRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/',
+  beforeLoad: () => { throw redirect({ to: '/jobs' }) },
+})
+
+const layoutRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  id: 'layout',
+  component: AppShell,
+})
+
+const jobsRoute = createRoute({
+  getParentRoute: () => layoutRoute,
+  path: '/jobs',
+  component: JobsScreen,
+})
+
+const shoppingRoute = createRoute({
+  getParentRoute: () => layoutRoute,
+  path: '/shopping',
+  component: () => <PlaceholderScreen name="Shopping" />,
+})
+
+const todoRoute = createRoute({
+  getParentRoute: () => layoutRoute,
+  path: '/todo',
+  component: () => <PlaceholderScreen name="To-Do" />,
+})
+
+const archiveRoute = createRoute({
+  getParentRoute: () => layoutRoute,
+  path: '/archive',
+  component: () => <PlaceholderScreen name="Archive" />,
+})
+
+const routeTree = rootRoute.addChildren([
+  indexRoute,
+  layoutRoute.addChildren([jobsRoute, shoppingRoute, todoRoute, archiveRoute]),
+])
+
 const router = createRouter({ routeTree })
 
 declare module '@tanstack/react-router' {

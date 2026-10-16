@@ -1,0 +1,66 @@
+{
+  "source": "Notion 'Contracting Jobs' export, 2026-10-16",
+  "notes_for_import": [
+    "jobs[].key is a temporary reference; items[].job_key points to it. Replace with real IDs on insert.",
+    "type is 'buy' (shopping list) or 'todo'.",
+    "done=true items are already completed; import them as completed or skip them.",
+    "Item text is verbatim from Notion, typos included.",
+    "created_at is UTC and can be used for ordering."
+  ],
+  "jobs": [
+    {
+      "key": "bathroom-remodel",
+      "name": "Bathroom remodel",
+      "address": "5324 N Haight Ave, Portland, OR 97217",
+      "notes": null,
+      "done": false,
+      "created_at": "2026-10-10T17:58:23Z"
+    },
+    {
+      "key": "camas",
+      "name": "Camas",
+      "address": "4644 NE Everett St, Camas, WA 98607",
+      "notes": null,
+      "done": false,
+      "created_at": "2026-10-10T18:15:46Z"
+    }
+  ],
+  "items": [
+    { "job_key": "camas", "text": "Cut cabinet top 3/8 at back to 0 at front", "type": "todo", "qty": null, "done": false, "created_at": "2026-10-10T18:21:28Z" },
+    { "job_key": "camas", "text": "Notch corner shelves and add brackets", "type": "todo", "qty": null, "done": false, "created_at": "2026-10-10T18:21:56Z" },
+    { "job_key": "camas", "text": "Pan head screws for handrail", "type": "buy", "qty": null, "done": false, "created_at": "2026-10-10T18:22:55Z" },
+    { "job_key": "camas", "text": "Walnut for space above fridge 5 5/8 x 38 1/2", "type": "buy", "qty": null, "done": false, "created_at": "2026-10-10T18:23:48Z" },
+    { "job_key": "camas", "text": "Shorten cabinet spacers", "type": "todo", "qty": null, "done": false, "created_at": "2026-10-10T18:33:27Z" },
+    { "job_key": "camas", "text": "Walnut piece above fridge", "type": "todo", "qty": null, "done": false, "created_at": "2026-10-10T18:33:46Z" },
+    { "job_key": "camas", "text": "Brackets for corner shelves (angle iron?)", "type": "buy", "qty": null, "done": false, "created_at": "2026-10-10T18:34:50Z" },
+    { "job_key": "camas", "text": "Light rail sofits", "type": "todo", "qty": null, "done": false, "created_at": "2026-10-10T18:44:56Z" },
+    { "job_key": "camas", "text": "Angle iron", "type": "buy", "qty": null, "done": true, "created_at": "2026-10-10T18:55:02Z" },
+    { "job_key": "camas", "text": "Install hand rail", "type": "todo", "qty": null, "done": false, "created_at": "2026-10-10T19:35:02Z" },
+    { "job_key": "camas", "text": "Install wine shelf (3/4\u201d shims)", "type": "todo", "qty": null, "done": false, "created_at": "2026-10-10T19:35:33Z" },
+    { "job_key": "camas", "text": "1 1/4\u201d screws for wine shelves", "type": "buy", "qty": null, "done": false, "created_at": "2026-10-10T19:36:04Z" },
+
+    { "job_key": "bathroom-remodel", "text": "Mahogany for door", "type": "buy", "qty": null, "done": false, "created_at": "2026-10-10T18:07:16Z" },
+    { "job_key": "bathroom-remodel", "text": "Bathroom trim", "type": "todo", "qty": null, "done": false, "created_at": "2026-10-10T18:07:53Z" },
+    { "job_key": "bathroom-remodel", "text": "Door sill", "type": "todo", "qty": null, "done": false, "created_at": "2026-10-10T18:08:02Z" },
+    { "job_key": "bathroom-remodel", "text": "Trim", "type": "buy", "qty": null, "done": true, "created_at": "2026-10-10T18:25:55Z" },
+    { "job_key": "bathroom-remodel", "text": "Drywall for patch", "type": "buy", "qty": null, "done": true, "created_at": "2026-10-10T18:25:55Z" },
+    { "job_key": "bathroom-remodel", "text": "Drywall sander", "type": "buy", "qty": null, "done": true, "created_at": "2026-10-10T18:25:55Z" },
+    { "job_key": "bathroom-remodel", "text": "Drywall compound", "type": "buy", "qty": null, "done": true, "created_at": "2026-10-10T18:25:55Z" },
+    { "job_key": "bathroom-remodel", "text": "Angle iron", "type": "buy", "qty": null, "done": true, "created_at": "2026-10-10T18:25:55Z" },
+    { "job_key": "bathroom-remodel", "text": "Caulking gun", "type": "buy", "qty": null, "done": true, "created_at": "2026-10-10T18:43:10Z" },
+    { "job_key": "bathroom-remodel", "text": "Subfloor adhesive", "type": "buy", "qty": null, "done": true, "created_at": "2026-10-10T18:43:23Z" },
+    { "job_key": "bathroom-remodel", "text": "Drywall patch", "type": "todo", "qty": null, "done": false, "created_at": "2026-10-10T19:36:42Z" },
+    { "job_key": "bathroom-remodel", "text": "Glass for shower", "type": "buy", "qty": null, "done": true, "created_at": "2026-10-10T20:40:55Z" },
+    { "job_key": "bathroom-remodel", "text": "Shower head piece from Randy Rogers", "type": "buy", "qty": null, "done": true, "created_at": "2026-10-10T20:54:04Z" },
+    { "job_key": "bathroom-remodel", "text": "Clear silicon", "type": "todo", "qty": null, "done": true, "created_at": "2026-10-15T18:44:47Z" },
+    { "job_key": "bathroom-remodel", "text": "Anchors", "type": "todo", "qty": null, "done": true, "created_at": "2026-10-15T18:44:55Z" },
+    { "job_key": "bathroom-remodel", "text": "Stainless steel pan heads", "type": "todo", "qty": null, "done": true, "created_at": "2026-10-15T18:44:59Z" },
+    { "job_key": "bathroom-remodel", "text": "Drill bit masonry", "type": "todo", "qty": null, "done": true, "created_at": "2026-10-15T18:45:13Z" },
+    { "job_key": "bathroom-remodel", "text": "Clear silicon", "type": "buy", "qty": null, "done": true, "created_at": "2026-10-15T18:45:34Z" },
+    { "job_key": "bathroom-remodel", "text": "Anchors", "type": "buy", "qty": null, "done": true, "created_at": "2026-10-15T18:45:44Z" },
+    { "job_key": "bathroom-remodel", "text": "Masonry drill bit", "type": "buy", "qty": null, "done": true, "created_at": "2026-10-15T18:45:48Z" },
+    { "job_key": "bathroom-remodel", "text": "Stainless pan heads", "type": "buy", "qty": null, "done": true, "created_at": "2026-10-15T18:45:56Z" },
+    { "job_key": "bathroom-remodel", "text": "White grout", "type": "buy", "qty": null, "done": true, "created_at": "2026-10-15T18:46:08Z" },
+    { "job_key": "bathroom-remodel", "text": "Metal drill bit (for channel)", "type": "buy", "qty": null, "done": true, "created_at": "2026-10-15T18:58:11Z" }
+  ]
+}
