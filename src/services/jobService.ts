@@ -26,6 +26,14 @@ export async function archiveJob(jobId: string) {
   })
 }
 
+export async function restoreJob(jobId: string) {
+  await updateDoc(doc(db, 'jobs', jobId), {
+    isArchived: false,
+    isDone: false,
+    updatedAt: serverTimestamp(),
+  })
+}
+
 export async function completeJob(jobId: string) {
   await updateDoc(doc(db, 'jobs', jobId), {
     isDone: true,

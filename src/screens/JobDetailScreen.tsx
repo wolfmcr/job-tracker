@@ -3,8 +3,8 @@ import { ArrowLeftIcon, MapPinIcon } from 'lucide-react'
 import { InlineAddRow } from '../components/items/InlineAddRow'
 import { ShoppingItemRow } from '../components/items/ShoppingItemRow'
 import { TodoItemRow } from '../components/items/TodoItemRow'
+import { useJob } from '../hooks/useJob'
 import { useShoppingItems, useTodoItems } from '../hooks/useJobItems'
-import { useJobs } from '../hooks/useJobs'
 import {
   addShoppingItem,
   addTodoItem,
@@ -12,6 +12,7 @@ import {
   completeJob,
   deleteShoppingItem,
   deleteTodoItem,
+  restoreJob,
   toggleShoppingItem,
   toggleTodoItem,
 } from '../services/jobService'
@@ -19,8 +20,7 @@ import {
 export function JobDetailScreen() {
   const { jobId } = useParams({ from: '/layout/jobs/$jobId' })
   const navigate = useNavigate()
-  const { jobs } = useJobs()
-  const job = jobs.find(j => j.id === jobId)
+  const job = useJob(jobId)
 
   const { items: shoppingItems } = useShoppingItems(jobId)
   const { items: todoItems } = useTodoItems(jobId)
@@ -28,9 +28,12 @@ export function JobDetailScreen() {
   if (!job) return null
 
   const mapsUrl = `https://maps.google.com/?q=${encodeURIComponent(job.address)}`
+  const readOnly = job.isArchived
 
   const sortedShopping = [...shoppingItems].sort((a, b) => Number(a.isGot) - Number(b.isGot))
   const sortedTodos = [...todoItems].sort((a, b) => Number(a.isDone) - Number(b.isDone))
+
+  const backRoute = readOnly ? '/archive' : '/jobs'
 
   async function handleComplete() {
     if (!window.confirm(`Mark "${job!.name}" as complete and archive it?`)) return
@@ -44,11 +47,16 @@ export function JobDetailScreen() {
     navigate({ to: '/jobs' })
   }
 
+  async function handleRestore() {
+    await restoreJob(jobId)
+    navigate({ to: '/jobs' })
+  }
+
   return (
     <div className="pb-4">
       {/* Header */}
       <div className="flex items-center gap-3 px-4 pt-12 pb-4">
-        <button type="button" onClick={() => navigate({ to: '/jobs' })} className="text-gray-400 -ml-1 p-1">
+        <button type="button" onClick={() => navigate({ to: backRoute })} className="text-gray-400 -ml-1 p-1">
           <ArrowLeftIcon size={22} />
         </button>
         <div className="flex-1 min-w-0">
@@ -61,6 +69,9 @@ export function JobDetailScreen() {
             </a>
           )}
         </div>
+        {readOnly && (
+          <span className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded-full">Archived</span>
+        )}
       </div>
 
       {/* Shopping list */}
@@ -70,15 +81,18 @@ export function JobDetailScreen() {
           <ShoppingItemRow
             key={item.id}
             item={item}
-            onToggle={() => toggleShoppingItem(jobId, item.id, !item.isGot)}
-            onDelete={() => deleteShoppingItem(jobId, item.id)}
+            onToggle={readOnly ? () => {} : () => toggleShoppingItem(jobId, item.id, !item.isGot)}
+            onDelete={readOnly ? () => {} : () => deleteShoppingItem(jobId, item.id)}
+            readOnly={readOnly}
           />
         ))}
-        <InlineAddRow
-          hasQty
-          placeholder="Item name…"
-          onAdd={(name, qty) => addShoppingItem(jobId, qty ?? '', name)}
-        />
+        {!readOnly && (
+          <InlineAddRow
+            hasQty
+            placeholder="Item name…"
+            onAdd={(name, qty) => addShoppingItem(jobId, qty ?? '', name)}
+          />
+        )}
       </div>
 
       {/* To-do list */}
@@ -88,32 +102,47 @@ export function JobDetailScreen() {
           <TodoItemRow
             key={item.id}
             item={item}
-            onToggle={() => toggleTodoItem(jobId, item.id, !item.isDone)}
-            onDelete={() => deleteTodoItem(jobId, item.id)}
+            onToggle={readOnly ? () => {} : () => toggleTodoItem(jobId, item.id, !item.isDone)}
+            onDelete={readOnly ? () => {} : () => deleteTodoItem(jobId, item.id)}
+            readOnly={readOnly}
           />
         ))}
-        <InlineAddRow
-          placeholder="Task…"
-          onAdd={(text) => addTodoItem(jobId, text)}
-        />
+        {!readOnly && (
+          <InlineAddRow
+            placeholder="Task…"
+            onAdd={(text) => addTodoItem(jobId, text)}
+          />
+        )}
       </div>
 
       {/* Actions */}
       <div className="mt-8 px-4 flex flex-col gap-3">
-        <button
-          type="button"
-          onClick={handleComplete}
-          className="w-full py-3 bg-green-600 text-white font-semibold rounded-xl text-sm active:bg-green-700"
-        >
-          Complete job
-        </button>
-        <button
-          type="button"
-          onClick={handleArchive}
-          className="w-full py-3 border border-gray-200 rounded-xl text-sm text-gray-400"
-        >
-          Archive without completing
-        </button>
+        {readOnly ? (
+          <button
+            type="button"
+            onClick={handleRestore}
+            className="w-full py-3 border border-gray-200 rounded-xl text-sm text-gray-500"
+          >
+            Restore job
+          </button>
+        ) : (
+          <>
+            <button
+              type="button"
+              onClick={handleComplete}
+              className="w-full py-3 bg-green-600 text-white font-semibold rounded-xl text-sm active:bg-green-700"
+            >
+              Complete job
+            </button>
+            <button
+              type="button"
+              onClick={handleArchive}
+              className="w-full py-3 border border-gray-200 rounded-xl text-sm text-gray-400"
+            >
+              Archive without completing
+            </button>
+          </>
+        )}
       </div>
     </div>
   )
