@@ -13,6 +13,15 @@ export async function addJob(name: string, address: string, color: string) {
   })
 }
 
+export async function updateJob(jobId: string, name: string, address: string, color: string) {
+  await updateDoc(doc(db, 'jobs', jobId), {
+    name,
+    address,
+    color,
+    updatedAt: serverTimestamp(),
+  })
+}
+
 export async function toggleJobDone(jobId: string, isDone: boolean) {
   await updateDoc(doc(db, 'jobs', jobId), {
     isDone,
@@ -56,6 +65,10 @@ export async function toggleShoppingItem(jobId: string, itemId: string, isGot: b
   await updateDoc(doc(db, 'jobs', jobId, 'shoppingItems', itemId), { isGot })
 }
 
+export async function updateShoppingItem(jobId: string, itemId: string, qty: string, name: string) {
+  await updateDoc(doc(db, 'jobs', jobId, 'shoppingItems', itemId), { qty, name })
+}
+
 export async function deleteShoppingItem(jobId: string, itemId: string) {
   const { deleteDoc } = await import('firebase/firestore')
   await deleteDoc(doc(db, 'jobs', jobId, 'shoppingItems', itemId))
@@ -71,6 +84,10 @@ export async function addTodoItem(jobId: string, text: string) {
 
 export async function toggleTodoItem(jobId: string, itemId: string, isDone: boolean) {
   await updateDoc(doc(db, 'jobs', jobId, 'todoItems', itemId), { isDone })
+}
+
+export async function updateTodoItem(jobId: string, itemId: string, text: string) {
+  await updateDoc(doc(db, 'jobs', jobId, 'todoItems', itemId), { text })
 }
 
 export async function deleteTodoItem(jobId: string, itemId: string) {

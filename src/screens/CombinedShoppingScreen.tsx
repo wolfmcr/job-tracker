@@ -3,7 +3,7 @@ import { ShoppingItemRow } from '../components/items/ShoppingItemRow'
 import { EmptyState } from '../components/ui/EmptyState'
 import { useCombinedShoppingItems } from '../hooks/useCombinedItems'
 import { useJobs } from '../hooks/useJobs'
-import { deleteShoppingItem, toggleShoppingItem } from '../services/jobService'
+import { deleteShoppingItem, toggleShoppingItem, updateShoppingItem } from '../services/jobService'
 
 export function CombinedShoppingScreen() {
   const { jobs } = useJobs()
@@ -42,6 +42,7 @@ export function CombinedShoppingScreen() {
                 item={item}
                 onToggle={() => toggleShoppingItem(job.id, item.id, !item.isGot)}
                 onDelete={() => deleteShoppingItem(job.id, item.id)}
+                onUpdate={(qty, name) => updateShoppingItem(job.id, item.id, qty, name)}
               />
             ))}
           </div>

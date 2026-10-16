@@ -3,7 +3,7 @@ import { TodoItemRow } from '../components/items/TodoItemRow'
 import { EmptyState } from '../components/ui/EmptyState'
 import { useCombinedTodoItems } from '../hooks/useCombinedItems'
 import { useJobs } from '../hooks/useJobs'
-import { deleteTodoItem, toggleTodoItem } from '../services/jobService'
+import { deleteTodoItem, toggleTodoItem, updateTodoItem } from '../services/jobService'
 
 export function CombinedTodoScreen() {
   const { jobs } = useJobs()
@@ -42,6 +42,7 @@ export function CombinedTodoScreen() {
                 item={item}
                 onToggle={() => toggleTodoItem(job.id, item.id, !item.isDone)}
                 onDelete={() => deleteTodoItem(job.id, item.id)}
+                onUpdate={(text) => updateTodoItem(job.id, item.id, text)}
               />
             ))}
           </div>

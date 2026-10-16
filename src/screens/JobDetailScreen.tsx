@@ -1,5 +1,7 @@
 import { useNavigate, useParams } from '@tanstack/react-router'
-import { ArrowLeftIcon, MapPinIcon } from 'lucide-react'
+import { ArrowLeftIcon, MapPinIcon, PencilIcon } from 'lucide-react'
+import { useState } from 'react'
+import { EditJobSheet } from '../components/jobs/EditJobSheet'
 import { InlineAddRow } from '../components/items/InlineAddRow'
 import { ShoppingItemRow } from '../components/items/ShoppingItemRow'
 import { TodoItemRow } from '../components/items/TodoItemRow'
@@ -15,12 +17,15 @@ import {
   restoreJob,
   toggleShoppingItem,
   toggleTodoItem,
+  updateShoppingItem,
+  updateTodoItem,
 } from '../services/jobService'
 
 export function JobDetailScreen() {
   const { jobId } = useParams({ from: '/layout/jobs/$jobId' })
   const navigate = useNavigate()
   const job = useJob(jobId)
+  const [editOpen, setEditOpen] = useState(false)
 
   const { items: shoppingItems } = useShoppingItems(jobId)
   const { items: todoItems } = useTodoItems(jobId)
@@ -69,8 +74,12 @@ export function JobDetailScreen() {
             </a>
           )}
         </div>
-        {readOnly && (
+        {readOnly ? (
           <span className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded-full">Archived</span>
+        ) : (
+          <button type="button" onClick={() => setEditOpen(true)} className="text-gray-400 p-1 -mr-1">
+            <PencilIcon size={18} />
+          </button>
         )}
       </div>
 
@@ -83,6 +92,7 @@ export function JobDetailScreen() {
             item={item}
             onToggle={readOnly ? () => {} : () => toggleShoppingItem(jobId, item.id, !item.isGot)}
             onDelete={readOnly ? () => {} : () => deleteShoppingItem(jobId, item.id)}
+            onUpdate={(qty, name) => updateShoppingItem(jobId, item.id, qty, name)}
             readOnly={readOnly}
           />
         ))}
@@ -104,6 +114,7 @@ export function JobDetailScreen() {
             item={item}
             onToggle={readOnly ? () => {} : () => toggleTodoItem(jobId, item.id, !item.isDone)}
             onDelete={readOnly ? () => {} : () => deleteTodoItem(jobId, item.id)}
+            onUpdate={(text) => updateTodoItem(jobId, item.id, text)}
             readOnly={readOnly}
           />
         ))}
@@ -144,6 +155,9 @@ export function JobDetailScreen() {
           </>
         )}
       </div>
+      {!readOnly && (
+        <EditJobSheet job={job} open={editOpen} onClose={() => setEditOpen(false)} />
+      )}
     </div>
   )
 }
