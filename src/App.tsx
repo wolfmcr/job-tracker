@@ -1,6 +1,8 @@
 import { createRootRoute, createRoute, createRouter, Outlet, redirect, RouterProvider } from '@tanstack/react-router'
 import { AppShell } from './components/layout/AppShell'
 import { useAuth } from './hooks/useAuth'
+import { CombinedShoppingScreen } from './screens/CombinedShoppingScreen'
+import { CombinedTodoScreen } from './screens/CombinedTodoScreen'
 import { JobDetailScreen } from './screens/JobDetailScreen'
 import { JobsScreen } from './screens/JobsScreen'
 import { LoginScreen } from './screens/LoginScreen'
@@ -36,13 +38,13 @@ const jobsRoute = createRoute({
 const shoppingRoute = createRoute({
   getParentRoute: () => layoutRoute,
   path: '/shopping',
-  component: () => <PlaceholderScreen name="Shopping" />,
+  component: CombinedShoppingScreen,
 })
 
 const todoRoute = createRoute({
   getParentRoute: () => layoutRoute,
   path: '/todo',
-  component: () => <PlaceholderScreen name="To-Do" />,
+  component: CombinedTodoScreen,
 })
 
 const archiveRoute = createRoute({
