@@ -1,0 +1,28 @@
+import { XIcon } from 'lucide-react'
+import type { ShoppingItem } from '../../types'
+
+interface Props {
+  item: ShoppingItem
+  onToggle: () => void
+  onDelete: () => void
+}
+
+export function ShoppingItemRow({ item, onToggle, onDelete }: Props) {
+  return (
+    <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-100">
+      <input
+        type="checkbox"
+        checked={item.isGot}
+        onChange={onToggle}
+        className="w-5 h-5 accent-blue-600 shrink-0"
+      />
+      <span className={`flex-1 text-sm ${item.isGot ? 'line-through text-gray-400' : 'text-gray-800'}`}>
+        {item.qty ? <span className="font-medium text-gray-500 mr-1">{item.qty}</span> : null}
+        {item.name}
+      </span>
+      <button type="button" onClick={onDelete} className="text-gray-300 active:text-red-500 p-1 -mr-1">
+        <XIcon size={16} />
+      </button>
+    </div>
+  )
+}

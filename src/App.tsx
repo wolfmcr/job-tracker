@@ -1,6 +1,7 @@
 import { createRootRoute, createRoute, createRouter, Outlet, redirect, RouterProvider } from '@tanstack/react-router'
 import { AppShell } from './components/layout/AppShell'
 import { useAuth } from './hooks/useAuth'
+import { JobDetailScreen } from './screens/JobDetailScreen'
 import { JobsScreen } from './screens/JobsScreen'
 import { LoginScreen } from './screens/LoginScreen'
 
@@ -50,9 +51,15 @@ const archiveRoute = createRoute({
   component: () => <PlaceholderScreen name="Archive" />,
 })
 
+const jobDetailRoute = createRoute({
+  getParentRoute: () => layoutRoute,
+  path: '/jobs/$jobId',
+  component: JobDetailScreen,
+})
+
 const routeTree = rootRoute.addChildren([
   indexRoute,
-  layoutRoute.addChildren([jobsRoute, shoppingRoute, todoRoute, archiveRoute]),
+  layoutRoute.addChildren([jobsRoute, jobDetailRoute, shoppingRoute, todoRoute, archiveRoute]),
 ])
 
 const router = createRouter({ routeTree })

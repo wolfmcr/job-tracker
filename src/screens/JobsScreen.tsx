@@ -1,4 +1,5 @@
 import { useMutation } from '@tanstack/react-query'
+import { useNavigate } from '@tanstack/react-router'
 import { BriefcaseIcon } from 'lucide-react'
 import { useState } from 'react'
 import { AddJobSheet } from '../components/jobs/AddJobSheet'
@@ -10,6 +11,7 @@ import { toggleJobDone } from '../services/jobService'
 
 export function JobsScreen() {
   const { jobs, loading } = useJobs()
+  const navigate = useNavigate()
   const [sheetOpen, setSheetOpen] = useState(false)
 
   const toggleDone = useMutation({
@@ -43,7 +45,7 @@ export function JobsScreen() {
               key={job.id}
               job={job}
               onToggleDone={(isDone) => toggleDone.mutate({ jobId: job.id, isDone })}
-              onTap={() => {}}
+              onTap={() => navigate({ to: '/jobs/$jobId', params: { jobId: job.id } })}
             />
           ))}
         </div>
