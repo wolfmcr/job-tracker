@@ -1,10 +1,11 @@
 import { addDoc, collection, doc, serverTimestamp, updateDoc } from 'firebase/firestore'
 import { db } from '../lib/firebase'
 
-export async function addJob(name: string, address: string) {
+export async function addJob(name: string, address: string, color: string) {
   await addDoc(collection(db, 'jobs'), {
     name,
     address,
+    color,
     isDone: false,
     isArchived: false,
     createdAt: serverTimestamp(),

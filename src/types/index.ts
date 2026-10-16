@@ -4,6 +4,7 @@ export interface Job {
   id: string
   name: string
   address: string
+  color: string
   isDone: boolean
   isArchived: boolean
   createdAt: Timestamp
