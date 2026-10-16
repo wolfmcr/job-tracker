@@ -1,4 +1,4 @@
-import { addDoc, collection, doc, serverTimestamp, updateDoc } from 'firebase/firestore'
+import { addDoc, collection, deleteDoc, doc, serverTimestamp, updateDoc } from 'firebase/firestore'
 import { db } from '../lib/firebase'
 
 export async function addJob(name: string, address: string, color: string) {
@@ -70,7 +70,6 @@ export async function updateShoppingItem(jobId: string, itemId: string, qty: str
 }
 
 export async function deleteShoppingItem(jobId: string, itemId: string) {
-  const { deleteDoc } = await import('firebase/firestore')
   await deleteDoc(doc(db, 'jobs', jobId, 'shoppingItems', itemId))
 }
 
@@ -91,6 +90,5 @@ export async function updateTodoItem(jobId: string, itemId: string, text: string
 }
 
 export async function deleteTodoItem(jobId: string, itemId: string) {
-  const { deleteDoc } = await import('firebase/firestore')
   await deleteDoc(doc(db, 'jobs', jobId, 'todoItems', itemId))
 }
