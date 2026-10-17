@@ -103,7 +103,6 @@ export function JobDetailScreen() {
           >
             <NavigationIcon size={16} style={{ color }} className="shrink-0" />
             <span className="flex-1 text-sm text-gray-700 truncate">{job.address}</span>
-            <span className="text-xs font-semibold shrink-0" style={{ color }}>Open</span>
           </a>
         )}
       </div>
