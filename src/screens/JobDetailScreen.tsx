@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from '@tanstack/react-router'
-import { ArrowLeftIcon, NavigationIcon, PencilIcon } from 'lucide-react'
+import { ArrowLeftIcon, ChevronRightIcon, NavigationIcon, PencilIcon } from 'lucide-react'
 import { useState } from 'react'
 import { DEFAULT_JOB_COLOR } from '../constants/colors'
 import { EditJobSheet } from '../components/jobs/EditJobSheet'
@@ -103,6 +103,7 @@ export function JobDetailScreen() {
           >
             <NavigationIcon size={16} style={{ color }} className="shrink-0" />
             <span className="flex-1 text-sm text-gray-700 truncate">{job.address}</span>
+            <ChevronRightIcon size={16} className="text-gray-300 shrink-0" />
           </a>
         )}
       </div>
