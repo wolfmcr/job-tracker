@@ -112,8 +112,15 @@ export function JobDetailScreen() {
 
       {/* Shopping list */}
       <div className="mt-2">
-        <p className="px-4 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wide">Shopping</p>
-        {sortedShopping.filter(i => !i.isGot).map(item => (
+        <div className="flex items-center justify-between px-4 py-2">
+          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Shopping</p>
+          {sortedShopping.filter(i => i.isGot).length > 0 && (
+            <button type="button" onClick={() => setShowDoneShopping(v => !v)} className="text-xs text-gray-400">
+              {showDoneShopping ? 'Hide completed' : `${sortedShopping.filter(i => i.isGot).length} completed`}
+            </button>
+          )}
+        </div>
+        {showDoneShopping && sortedShopping.filter(i => i.isGot).map(item => (
           <ShoppingItemRow
             key={item.id}
             item={item}
@@ -123,16 +130,7 @@ export function JobDetailScreen() {
             readOnly={readOnly}
           />
         ))}
-        {sortedShopping.filter(i => i.isGot).length > 0 && (
-          <button
-            type="button"
-            onClick={() => setShowDoneShopping(v => !v)}
-            className="w-full px-4 py-2.5 text-sm text-gray-400 text-left border-t border-gray-100"
-          >
-            {showDoneShopping ? 'Hide got' : `Show ${sortedShopping.filter(i => i.isGot).length} got`}
-          </button>
-        )}
-        {showDoneShopping && sortedShopping.filter(i => i.isGot).map(item => (
+        {sortedShopping.filter(i => !i.isGot).map(item => (
           <ShoppingItemRow
             key={item.id}
             item={item}
@@ -155,8 +153,15 @@ export function JobDetailScreen() {
 
       {/* To-do list */}
       <div className="mt-4">
-        <p className="px-4 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wide">To-Do</p>
-        {sortedTodos.filter(i => !i.isDone).map(item => (
+        <div className="flex items-center justify-between px-4 py-2">
+          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">To-Do</p>
+          {sortedTodos.filter(i => i.isDone).length > 0 && (
+            <button type="button" onClick={() => setShowDoneTodos(v => !v)} className="text-xs text-gray-400">
+              {showDoneTodos ? 'Hide completed' : `${sortedTodos.filter(i => i.isDone).length} completed`}
+            </button>
+          )}
+        </div>
+        {showDoneTodos && sortedTodos.filter(i => i.isDone).map(item => (
           <TodoItemRow
             key={item.id}
             item={item}
@@ -166,16 +171,7 @@ export function JobDetailScreen() {
             readOnly={readOnly}
           />
         ))}
-        {sortedTodos.filter(i => i.isDone).length > 0 && (
-          <button
-            type="button"
-            onClick={() => setShowDoneTodos(v => !v)}
-            className="w-full px-4 py-2.5 text-sm text-gray-400 text-left border-t border-gray-100"
-          >
-            {showDoneTodos ? 'Hide done' : `Show ${sortedTodos.filter(i => i.isDone).length} done`}
-          </button>
-        )}
-        {showDoneTodos && sortedTodos.filter(i => i.isDone).map(item => (
+        {sortedTodos.filter(i => !i.isDone).map(item => (
           <TodoItemRow
             key={item.id}
             item={item}
