@@ -27,6 +27,8 @@ export function JobDetailScreen() {
   const navigate = useNavigate()
   const job = useJob(jobId)
   const [editOpen, setEditOpen] = useState(false)
+  const [showDoneShopping, setShowDoneShopping] = useState(false)
+  const [showDoneTodos, setShowDoneTodos] = useState(false)
 
   const { items: shoppingItems } = useShoppingItems(jobId)
   const { items: todoItems } = useTodoItems(jobId)
@@ -109,7 +111,26 @@ export function JobDetailScreen() {
       {/* Shopping list */}
       <div className="mt-2">
         <p className="px-4 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wide">Shopping</p>
-        {sortedShopping.map(item => (
+        {sortedShopping.filter(i => !i.isGot).map(item => (
+          <ShoppingItemRow
+            key={item.id}
+            item={item}
+            onToggle={readOnly ? () => {} : () => toggleShoppingItem(jobId, item.id, !item.isGot)}
+            onDelete={readOnly ? () => {} : () => deleteShoppingItem(jobId, item.id)}
+            onUpdate={(qty, name) => updateShoppingItem(jobId, item.id, qty, name)}
+            readOnly={readOnly}
+          />
+        ))}
+        {sortedShopping.filter(i => i.isGot).length > 0 && (
+          <button
+            type="button"
+            onClick={() => setShowDoneShopping(v => !v)}
+            className="w-full px-4 py-2.5 text-sm text-gray-400 text-left border-t border-gray-100"
+          >
+            {showDoneShopping ? 'Hide got' : `Show ${sortedShopping.filter(i => i.isGot).length} got`}
+          </button>
+        )}
+        {showDoneShopping && sortedShopping.filter(i => i.isGot).map(item => (
           <ShoppingItemRow
             key={item.id}
             item={item}
@@ -131,7 +152,26 @@ export function JobDetailScreen() {
       {/* To-do list */}
       <div className="mt-4">
         <p className="px-4 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wide">To-Do</p>
-        {sortedTodos.map(item => (
+        {sortedTodos.filter(i => !i.isDone).map(item => (
+          <TodoItemRow
+            key={item.id}
+            item={item}
+            onToggle={readOnly ? () => {} : () => toggleTodoItem(jobId, item.id, !item.isDone)}
+            onDelete={readOnly ? () => {} : () => deleteTodoItem(jobId, item.id)}
+            onUpdate={(text) => updateTodoItem(jobId, item.id, text)}
+            readOnly={readOnly}
+          />
+        ))}
+        {sortedTodos.filter(i => i.isDone).length > 0 && (
+          <button
+            type="button"
+            onClick={() => setShowDoneTodos(v => !v)}
+            className="w-full px-4 py-2.5 text-sm text-gray-400 text-left border-t border-gray-100"
+          >
+            {showDoneTodos ? 'Hide done' : `Show ${sortedTodos.filter(i => i.isDone).length} done`}
+          </button>
+        )}
+        {showDoneTodos && sortedTodos.filter(i => i.isDone).map(item => (
           <TodoItemRow
             key={item.id}
             item={item}
