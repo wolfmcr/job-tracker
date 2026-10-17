@@ -1,4 +1,4 @@
-import { XIcon } from 'lucide-react'
+import { FlagIcon, XIcon } from 'lucide-react'
 import { useRef, useState } from 'react'
 import type { TodoItem } from '../../types'
 
@@ -7,13 +7,28 @@ interface Props {
   onToggle: () => void
   onDelete: () => void
   onUpdate: (text: string) => void
+  onSetPriority?: (priority: number) => void
+  jobColor?: string
   readOnly?: boolean
 }
 
-export function TodoItemRow({ item, onToggle, onDelete, onUpdate, readOnly = false }: Props) {
+function nextPriority(p: number) {
+  if (p === 0) return 2
+  if (p === 2) return 1
+  return 0
+}
+
+function flagStyle(p: number): { color: string; fill: string } {
+  if (p === 2) return { color: '#ef4444', fill: '#ef4444' }
+  if (p === 1) return { color: '#f59e0b', fill: '#f59e0b' }
+  return { color: '#d1d5db', fill: 'none' }
+}
+
+export function TodoItemRow({ item, onToggle, onDelete, onUpdate, onSetPriority, jobColor, readOnly = false }: Props) {
   const [editing, setEditing] = useState(false)
   const [text, setText] = useState(item.text)
   const inputRef = useRef<HTMLInputElement>(null)
+  const priority = item.priority ?? 0
 
   function startEdit() {
     if (readOnly) return
@@ -33,14 +48,20 @@ export function TodoItemRow({ item, onToggle, onDelete, onUpdate, readOnly = fal
     if (e.key === 'Escape') setEditing(false)
   }
 
+  const { color: flagColor, fill: flagFill } = flagStyle(priority)
+
   return (
     <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-100">
+      {jobColor && (
+        <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: jobColor }} />
+      )}
       <input
         type="checkbox"
         checked={item.isDone}
         onChange={onToggle}
         disabled={readOnly}
-        className="w-5 h-5 accent-blue-600 shrink-0"
+        className="w-5 h-5 shrink-0"
+        style={{ accentColor: jobColor ?? '#2563eb' }}
       />
       {editing ? (
         <input
@@ -60,8 +81,17 @@ export function TodoItemRow({ item, onToggle, onDelete, onUpdate, readOnly = fal
           {item.text}
         </span>
       )}
+      {!readOnly && !editing && onSetPriority && (
+        <button
+          type="button"
+          onClick={() => onSetPriority(nextPriority(priority))}
+          className="p-1 shrink-0 active:opacity-60"
+        >
+          <FlagIcon size={15} style={{ color: flagColor, fill: flagFill }} />
+        </button>
+      )}
       {!readOnly && !editing && (
-        <button type="button" onClick={onDelete} className="text-gray-300 active:text-red-500 p-1 -mr-1">
+        <button type="button" onClick={onDelete} className="text-gray-300 active:text-red-500 p-1 -mr-1 shrink-0">
           <XIcon size={16} />
         </button>
       )}

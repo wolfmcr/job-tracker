@@ -1,61 +1,113 @@
 import { CheckSquareIcon } from 'lucide-react'
+import { useMemo, useState } from 'react'
 import { TodoItemRow } from '../components/items/TodoItemRow'
 import { EmptyState } from '../components/ui/EmptyState'
 import { DEFAULT_JOB_COLOR } from '../constants/colors'
 import { useCombinedTodoItems } from '../hooks/useCombinedItems'
 import { useJobs } from '../hooks/useJobs'
-import { deleteTodoItem, toggleTodoItem, updateTodoItem } from '../services/jobService'
+import { deleteTodoItem, setTodoItemPriority, toggleTodoItem, updateTodoItem } from '../services/jobService'
+import type { TodoItem } from '../types'
+
+type SortKey = 'priority' | 'job' | 'added'
 
 export function CombinedTodoScreen() {
   const { jobs } = useJobs()
   const allItems = useCombinedTodoItems()
+  const [sort, setSort] = useState<SortKey>('priority')
+  const [showCompleted, setShowCompleted] = useState(false)
 
-  const grouped = jobs
-    .map(job => ({
-      job,
-      items: [...allItems.filter(i => i.jobId === job.id)]
-        .sort((a, b) => Number(a.isDone) - Number(b.isDone)),
-    }))
-    .filter(g => g.items.length > 0)
+  const jobMap = useMemo(() => new Map(jobs.map(j => [j.id, j])), [jobs])
 
-  const totalRemaining = allItems.filter(i => !i.isDone).length
+  function sortItems(items: TodoItem[]) {
+    const sorted = [...items]
+    if (sort === 'job') {
+      sorted.sort((a, b) => {
+        const nameA = jobMap.get(a.jobId)?.name ?? ''
+        const nameB = jobMap.get(b.jobId)?.name ?? ''
+        return nameA.localeCompare(nameB) || (b.priority ?? 0) - (a.priority ?? 0)
+      })
+    } else if (sort === 'added') {
+      sorted.sort((a, b) => a.createdAt.toMillis() - b.createdAt.toMillis())
+    } else {
+      sorted.sort((a, b) => (b.priority ?? 0) - (a.priority ?? 0) || a.createdAt.toMillis() - b.createdAt.toMillis())
+    }
+    return sorted
+  }
+
+  const incomplete = sortItems(allItems.filter(i => !i.isDone))
+  const completed = sortItems(allItems.filter(i => i.isDone))
 
   return (
     <div>
-      <div className="px-4 pt-12 pb-2 flex items-baseline justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">To-Do</h1>
-        {totalRemaining > 0 && (
-          <span className="text-sm text-gray-400">{totalRemaining} left</span>
-        )}
+      <div className="px-4 pt-12 pb-3">
+        <div className="flex items-baseline justify-between mb-3">
+          <h1 className="text-2xl font-bold text-gray-900">To-Do</h1>
+          {incomplete.length > 0 && (
+            <span className="text-sm text-gray-400">{incomplete.length} left</span>
+          )}
+        </div>
+        <div className="flex gap-2">
+          {(['priority', 'job', 'added'] as SortKey[]).map(key => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => setSort(key)}
+              className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                sort === key ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-500'
+              }`}
+            >
+              {key === 'priority' ? 'Priority' : key === 'job' ? 'Job' : 'Added'}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {grouped.length === 0 ? (
+      {allItems.length === 0 ? (
         <EmptyState icon={<CheckSquareIcon size={40} />} message="Nothing to do." />
       ) : (
-        grouped.map(({ job, items }) => {
-          const color = job.color || DEFAULT_JOB_COLOR
-          const remaining = items.filter(i => !i.isDone).length
-          return (
-            <div key={job.id} className="mt-4">
-              <div className="px-4 py-2 flex items-center gap-2 bg-gray-50 border-y border-gray-100">
-                <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: color }} />
-                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{job.name}</span>
-                {remaining > 0 && (
-                  <span className="ml-auto text-xs text-gray-400">{remaining} left</span>
-                )}
-              </div>
-              {items.map(item => (
-                <TodoItemRow
-                  key={item.id}
-                  item={item}
-                  onToggle={() => toggleTodoItem(job.id, item.id, !item.isDone)}
-                  onDelete={() => deleteTodoItem(job.id, item.id)}
-                  onUpdate={(text) => updateTodoItem(job.id, item.id, text)}
-                />
-              ))}
-            </div>
-          )
-        })
+        <>
+          {incomplete.map(item => {
+            const job = jobMap.get(item.jobId)
+            const color = job?.color || DEFAULT_JOB_COLOR
+            return (
+              <TodoItemRow
+                key={item.id}
+                item={item}
+                jobColor={color}
+                onToggle={() => toggleTodoItem(item.jobId, item.id, !item.isDone)}
+                onDelete={() => deleteTodoItem(item.jobId, item.id)}
+                onUpdate={(text) => updateTodoItem(item.jobId, item.id, text)}
+                onSetPriority={(p) => setTodoItemPriority(item.jobId, item.id, p)}
+              />
+            )
+          })}
+
+          {completed.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setShowCompleted(v => !v)}
+              className="w-full px-4 py-3 text-sm text-gray-400 text-left border-t border-gray-100"
+            >
+              {showCompleted ? 'Hide completed' : `Show ${completed.length} completed`}
+            </button>
+          )}
+
+          {showCompleted && completed.map(item => {
+            const job = jobMap.get(item.jobId)
+            const color = job?.color || DEFAULT_JOB_COLOR
+            return (
+              <TodoItemRow
+                key={item.id}
+                item={item}
+                jobColor={color}
+                onToggle={() => toggleTodoItem(item.jobId, item.id, !item.isDone)}
+                onDelete={() => deleteTodoItem(item.jobId, item.id)}
+                onUpdate={(text) => updateTodoItem(item.jobId, item.id, text)}
+                onSetPriority={(p) => setTodoItemPriority(item.jobId, item.id, p)}
+              />
+            )
+          })}
+        </>
       )}
     </div>
   )

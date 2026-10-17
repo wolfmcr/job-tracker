@@ -18,6 +18,7 @@ export interface ShoppingItem {
   qty: string
   name: string
   isGot: boolean
+  priority?: number
   createdAt: Timestamp
 }
 
@@ -27,5 +28,6 @@ export interface TodoItem {
   jobName?: string
   text: string
   isDone: boolean
+  priority?: number
   createdAt: Timestamp
 }

@@ -65,6 +65,10 @@ export async function toggleShoppingItem(jobId: string, itemId: string, isGot: b
   await updateDoc(doc(db, 'jobs', jobId, 'shoppingItems', itemId), { isGot })
 }
 
+export async function setShoppingItemPriority(jobId: string, itemId: string, priority: number) {
+  await updateDoc(doc(db, 'jobs', jobId, 'shoppingItems', itemId), { priority })
+}
+
 export async function updateShoppingItem(jobId: string, itemId: string, qty: string, name: string) {
   await updateDoc(doc(db, 'jobs', jobId, 'shoppingItems', itemId), { qty, name })
 }
@@ -83,6 +87,10 @@ export async function addTodoItem(jobId: string, text: string) {
 
 export async function toggleTodoItem(jobId: string, itemId: string, isDone: boolean) {
   await updateDoc(doc(db, 'jobs', jobId, 'todoItems', itemId), { isDone })
+}
+
+export async function setTodoItemPriority(jobId: string, itemId: string, priority: number) {
+  await updateDoc(doc(db, 'jobs', jobId, 'todoItems', itemId), { priority })
 }
 
 export async function updateTodoItem(jobId: string, itemId: string, text: string) {
