@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from '@tanstack/react-router'
-import { ArrowLeftIcon, MapPinIcon, PencilIcon } from 'lucide-react'
+import { ArrowLeftIcon, NavigationIcon, PencilIcon } from 'lucide-react'
 import { useState } from 'react'
 import { DEFAULT_JOB_COLOR } from '../constants/colors'
 import { EditJobSheet } from '../components/jobs/EditJobSheet'
@@ -62,35 +62,47 @@ export function JobDetailScreen() {
   return (
     <div className="pb-4">
       {/* Colored top accent */}
-      <div className="h-1.5 w-full pt-safe" style={{ backgroundColor: color }} />
+      <div className="h-1.5 w-full" style={{ backgroundColor: color }} />
 
-      {/* Header */}
-      <div
-        className="flex items-center gap-3 px-4 pt-10 pb-4"
-        style={{ background: `linear-gradient(to bottom, ${color}18, transparent)` }}
-      >
-        <button type="button" onClick={() => navigate({ to: backRoute })} className="text-gray-500 -ml-1 p-1">
-          <ArrowLeftIcon size={22} />
+      {/* Nav strip */}
+      <div className="flex items-center justify-between px-4 pt-3 pb-2">
+        <button type="button" onClick={() => navigate({ to: backRoute })} className="flex items-center gap-1 text-gray-500 -ml-1 p-1">
+          <ArrowLeftIcon size={20} />
         </button>
-        <div className="flex-1 min-w-0 flex items-center gap-2.5">
-          <div className="w-4 h-4 rounded-full shrink-0 shadow-sm" style={{ backgroundColor: color }} />
-          <div className="min-w-0">
-            <h1 className="text-xl font-bold text-gray-900 truncate">{job.name}</h1>
-            {job.address && (
-              <a href={mapsUrl} target="_blank" rel="noopener noreferrer"
-                className="flex items-center gap-1 text-sm" style={{ color }}>
-                <MapPinIcon size={12} />
-                <span className="truncate">{job.address}</span>
-              </a>
-            )}
+        {readOnly ? (
+          <span className="text-xs text-gray-400 bg-gray-100 px-3 py-1.5 rounded-full">Archived</span>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setEditOpen(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium border border-gray-200 text-gray-600 active:bg-gray-50"
+          >
+            <PencilIcon size={13} />
+            Edit
+          </button>
+        )}
+      </div>
+
+      {/* Info card */}
+      <div className="mx-4 mb-4 rounded-2xl overflow-hidden shadow-sm border border-gray-100">
+        <div className="px-4 pt-4 pb-3" style={{ backgroundColor: `${color}18` }}>
+          <div className="flex items-center gap-2.5 mb-1">
+            <div className="w-3.5 h-3.5 rounded-full shrink-0" style={{ backgroundColor: color }} />
+            <h1 className="text-xl font-bold text-gray-900">{job.name}</h1>
           </div>
         </div>
-        {readOnly ? (
-          <span className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded-full shrink-0">Archived</span>
-        ) : (
-          <button type="button" onClick={() => setEditOpen(true)} className="text-gray-400 p-1 -mr-1 shrink-0">
-            <PencilIcon size={18} />
-          </button>
+        {job.address && (
+          <a
+            href={mapsUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-3 px-4 py-3 bg-white border-t border-gray-100 active:bg-gray-50"
+            onClick={e => e.stopPropagation()}
+          >
+            <NavigationIcon size={16} style={{ color }} className="shrink-0" />
+            <span className="flex-1 text-sm text-gray-700 truncate">{job.address}</span>
+            <span className="text-xs font-semibold shrink-0" style={{ color }}>Open</span>
+          </a>
         )}
       </div>
 
