@@ -74,6 +74,7 @@ export function CombinedTodoScreen() {
                 key={item.id}
                 item={item}
                 jobColor={color}
+                jobName={job?.name}
                 onToggle={() => toggleTodoItem(item.jobId, item.id, !item.isDone)}
                 onDelete={() => deleteTodoItem(item.jobId, item.id)}
                 onUpdate={(text) => updateTodoItem(item.jobId, item.id, text)}
@@ -100,6 +101,7 @@ export function CombinedTodoScreen() {
                 key={item.id}
                 item={item}
                 jobColor={color}
+                jobName={job?.name}
                 onToggle={() => toggleTodoItem(item.jobId, item.id, !item.isDone)}
                 onDelete={() => deleteTodoItem(item.jobId, item.id)}
                 onUpdate={(text) => updateTodoItem(item.jobId, item.id, text)}

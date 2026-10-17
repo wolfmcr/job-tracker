@@ -9,6 +9,7 @@ interface Props {
   onUpdate: (qty: string, name: string) => void
   onSetPriority?: (priority: number) => void
   jobColor?: string
+  jobName?: string
   readOnly?: boolean
 }
 
@@ -24,7 +25,7 @@ function flagStyle(p: number): { color: string; fill: string } {
   return { color: '#d1d5db', fill: 'none' }
 }
 
-export function ShoppingItemRow({ item, onToggle, onDelete, onUpdate, onSetPriority, jobColor, readOnly = false }: Props) {
+export function ShoppingItemRow({ item, onToggle, onDelete, onUpdate, onSetPriority, jobColor, jobName, readOnly = false }: Props) {
   const [editing, setEditing] = useState(false)
   const [qty, setQty] = useState(item.qty)
   const [name, setName] = useState(item.name)
@@ -56,9 +57,6 @@ export function ShoppingItemRow({ item, onToggle, onDelete, onUpdate, onSetPrior
 
   return (
     <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-100">
-      {jobColor && (
-        <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: jobColor }} />
-      )}
       <input
         type="checkbox"
         checked={item.isGot}
@@ -89,13 +87,20 @@ export function ShoppingItemRow({ item, onToggle, onDelete, onUpdate, onSetPrior
           />
         </div>
       ) : (
-        <span
-          className={`flex-1 text-sm ${item.isGot ? 'line-through text-gray-400' : 'text-gray-800'}`}
-          onClick={startEdit}
-        >
-          {item.qty ? <span className="font-medium text-gray-500 mr-1">{item.qty}</span> : null}
-          {item.name}
-        </span>
+        <div className="flex-1 min-w-0" onClick={startEdit}>
+          <p className={`text-sm ${item.isGot ? 'line-through text-gray-400' : 'text-gray-800'}`}>
+            {item.qty ? <span className="font-medium text-gray-500 mr-1">{item.qty}</span> : null}
+            {item.name}
+          </p>
+          {jobName && jobColor && (
+            <span
+              className="inline-block text-xs font-medium px-2 py-0.5 rounded-full mt-1"
+              style={{ backgroundColor: `${jobColor}22`, color: jobColor }}
+            >
+              {jobName}
+            </span>
+          )}
+        </div>
       )}
       {!readOnly && !editing && onSetPriority && (
         <button

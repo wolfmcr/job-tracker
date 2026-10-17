@@ -74,6 +74,7 @@ export function CombinedShoppingScreen() {
                 key={item.id}
                 item={item}
                 jobColor={color}
+                jobName={job?.name}
                 onToggle={() => toggleShoppingItem(item.jobId, item.id, !item.isGot)}
                 onDelete={() => deleteShoppingItem(item.jobId, item.id)}
                 onUpdate={(qty, name) => updateShoppingItem(item.jobId, item.id, qty, name)}
@@ -100,6 +101,7 @@ export function CombinedShoppingScreen() {
                 key={item.id}
                 item={item}
                 jobColor={color}
+                jobName={job?.name}
                 onToggle={() => toggleShoppingItem(item.jobId, item.id, !item.isGot)}
                 onDelete={() => deleteShoppingItem(item.jobId, item.id)}
                 onUpdate={(qty, name) => updateShoppingItem(item.jobId, item.id, qty, name)}

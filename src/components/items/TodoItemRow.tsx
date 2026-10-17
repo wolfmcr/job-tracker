@@ -9,6 +9,7 @@ interface Props {
   onUpdate: (text: string) => void
   onSetPriority?: (priority: number) => void
   jobColor?: string
+  jobName?: string
   readOnly?: boolean
 }
 
@@ -24,7 +25,7 @@ function flagStyle(p: number): { color: string; fill: string } {
   return { color: '#d1d5db', fill: 'none' }
 }
 
-export function TodoItemRow({ item, onToggle, onDelete, onUpdate, onSetPriority, jobColor, readOnly = false }: Props) {
+export function TodoItemRow({ item, onToggle, onDelete, onUpdate, onSetPriority, jobColor, jobName, readOnly = false }: Props) {
   const [editing, setEditing] = useState(false)
   const [text, setText] = useState(item.text)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -74,12 +75,19 @@ export function TodoItemRow({ item, onToggle, onDelete, onUpdate, onSetPriority,
           className="flex-1 px-2 py-1 border border-blue-400 rounded-lg text-sm focus:outline-none"
         />
       ) : (
-        <span
-          className={`flex-1 text-sm ${item.isDone ? 'line-through text-gray-400' : 'text-gray-800'}`}
-          onClick={startEdit}
-        >
-          {item.text}
-        </span>
+        <div className="flex-1 min-w-0" onClick={startEdit}>
+          <p className={`text-sm ${item.isDone ? 'line-through text-gray-400' : 'text-gray-800'}`}>
+            {item.text}
+          </p>
+          {jobName && jobColor && (
+            <span
+              className="inline-block text-xs font-medium px-2 py-0.5 rounded-full mt-1"
+              style={{ backgroundColor: `${jobColor}22`, color: jobColor }}
+            >
+              {jobName}
+            </span>
+          )}
+        </div>
       )}
       {!readOnly && !editing && onSetPriority && (
         <button
