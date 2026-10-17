@@ -112,10 +112,10 @@ export function JobDetailScreen() {
 
       {/* Shopping list */}
       <div className="mt-2">
-        <div className="flex items-center justify-between px-4 py-2">
-          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Shopping</p>
+        <div className="flex items-center justify-between px-4 py-2.5 bg-gray-50 border-y border-gray-100">
+          <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">Shopping</p>
           {sortedShopping.filter(i => i.isGot).length > 0 && (
-            <button type="button" onClick={() => setShowDoneShopping(v => !v)} className="text-xs text-gray-400">
+            <button type="button" onClick={() => setShowDoneShopping(v => !v)} className="text-xs text-gray-400 font-medium">
               {showDoneShopping ? 'Hide completed' : `${sortedShopping.filter(i => i.isGot).length} completed`}
             </button>
           )}
@@ -153,10 +153,10 @@ export function JobDetailScreen() {
 
       {/* To-do list */}
       <div className="mt-4">
-        <div className="flex items-center justify-between px-4 py-2">
-          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">To-Do</p>
+        <div className="flex items-center justify-between px-4 py-2.5 bg-gray-50 border-y border-gray-100">
+          <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">To-Do</p>
           {sortedTodos.filter(i => i.isDone).length > 0 && (
-            <button type="button" onClick={() => setShowDoneTodos(v => !v)} className="text-xs text-gray-400">
+            <button type="button" onClick={() => setShowDoneTodos(v => !v)} className="text-xs text-gray-400 font-medium">
               {showDoneTodos ? 'Hide completed' : `${sortedTodos.filter(i => i.isDone).length} completed`}
             </button>
           )}
