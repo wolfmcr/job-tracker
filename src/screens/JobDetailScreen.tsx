@@ -1,6 +1,7 @@
 import { useNavigate, useParams } from '@tanstack/react-router'
 import { ArrowLeftIcon, MapPinIcon, PencilIcon } from 'lucide-react'
 import { useState } from 'react'
+import { DEFAULT_JOB_COLOR } from '../constants/colors'
 import { EditJobSheet } from '../components/jobs/EditJobSheet'
 import { InlineAddRow } from '../components/items/InlineAddRow'
 import { ShoppingItemRow } from '../components/items/ShoppingItemRow'
@@ -34,6 +35,7 @@ export function JobDetailScreen() {
 
   const mapsUrl = `https://maps.google.com/?q=${encodeURIComponent(job.address)}`
   const readOnly = job.isArchived
+  const color = job.color || DEFAULT_JOB_COLOR
 
   const sortedShopping = [...shoppingItems].sort((a, b) => Number(a.isGot) - Number(b.isGot))
   const sortedTodos = [...todoItems].sort((a, b) => Number(a.isDone) - Number(b.isDone))
@@ -59,25 +61,34 @@ export function JobDetailScreen() {
 
   return (
     <div className="pb-4">
+      {/* Colored top accent */}
+      <div className="h-1.5 w-full pt-safe" style={{ backgroundColor: color }} />
+
       {/* Header */}
-      <div className="flex items-center gap-3 px-4 pt-12 pb-4">
-        <button type="button" onClick={() => navigate({ to: backRoute })} className="text-gray-400 -ml-1 p-1">
+      <div
+        className="flex items-center gap-3 px-4 pt-10 pb-4"
+        style={{ background: `linear-gradient(to bottom, ${color}18, transparent)` }}
+      >
+        <button type="button" onClick={() => navigate({ to: backRoute })} className="text-gray-500 -ml-1 p-1">
           <ArrowLeftIcon size={22} />
         </button>
-        <div className="flex-1 min-w-0">
-          <h1 className="text-xl font-bold text-gray-900 truncate">{job.name}</h1>
-          {job.address && (
-            <a href={mapsUrl} target="_blank" rel="noopener noreferrer"
-              className="flex items-center gap-1 text-sm text-blue-500">
-              <MapPinIcon size={12} />
-              <span className="truncate">{job.address}</span>
-            </a>
-          )}
+        <div className="flex-1 min-w-0 flex items-center gap-2.5">
+          <div className="w-4 h-4 rounded-full shrink-0 shadow-sm" style={{ backgroundColor: color }} />
+          <div className="min-w-0">
+            <h1 className="text-xl font-bold text-gray-900 truncate">{job.name}</h1>
+            {job.address && (
+              <a href={mapsUrl} target="_blank" rel="noopener noreferrer"
+                className="flex items-center gap-1 text-sm" style={{ color }}>
+                <MapPinIcon size={12} />
+                <span className="truncate">{job.address}</span>
+              </a>
+            )}
+          </div>
         </div>
         {readOnly ? (
-          <span className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded-full">Archived</span>
+          <span className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded-full shrink-0">Archived</span>
         ) : (
-          <button type="button" onClick={() => setEditOpen(true)} className="text-gray-400 p-1 -mr-1">
+          <button type="button" onClick={() => setEditOpen(true)} className="text-gray-400 p-1 -mr-1 shrink-0">
             <PencilIcon size={18} />
           </button>
         )}

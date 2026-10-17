@@ -1,6 +1,7 @@
 import { ShoppingCartIcon } from 'lucide-react'
 import { ShoppingItemRow } from '../components/items/ShoppingItemRow'
 import { EmptyState } from '../components/ui/EmptyState'
+import { DEFAULT_JOB_COLOR } from '../constants/colors'
 import { useCombinedShoppingItems } from '../hooks/useCombinedItems'
 import { useJobs } from '../hooks/useJobs'
 import { deleteShoppingItem, toggleShoppingItem, updateShoppingItem } from '../services/jobService'
@@ -31,11 +32,18 @@ export function CombinedShoppingScreen() {
       {grouped.length === 0 ? (
         <EmptyState icon={<ShoppingCartIcon size={40} />} message="No shopping items." />
       ) : (
-        grouped.map(({ job, items }) => (
+        grouped.map(({ job, items }) => {
+          const color = job.color || DEFAULT_JOB_COLOR
+          const remaining = items.filter(i => !i.isGot).length
+          return (
           <div key={job.id} className="mt-4">
-            <p className="px-4 py-1 text-xs font-semibold text-gray-400 uppercase tracking-wide bg-gray-50 border-y border-gray-100">
-              {job.name}
-            </p>
+            <div className="px-4 py-2 flex items-center gap-2 bg-gray-50 border-y border-gray-100">
+              <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: color }} />
+              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{job.name}</span>
+              {remaining > 0 && (
+                <span className="ml-auto text-xs text-gray-400">{remaining} left</span>
+              )}
+            </div>
             {items.map(item => (
               <ShoppingItemRow
                 key={item.id}
@@ -46,7 +54,8 @@ export function CombinedShoppingScreen() {
               />
             ))}
           </div>
-        ))
+          )
+        })
       )}
     </div>
   )

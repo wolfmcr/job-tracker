@@ -20,10 +20,13 @@ export function BottomTabBar() {
           <Link
             key={to}
             to={to}
-            className={`flex-1 flex flex-col items-center py-2 gap-0.5 text-xs ${active ? 'text-blue-600' : 'text-gray-400'}`}
+            className={`flex-1 flex flex-col items-center pt-1 pb-2 gap-0.5 text-xs relative ${active ? 'text-blue-600' : 'text-gray-400'}`}
           >
+            {active && (
+              <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-blue-600 rounded-full" />
+            )}
             <Icon size={22} />
-            <span>{label}</span>
+            <span className="font-medium">{label}</span>
           </Link>
         )
       })}
