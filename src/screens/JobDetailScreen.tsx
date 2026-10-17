@@ -3,7 +3,7 @@ import { ArrowLeftIcon, ChevronRightIcon, NavigationIcon, PencilIcon } from 'luc
 import { useState } from 'react'
 import { DEFAULT_JOB_COLOR } from '../constants/colors'
 import { EditJobSheet } from '../components/jobs/EditJobSheet'
-import { InlineAddRow } from '../components/items/InlineAddRow'
+import { AddItemSheet } from '../components/items/AddItemSheet'
 import { ShoppingItemRow } from '../components/items/ShoppingItemRow'
 import { TodoItemRow } from '../components/items/TodoItemRow'
 import { useJob } from '../hooks/useJob'
@@ -27,6 +27,8 @@ export function JobDetailScreen() {
   const navigate = useNavigate()
   const job = useJob(jobId)
   const [editOpen, setEditOpen] = useState(false)
+  const [addShoppingOpen, setAddShoppingOpen] = useState(false)
+  const [addTodoOpen, setAddTodoOpen] = useState(false)
   const [showDoneShopping, setShowDoneShopping] = useState(false)
   const [showDoneTodos, setShowDoneTodos] = useState(false)
 
@@ -141,11 +143,13 @@ export function JobDetailScreen() {
           />
         ))}
         {!readOnly && (
-          <InlineAddRow
-            hasQty
-            placeholder="Item name…"
-            onAdd={(name, qty) => addShoppingItem(jobId, qty ?? '', name)}
-          />
+          <button
+            type="button"
+            onClick={() => setAddShoppingOpen(true)}
+            className="w-full px-4 py-3 text-sm text-gray-400 text-left border-t border-gray-100 flex items-center gap-2"
+          >
+            <span className="text-lg leading-none">+</span> Add item
+          </button>
         )}
       </div>
 
@@ -182,10 +186,13 @@ export function JobDetailScreen() {
           />
         ))}
         {!readOnly && (
-          <InlineAddRow
-            placeholder="Task…"
-            onAdd={(text) => addTodoItem(jobId, text)}
-          />
+          <button
+            type="button"
+            onClick={() => setAddTodoOpen(true)}
+            className="w-full px-4 py-3 text-sm text-gray-400 text-left border-t border-gray-100 flex items-center gap-2"
+          >
+            <span className="text-lg leading-none">+</span> Add task
+          </button>
         )}
       </div>
 
@@ -221,6 +228,23 @@ export function JobDetailScreen() {
       {!readOnly && (
         <EditJobSheet job={job} open={editOpen} onClose={() => setEditOpen(false)} />
       )}
+      <AddItemSheet
+        open={addShoppingOpen}
+        onClose={() => setAddShoppingOpen(false)}
+        onAdd={(name, qty) => addShoppingItem(jobId, qty ?? '', name)}
+        title="Add Shopping Item"
+        hasQty
+        placeholder="Item name…"
+        color={color}
+      />
+      <AddItemSheet
+        open={addTodoOpen}
+        onClose={() => setAddTodoOpen(false)}
+        onAdd={(text) => addTodoItem(jobId, text)}
+        title="Add Task"
+        placeholder="Task…"
+        color={color}
+      />
     </div>
   )
 }
