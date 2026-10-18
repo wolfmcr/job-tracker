@@ -1,6 +1,8 @@
 import { PencilIcon } from 'lucide-react'
 import { useState } from 'react'
 import type { ShoppingItem } from '../../types'
+import { JobBadge } from '../ui/JobBadge'
+import { PriorityFlagButton } from '../ui/PriorityFlagButton'
 import { EditShoppingItemSheet } from './EditShoppingItemSheet'
 
 interface Props {
@@ -12,18 +14,6 @@ interface Props {
   jobColor?: string
   jobName?: string
   readOnly?: boolean
-}
-
-function nextPriority(p: number) {
-  if (p === 0) return 2
-  if (p === 2) return 1
-  return 0
-}
-
-function flagColor(p: number) {
-  if (p === 2) return '#ef4444'
-  if (p === 1) return '#f59e0b'
-  return '#d1d5db'
 }
 
 export function ShoppingItemRow({ item, onToggle, onUpdate, onDelete, onSetPriority, jobColor, jobName, readOnly = false }: Props) {
@@ -47,25 +37,11 @@ export function ShoppingItemRow({ item, onToggle, onUpdate, onDelete, onSetPrior
             {item.name}
           </p>
           {jobName && jobColor && (
-            <span
-              className="inline-block text-xs font-medium px-2 py-0.5 rounded-full mt-1"
-              style={{ backgroundColor: `${jobColor}22`, color: jobColor }}
-            >
-              {jobName}
-            </span>
+            <JobBadge name={jobName} color={jobColor} />
           )}
         </div>
         {!readOnly && onSetPriority && (
-          <button
-            type="button"
-            onClick={() => onSetPriority(nextPriority(priority))}
-            className="p-2 shrink-0 active:opacity-60"
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill={priority > 0 ? flagColor(priority) : 'none'} stroke={flagColor(priority)} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
-              <line x1="4" y1="22" x2="4" y2="15" />
-            </svg>
-          </button>
+          <PriorityFlagButton priority={priority} onSetPriority={onSetPriority} />
         )}
         {!readOnly && (
           <button type="button" onClick={() => setEditOpen(true)} className="text-gray-300 active:text-gray-500 p-2 -mr-2 shrink-0">

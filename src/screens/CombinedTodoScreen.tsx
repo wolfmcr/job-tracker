@@ -1,20 +1,32 @@
 import { CheckSquareIcon } from 'lucide-react'
 import { useMemo, useState } from 'react'
+import { AddItemSheet } from '../components/items/AddItemSheet'
 import { TodoItemRow } from '../components/items/TodoItemRow'
+import { AddButton } from '../components/ui/AddButton'
 import { EmptyState } from '../components/ui/EmptyState'
+import { ScreenHeader } from '../components/ui/ScreenHeader'
+import { ShowCompletedToggle } from '../components/ui/ShowCompletedToggle'
+import { SortPills } from '../components/ui/SortPills'
 import { DEFAULT_JOB_COLOR } from '../constants/colors'
 import { useCombinedTodoItems } from '../hooks/useCombinedItems'
 import { useJobs } from '../hooks/useJobs'
-import { deleteTodoItem, setTodoItemPriority, toggleTodoItem, updateTodoItem } from '../services/jobService'
+import { addTodoItem, deleteTodoItem, setTodoItemPriority, toggleTodoItem, updateTodoItem } from '../services/jobService'
 import type { TodoItem } from '../types'
 
 type SortKey = 'priority' | 'job' | 'added'
+
+const SORT_OPTIONS: { key: string; label: string }[] = [
+  { key: 'priority', label: 'Priority' },
+  { key: 'job', label: 'Job' },
+  { key: 'added', label: 'Added' },
+]
 
 export function CombinedTodoScreen() {
   const { jobs } = useJobs()
   const allItems = useCombinedTodoItems()
   const [sort, setSort] = useState<SortKey>('priority')
   const [showCompleted, setShowCompleted] = useState(false)
+  const [addOpen, setAddOpen] = useState(false)
 
   const jobMap = useMemo(() => new Map(jobs.map(j => [j.id, j])), [jobs])
 
@@ -39,28 +51,15 @@ export function CombinedTodoScreen() {
 
   return (
     <div>
-      <div className="px-4 pt-12 pb-3">
-        <div className="flex items-baseline justify-between mb-3">
-          <h1 className="text-2xl font-bold text-gray-900">To-Do</h1>
-          {incomplete.length > 0 && (
-            <span className="text-sm text-gray-400">{incomplete.length} left</span>
-          )}
-        </div>
-        <div className="flex gap-2">
-          {(['priority', 'job', 'added'] as SortKey[]).map(key => (
-            <button
-              key={key}
-              type="button"
-              onClick={() => setSort(key)}
-              className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
-                sort === key ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-500'
-              }`}
-            >
-              {key === 'priority' ? 'Priority' : key === 'job' ? 'Job' : 'Added'}
-            </button>
-          ))}
-        </div>
+      <ScreenHeader
+        title="To-Do"
+        right={incomplete.length > 0 ? <span className="text-sm text-gray-400">{incomplete.length} left</span> : undefined}
+      />
+      <div className="px-4 pb-3">
+        <SortPills options={SORT_OPTIONS} active={sort} onChange={key => setSort(key as SortKey)} />
       </div>
+
+      <AddButton label="Add task" onClick={() => setAddOpen(true)} />
 
       {allItems.length === 0 ? (
         <EmptyState icon={<CheckSquareIcon size={40} />} message="Nothing to do." />
@@ -83,15 +82,11 @@ export function CombinedTodoScreen() {
             )
           })}
 
-          {completed.length > 0 && (
-            <button
-              type="button"
-              onClick={() => setShowCompleted(v => !v)}
-              className="w-full px-4 py-3 text-sm text-gray-400 text-left border-t border-gray-100"
-            >
-              {showCompleted ? 'Hide completed' : `Show ${completed.length} completed`}
-            </button>
-          )}
+          <ShowCompletedToggle
+            count={completed.length}
+            show={showCompleted}
+            onToggle={() => setShowCompleted(v => !v)}
+          />
 
           {showCompleted && completed.map(item => {
             const job = jobMap.get(item.jobId)
@@ -111,6 +106,14 @@ export function CombinedTodoScreen() {
           })}
         </>
       )}
+      <AddItemSheet
+        open={addOpen}
+        onClose={() => setAddOpen(false)}
+        onAdd={(text, _qty, jobId) => addTodoItem(jobId!, text)}
+        title="Add Task"
+        placeholder="Task…"
+        jobs={jobs}
+      />
     </div>
   )
 }

@@ -5,6 +5,8 @@ import { AddJobSheet } from '../components/jobs/AddJobSheet'
 import { JobRow } from '../components/jobs/JobRow'
 import { FAB } from '../components/ui/FAB'
 import { EmptyState } from '../components/ui/EmptyState'
+import { LoadingSpinner } from '../components/ui/LoadingSpinner'
+import { ScreenHeader } from '../components/ui/ScreenHeader'
 import { useJobs } from '../hooks/useJobs'
 
 export function JobsScreen() {
@@ -13,18 +15,12 @@ export function JobsScreen() {
   const [sheetOpen, setSheetOpen] = useState(false)
 
   if (loading) {
-    return (
-      <div className="flex justify-center py-20">
-        <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
-      </div>
-    )
+    return <LoadingSpinner />
   }
 
   return (
     <>
-      <div className="px-4 pt-12 pb-2">
-        <h1 className="text-2xl font-bold text-gray-900">Jobs</h1>
-      </div>
+      <ScreenHeader title="Jobs" />
 
       {jobs.length === 0 ? (
         <EmptyState
