@@ -81,8 +81,7 @@ export function JobDetailScreen() {
           <button
             type="button"
             onClick={() => setEditOpen(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium text-white active:opacity-80"
-            style={{ backgroundColor: color }}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium border border-gray-200 text-gray-600 active:bg-gray-50"
           >
             <PencilIcon size={13} />
             Edit

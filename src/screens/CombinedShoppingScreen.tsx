@@ -2,8 +2,8 @@ import { ShoppingCartIcon } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { AddItemSheet } from '../components/items/AddItemSheet'
 import { ShoppingItemRow } from '../components/items/ShoppingItemRow'
-import { AddButton } from '../components/ui/AddButton'
 import { EmptyState } from '../components/ui/EmptyState'
+import { FAB } from '../components/ui/FAB'
 import { ScreenHeader } from '../components/ui/ScreenHeader'
 import { ShowCompletedToggle } from '../components/ui/ShowCompletedToggle'
 import { SortPills } from '../components/ui/SortPills'
@@ -24,7 +24,7 @@ const SORT_OPTIONS: { key: string; label: string }[] = [
 export function CombinedShoppingScreen() {
   const { jobs } = useJobs()
   const allItems = useCombinedShoppingItems()
-  const [sort, setSort] = useState<SortKey>('priority')
+  const [sort, setSort] = useState<SortKey>('job')
   const [showCompleted, setShowCompleted] = useState(false)
   const [addOpen, setAddOpen] = useState(false)
 
@@ -50,7 +50,7 @@ export function CombinedShoppingScreen() {
   const completed = sortItems(allItems.filter(i => i.isGot))
 
   return (
-    <div>
+    <div className="pb-24">
       <ScreenHeader
         title="Shopping"
         right={incomplete.length > 0 ? <span className="text-sm text-gray-400">{incomplete.length} left</span> : undefined}
@@ -58,8 +58,6 @@ export function CombinedShoppingScreen() {
       <div className="px-4 pb-3">
         <SortPills options={SORT_OPTIONS} active={sort} onChange={key => setSort(key as SortKey)} />
       </div>
-
-      <AddButton label="Add item" onClick={() => setAddOpen(true)} />
 
       {allItems.length === 0 ? (
         <EmptyState icon={<ShoppingCartIcon size={40} />} message="No shopping items." />
@@ -106,6 +104,7 @@ export function CombinedShoppingScreen() {
           })}
         </>
       )}
+      <FAB onClick={() => setAddOpen(true)} color="#111827" label="Add item" />
       <AddItemSheet
         open={addOpen}
         onClose={() => setAddOpen(false)}

@@ -39,7 +39,7 @@ export function JobsScreen() {
         </div>
       )}
 
-      <FAB onClick={() => setSheetOpen(true)} />
+      <FAB onClick={() => setSheetOpen(true)} color="#111827" label="Add job" />
       <AddJobSheet open={sheetOpen} onClose={() => setSheetOpen(false)} />
     </>
   )
