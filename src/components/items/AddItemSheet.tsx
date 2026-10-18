@@ -41,10 +41,8 @@ export function AddItemSheet({ open, onClose, onAdd, title, hasQty = false, plac
     if (jobs && !selectedJobId) return
     setSaving(true)
     await onAdd(text.trim(), qty.trim() || undefined, selectedJobId || undefined)
-    setText('')
-    setQty('')
     setSaving(false)
-    textRef.current?.focus()
+    onClose()
   }
 
   return (

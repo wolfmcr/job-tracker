@@ -16,14 +16,14 @@ interface Props {
   readOnly?: boolean
 }
 
-function useAutoGrow(value: string, open: boolean) {
+function useAutoGrow(value: string, active: boolean) {
   const ref = useRef<HTMLTextAreaElement>(null)
   useLayoutEffect(() => {
     const el = ref.current
     if (!el) return
     el.style.height = 'auto'
-    el.style.height = `${el.scrollHeight}px`
-  }, [value, open])
+    el.style.height = `${el.scrollHeight + el.offsetHeight - el.clientHeight}px`
+  }, [value, active])
   return ref
 }
 
@@ -34,19 +34,19 @@ function formatCreated(item: TodoItem) {
 }
 
 export function EditTodoItemSheet({ open, onClose, item, onUpdate, onDelete, jobColor, jobName, readOnly = false }: Props) {
+  const [editing, setEditing] = useState(false)
   const [text, setText] = useState(item.text)
   const [details, setDetails] = useState(item.details ?? '')
-  const textRef = useAutoGrow(text, open)
-  const detailsRef = useAutoGrow(details, open)
+  const detailsRef = useAutoGrow(details, editing)
 
   useEffect(() => {
     if (open) {
+      setEditing(false)
       setText(item.text)
       setDetails(item.details ?? '')
     }
   }, [open, item])
 
-  const isDirty = text.trim() !== item.text || details.trim() !== (item.details ?? '')
   const created = formatCreated(item)
 
   function handleSave(e: React.FormEvent<HTMLFormElement>) {
@@ -62,42 +62,61 @@ export function EditTodoItemSheet({ open, onClose, item, onUpdate, onDelete, job
   }
 
   return (
-    <BottomSheet open={open} onClose={onClose} title="Task">
-      <form onSubmit={handleSave} className="flex flex-col gap-4">
-        {(jobName && jobColor) || created ? (
-          <div className="flex items-center gap-2 -mt-3">
-            {jobName && jobColor && <JobBadge name={jobName} color={jobColor} />}
-            {created && <span className="text-xs text-gray-400 mt-1">Added {created}</span>}
-          </div>
-        ) : null}
-        <textarea
-          ref={textRef}
-          rows={1}
-          placeholder="Task"
-          value={text}
-          onChange={e => setText(e.target.value)}
-          onKeyDown={e => {
-            if (e.key === 'Enter') {
-              e.preventDefault()
-              detailsRef.current?.focus()
-            }
-          }}
-          readOnly={readOnly}
-          className={`w-full resize-none overflow-hidden bg-transparent text-lg font-semibold focus:outline-none ${item.isDone ? 'line-through text-gray-400' : 'text-gray-900'}`}
-          required
-        />
-        <textarea
-          ref={detailsRef}
-          rows={3}
-          placeholder={readOnly ? 'No details' : 'Add details…'}
-          value={details}
-          onChange={e => setDetails(e.target.value)}
-          readOnly={readOnly}
-          className="w-full resize-none max-h-[50vh] bg-transparent text-base text-gray-700 placeholder:text-gray-400 focus:outline-none"
-        />
-        {!readOnly && isDirty && <SubmitButton label="Save" disabled={!text.trim()} />}
-        {!readOnly && <DeleteButton onDelete={handleDelete} />}
-      </form>
+    <BottomSheet open={open} onClose={onClose} title={editing ? 'Edit Task' : 'Task'}>
+      {(jobName && jobColor) || created ? (
+        <div className="flex items-center gap-2 -mt-3 mb-4">
+          {jobName && jobColor && <JobBadge name={jobName} color={jobColor} />}
+          {created && <span className="text-xs text-gray-400 mt-1">Added {created}</span>}
+        </div>
+      ) : null}
+
+      {editing ? (
+        <form onSubmit={handleSave} className="flex flex-col gap-4">
+          <input
+            type="text"
+            placeholder="Task"
+            value={text}
+            onChange={e => setText(e.target.value)}
+            className="w-full px-4 py-3 border border-gray-300 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
+            required
+          />
+          <textarea
+            ref={detailsRef}
+            rows={3}
+            placeholder="Details"
+            value={details}
+            onChange={e => setDetails(e.target.value)}
+            className="w-full resize-none max-h-[50vh] px-4 py-3 border border-gray-300 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <SubmitButton label="Save" disabled={!text.trim()} />
+        </form>
+      ) : (
+        <div className="flex flex-col gap-4">
+          <p className={`text-lg font-semibold ${item.isDone ? 'line-through text-gray-400' : 'text-gray-900'}`}>
+            {item.text}
+          </p>
+          {item.details ? (
+            <p className="text-base text-gray-700 whitespace-pre-wrap wrap-break-word max-h-[50vh] overflow-y-auto">
+              {item.details}
+            </p>
+          ) : (
+            <p className="text-base text-gray-400">No details</p>
+          )}
+          {!readOnly && (
+            <>
+              <button
+                type="button"
+                onClick={() => setEditing(true)}
+                className="w-full py-3 text-white font-semibold rounded-xl text-base active:opacity-80"
+                style={{ backgroundColor: '#111827' }}
+              >
+                Edit
+              </button>
+              <DeleteButton onDelete={handleDelete} />
+            </>
+          )}
+        </div>
+      )}
     </BottomSheet>
   )
 }
