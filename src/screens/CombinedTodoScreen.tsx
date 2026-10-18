@@ -4,6 +4,7 @@ import { AddItemSheet } from '../components/items/AddItemSheet'
 import { TodoItemRow } from '../components/items/TodoItemRow'
 import { EmptyState } from '../components/ui/EmptyState'
 import { FAB } from '../components/ui/FAB'
+import { LoadingSpinner } from '../components/ui/LoadingSpinner'
 import { ScreenHeader } from '../components/ui/ScreenHeader'
 import { ShowCompletedToggle } from '../components/ui/ShowCompletedToggle'
 import { SortPills } from '../components/ui/SortPills'
@@ -23,7 +24,7 @@ const SORT_OPTIONS: { key: string; label: string }[] = [
 
 export function CombinedTodoScreen() {
   const { jobs } = useJobs()
-  const allItems = useCombinedTodoItems()
+  const { items: allItems, loading } = useCombinedTodoItems()
   const [sort, setSort] = useState<SortKey>('job')
   const [showCompleted, setShowCompleted] = useState(false)
   const [addOpen, setAddOpen] = useState(false)
@@ -59,7 +60,9 @@ export function CombinedTodoScreen() {
         <SortPills options={SORT_OPTIONS} active={sort} onChange={key => setSort(key as SortKey)} />
       </div>
 
-      {allItems.length === 0 ? (
+      {loading ? (
+        <LoadingSpinner />
+      ) : allItems.length === 0 ? (
         <EmptyState icon={<CheckSquareIcon size={40} />} message="Nothing to do." />
       ) : (
         <>
