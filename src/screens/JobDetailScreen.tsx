@@ -81,7 +81,8 @@ export function JobDetailScreen() {
           <button
             type="button"
             onClick={() => setEditOpen(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium border border-gray-200 text-gray-600 active:bg-gray-50"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium text-white active:opacity-80"
+            style={{ backgroundColor: color }}
           >
             <PencilIcon size={13} />
             Edit
@@ -116,8 +117,9 @@ export function JobDetailScreen() {
       <div className="mt-2">
         <SectionHeader
           title="Shopping"
+          color={color}
           action={sortedShopping.filter(i => i.isGot).length > 0 ? (
-            <button type="button" onClick={() => setShowDoneShopping(v => !v)} className="text-sm text-gray-400 font-medium">
+            <button type="button" onClick={() => setShowDoneShopping(v => !v)} className="text-sm font-medium" style={{ color }}>
               {showDoneShopping ? 'Hide completed' : `Show ${sortedShopping.filter(i => i.isGot).length} completed`}
             </button>
           ) : undefined}
@@ -143,7 +145,7 @@ export function JobDetailScreen() {
           />
         ))}
         {!readOnly && (
-          <AddButton label="Add item" onClick={() => setAddShoppingOpen(true)} />
+          <AddButton label="Add item" onClick={() => setAddShoppingOpen(true)} color={color} />
         )}
       </div>
 
@@ -151,8 +153,9 @@ export function JobDetailScreen() {
       <div className="mt-4">
         <SectionHeader
           title="To-Do"
+          color={color}
           action={sortedTodos.filter(i => i.isDone).length > 0 ? (
-            <button type="button" onClick={() => setShowDoneTodos(v => !v)} className="text-sm text-gray-400 font-medium">
+            <button type="button" onClick={() => setShowDoneTodos(v => !v)} className="text-sm font-medium" style={{ color }}>
               {showDoneTodos ? 'Hide completed' : `Show ${sortedTodos.filter(i => i.isDone).length} completed`}
             </button>
           ) : undefined}
@@ -178,7 +181,7 @@ export function JobDetailScreen() {
           />
         ))}
         {!readOnly && (
-          <AddButton label="Add task" onClick={() => setAddTodoOpen(true)} />
+          <AddButton label="Add task" onClick={() => setAddTodoOpen(true)} color={color} />
         )}
       </div>
 
