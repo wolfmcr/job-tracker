@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import type { ShoppingItem } from '../../types'
 import { BottomSheet } from '../ui/BottomSheet'
 import { DeleteButton } from '../ui/DeleteButton'
+import { RequiredMark } from '../ui/RequiredMark'
 import { SubmitButton } from '../ui/SubmitButton'
 
 interface Props {
@@ -45,14 +46,17 @@ export function EditShoppingItemSheet({ open, onClose, item, onUpdate, onDelete 
           onChange={e => setQty(e.target.value)}
           className="w-full px-4 py-3 border border-gray-300 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
-        <input
-          type="text"
-          placeholder="Item name"
-          value={name}
-          onChange={e => setName(e.target.value)}
-          className="w-full px-4 py-3 border border-gray-300 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
-          required
-        />
+        <div className="relative">
+          <input
+            type="text"
+            placeholder="Item name"
+            value={name}
+            onChange={e => setName(e.target.value)}
+            className="w-full px-4 py-3 border border-gray-300 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
+            required
+          />
+          <RequiredMark show={!name} />
+        </div>
         <SubmitButton label="Save" disabled={!name.trim()} />
         <DeleteButton onDelete={handleDelete} />
       </form>

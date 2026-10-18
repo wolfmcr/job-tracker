@@ -4,6 +4,7 @@ import { DEFAULT_JOB_COLOR } from '../../constants/colors'
 import { updateJob } from '../../services/jobService'
 import type { Job } from '../../types'
 import { BottomSheet } from '../ui/BottomSheet'
+import { RequiredMark } from '../ui/RequiredMark'
 import { SubmitButton } from '../ui/SubmitButton'
 
 interface Props {
@@ -16,6 +17,8 @@ export function EditJobSheet({ job, open, onClose }: Props) {
   const [name, setName] = useState(job.name)
   const [address, setAddress] = useState(job.address)
   const [color, setColor] = useState(job.color || DEFAULT_JOB_COLOR)
+  const [clientName, setClientName] = useState(job.clientName ?? '')
+  const [clientPhone, setClientPhone] = useState(job.clientPhone ?? '')
   const colorRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -23,11 +26,19 @@ export function EditJobSheet({ job, open, onClose }: Props) {
       setName(job.name)
       setAddress(job.address)
       setColor(job.color || DEFAULT_JOB_COLOR)
+      setClientName(job.clientName ?? '')
+      setClientPhone(job.clientPhone ?? '')
     }
   }, [open, job])
 
   const mutation = useMutation({
-    mutationFn: () => updateJob(job.id, name.trim(), address.trim(), color),
+    mutationFn: () => updateJob(job.id, {
+      name: name.trim(),
+      address: address.trim(),
+      color,
+      clientName: clientName.trim(),
+      clientPhone: clientPhone.trim(),
+    }),
     onSuccess: onClose,
   })
 
@@ -52,20 +63,39 @@ export function EditJobSheet({ job, open, onClose }: Props) {
             onChange={e => setColor(e.target.value)}
             className="sr-only"
           />
-          <input
-            type="text"
-            placeholder="Job name"
-            value={name}
-            onChange={e => setName(e.target.value)}
-            className="flex-1 px-4 py-3 border border-gray-300 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
-          />
+          <div className="relative flex-1">
+            <input
+              type="text"
+              placeholder="Job name"
+              value={name}
+              onChange={e => setName(e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
+            />
+            <RequiredMark show={!name} />
+          </div>
         </div>
         <input
           type="text"
-          placeholder="Address (optional)"
+          placeholder="Address"
           value={address}
           onChange={e => setAddress(e.target.value)}
+          className="w-full px-4 py-3 border border-gray-300 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        <input
+          type="text"
+          placeholder="Client name"
+          value={clientName}
+          onChange={e => setClientName(e.target.value)}
+          autoComplete="off"
+          className="w-full px-4 py-3 border border-gray-300 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        <input
+          type="tel"
+          placeholder="Client phone"
+          value={clientPhone}
+          onChange={e => setClientPhone(e.target.value)}
+          autoComplete="off"
           className="w-full px-4 py-3 border border-gray-300 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         {mutation.isError && (

@@ -3,6 +3,7 @@ import type { TodoItem } from '../../types'
 import { BottomSheet } from '../ui/BottomSheet'
 import { DeleteButton } from '../ui/DeleteButton'
 import { JobBadge } from '../ui/JobBadge'
+import { RequiredMark } from '../ui/RequiredMark'
 import { SubmitButton } from '../ui/SubmitButton'
 
 interface Props {
@@ -72,14 +73,17 @@ export function EditTodoItemSheet({ open, onClose, item, onUpdate, onDelete, job
 
       {editing ? (
         <form onSubmit={handleSave} className="flex flex-col gap-4">
-          <input
-            type="text"
-            placeholder="Task"
-            value={text}
-            onChange={e => setText(e.target.value)}
-            className="w-full px-4 py-3 border border-gray-300 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
-          />
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Task"
+              value={text}
+              onChange={e => setText(e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
+            />
+            <RequiredMark show={!text} />
+          </div>
           <textarea
             ref={detailsRef}
             rows={3}

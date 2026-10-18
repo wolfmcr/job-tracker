@@ -111,7 +111,7 @@ export function CombinedShoppingScreen() {
         onAdd={(name, qty, jobId) => addShoppingItem(jobId!, qty ?? '', name)}
         title="Add Shopping Item"
         hasQty
-        placeholder="Item name…"
+        placeholder="Item name"
         jobs={jobs}
       />
     </div>

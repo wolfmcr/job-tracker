@@ -1,11 +1,12 @@
 import { addDoc, collection, deleteDoc, doc, serverTimestamp, updateDoc } from 'firebase/firestore'
 import { db } from '../lib/firebase'
+import type { Job } from '../types'
 
-export async function addJob(name: string, address: string, color: string) {
+export type JobFields = Pick<Job, 'name' | 'address' | 'color' | 'clientName' | 'clientPhone' | 'notes'>
+
+export async function addJob(fields: JobFields) {
   await addDoc(collection(db, 'jobs'), {
-    name,
-    address,
-    color,
+    ...fields,
     isDone: false,
     isArchived: false,
     createdAt: serverTimestamp(),
@@ -13,11 +14,9 @@ export async function addJob(name: string, address: string, color: string) {
   })
 }
 
-export async function updateJob(jobId: string, name: string, address: string, color: string) {
+export async function updateJob(jobId: string, fields: Partial<JobFields>) {
   await updateDoc(doc(db, 'jobs', jobId), {
-    name,
-    address,
-    color,
+    ...fields,
     updatedAt: serverTimestamp(),
   })
 }

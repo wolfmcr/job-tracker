@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { BottomSheet } from '../ui/BottomSheet'
+import { RequiredMark } from '../ui/RequiredMark'
 import { SubmitButton } from '../ui/SubmitButton'
 import { DEFAULT_JOB_COLOR } from '../../constants/colors'
 import type { Job } from '../../types'
@@ -16,7 +17,7 @@ interface Props {
   defaultJobId?: string
 }
 
-export function AddItemSheet({ open, onClose, onAdd, title, hasQty = false, placeholder = 'Item…', color = '#2563eb', jobs, defaultJobId }: Props) {
+export function AddItemSheet({ open, onClose, onAdd, title, hasQty = false, placeholder = 'Item', color = '#2563eb', jobs, defaultJobId }: Props) {
   const [text, setText] = useState('')
   const [qty, setQty] = useState('')
   const [saving, setSaving] = useState(false)
@@ -83,14 +84,17 @@ export function AddItemSheet({ open, onClose, onAdd, title, hasQty = false, plac
             className="w-full px-4 py-3 border border-gray-300 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         )}
-        <input
-          ref={textRef}
-          type="text"
-          placeholder={placeholder}
-          value={text}
-          onChange={e => setText(e.target.value)}
-          className="w-full px-4 py-3 border border-gray-300 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
+        <div className="relative">
+          <input
+            ref={textRef}
+            type="text"
+            placeholder={placeholder}
+            value={text}
+            onChange={e => setText(e.target.value)}
+            className="w-full px-4 py-3 border border-gray-300 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <RequiredMark show={!text} />
+        </div>
         <SubmitButton
           label="Add"
           loadingLabel="Adding…"

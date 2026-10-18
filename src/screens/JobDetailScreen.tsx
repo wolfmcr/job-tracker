@@ -1,8 +1,9 @@
 import { useNavigate, useParams } from '@tanstack/react-router'
-import { ArrowLeftIcon, ChevronRightIcon, NavigationIcon, PencilIcon } from 'lucide-react'
+import { ArrowLeftIcon, ChevronRightIcon, MessageSquareIcon, NavigationIcon, PencilIcon, PhoneIcon, StickyNoteIcon, UserIcon } from 'lucide-react'
 import { useState } from 'react'
 import { DEFAULT_JOB_COLOR } from '../constants/colors'
 import { EditJobSheet } from '../components/jobs/EditJobSheet'
+import { JobNotesSheet } from '../components/jobs/JobNotesSheet'
 import { SectionHeader } from '../components/ui/SectionHeader'
 import { AddButton } from '../components/ui/AddButton'
 import { AddItemSheet } from '../components/items/AddItemSheet'
@@ -29,6 +30,7 @@ export function JobDetailScreen() {
   const navigate = useNavigate()
   const job = useJob(jobId)
   const [editOpen, setEditOpen] = useState(false)
+  const [notesOpen, setNotesOpen] = useState(false)
   const [addShoppingOpen, setAddShoppingOpen] = useState(false)
   const [addTodoOpen, setAddTodoOpen] = useState(false)
   const [showDoneShopping, setShowDoneShopping] = useState(false)
@@ -40,6 +42,7 @@ export function JobDetailScreen() {
   if (!job) return null
 
   const mapsUrl = `https://maps.google.com/?q=${encodeURIComponent(job.address)}`
+  const phoneDigits = job.clientPhone?.replace(/[^\d+]/g, '') ?? ''
   const readOnly = job.isArchived
   const color = job.color || DEFAULT_JOB_COLOR
 
@@ -109,6 +112,50 @@ export function JobDetailScreen() {
             <span className="flex-1 text-sm text-gray-700 truncate">{job.address}</span>
             <ChevronRightIcon size={16} className="text-gray-300 shrink-0" />
           </a>
+        )}
+        {(job.clientName || job.clientPhone) && (
+          <div className="flex items-center gap-3 px-4 py-3 bg-white border-t border-gray-100">
+            <UserIcon size={16} style={{ color }} className="shrink-0" />
+            <div className="flex-1 min-w-0">
+              {job.clientName && <p className="text-sm text-gray-700 truncate">{job.clientName}</p>}
+              {job.clientPhone && <p className="text-xs text-gray-400 truncate">{job.clientPhone}</p>}
+            </div>
+            {phoneDigits && (
+              <>
+                <a
+                  href={`sms:${phoneDigits}`}
+                  className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 active:opacity-70"
+                  style={{ backgroundColor: `${color}18`, color }}
+                  aria-label="Text client"
+                >
+                  <MessageSquareIcon size={16} />
+                </a>
+                <a
+                  href={`tel:${phoneDigits}`}
+                  className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 active:opacity-70"
+                  style={{ backgroundColor: `${color}18`, color }}
+                  aria-label="Call client"
+                >
+                  <PhoneIcon size={16} />
+                </a>
+              </>
+            )}
+          </div>
+        )}
+        {(job.notes || !readOnly) && (
+          <button
+            type="button"
+            onClick={() => setNotesOpen(true)}
+            disabled={readOnly}
+            className="w-full flex items-start gap-3 px-4 py-3 bg-white border-t border-gray-100 text-left active:bg-gray-50"
+          >
+            <StickyNoteIcon size={16} style={{ color }} className="shrink-0 mt-0.5" />
+            {job.notes ? (
+              <span className="flex-1 text-sm text-gray-700 whitespace-pre-wrap wrap-break-word">{job.notes}</span>
+            ) : (
+              <span className="flex-1 text-sm text-gray-400">Add notes</span>
+            )}
+          </button>
         )}
       </div>
 
@@ -214,7 +261,10 @@ export function JobDetailScreen() {
         )}
       </div>
       {!readOnly && (
-        <EditJobSheet job={job} open={editOpen} onClose={() => setEditOpen(false)} />
+        <>
+          <EditJobSheet job={job} open={editOpen} onClose={() => setEditOpen(false)} />
+          <JobNotesSheet job={job} open={notesOpen} onClose={() => setNotesOpen(false)} color={color} />
+        </>
       )}
       <AddItemSheet
         open={addShoppingOpen}
@@ -222,7 +272,7 @@ export function JobDetailScreen() {
         onAdd={(name, qty) => addShoppingItem(jobId, qty ?? '', name)}
         title="Add Shopping Item"
         hasQty
-        placeholder="Item name…"
+        placeholder="Item name"
         color={color}
       />
       <AddItemSheet
@@ -230,7 +280,7 @@ export function JobDetailScreen() {
         onClose={() => setAddTodoOpen(false)}
         onAdd={(text) => addTodoItem(jobId, text)}
         title="Add Task"
-        placeholder="Task…"
+        placeholder="Task"
         color={color}
       />
     </div>
