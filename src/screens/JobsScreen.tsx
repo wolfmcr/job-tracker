@@ -39,6 +39,10 @@ export function JobsScreen() {
         </div>
       )}
 
+      <p className="text-center text-xs text-gray-300 py-6">
+        {__APP_VERSION__} · {new Date(__BUILD_TIME__).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
+      </p>
+
       <FAB onClick={() => setSheetOpen(true)} color="#111827" label="Add job" />
       <AddJobSheet open={sheetOpen} onClose={() => setSheetOpen(false)} />
     </>
