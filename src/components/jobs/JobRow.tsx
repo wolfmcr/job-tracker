@@ -1,4 +1,4 @@
-import { ChevronRightIcon, MapPinIcon } from 'lucide-react'
+import { MapPinIcon } from 'lucide-react'
 import { DEFAULT_JOB_COLOR } from '../../constants/colors'
 import type { Job } from '../../types'
 
@@ -12,7 +12,10 @@ export function JobRow({ job, onTap }: Props) {
   const color = job.color || DEFAULT_JOB_COLOR
 
   return (
-    <div className="flex items-center gap-4 px-4 py-5 border-b border-gray-100 active:bg-gray-50" onClick={onTap}>
+    <div
+      className="mx-4 mb-3 rounded-2xl bg-white shadow-sm border border-gray-100 flex items-center gap-4 px-4 py-5 active:opacity-80"
+      onClick={onTap}
+    >
       {/* Color tag */}
       <div className="w-12 h-12 rounded-full shrink-0" style={{ backgroundColor: color }} />
 
@@ -39,7 +42,6 @@ export function JobRow({ job, onTap }: Props) {
         </a>
       )}
 
-      <ChevronRightIcon size={20} className="text-gray-300 shrink-0" />
     </div>
   )
 }
