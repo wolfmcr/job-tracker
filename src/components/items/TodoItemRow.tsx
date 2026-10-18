@@ -1,12 +1,13 @@
-import { FlagIcon, XIcon } from 'lucide-react'
-import { useRef, useState } from 'react'
+import { PencilIcon } from 'lucide-react'
+import { useState } from 'react'
 import type { TodoItem } from '../../types'
+import { EditTodoItemSheet } from './EditTodoItemSheet'
 
 interface Props {
   item: TodoItem
   onToggle: () => void
-  onDelete: () => void
   onUpdate: (text: string) => void
+  onDelete: () => void
   onSetPriority?: (priority: number) => void
   jobColor?: string
   jobName?: string
@@ -19,63 +20,28 @@ function nextPriority(p: number) {
   return 0
 }
 
-function flagStyle(p: number): { color: string; fill: string } {
-  if (p === 2) return { color: '#ef4444', fill: '#ef4444' }
-  if (p === 1) return { color: '#f59e0b', fill: '#f59e0b' }
-  return { color: '#d1d5db', fill: 'none' }
+function flagColor(p: number) {
+  if (p === 2) return '#ef4444'
+  if (p === 1) return '#f59e0b'
+  return '#d1d5db'
 }
 
-export function TodoItemRow({ item, onToggle, onDelete, onUpdate, onSetPriority, jobColor, jobName, readOnly = false }: Props) {
-  const [editing, setEditing] = useState(false)
-  const [text, setText] = useState(item.text)
-  const inputRef = useRef<HTMLInputElement>(null)
+export function TodoItemRow({ item, onToggle, onUpdate, onDelete, onSetPriority, jobColor, jobName, readOnly = false }: Props) {
+  const [editOpen, setEditOpen] = useState(false)
   const priority = item.priority ?? 0
 
-  function startEdit() {
-    if (readOnly) return
-    setText(item.text)
-    setEditing(true)
-    setTimeout(() => inputRef.current?.focus(), 50)
-  }
-
-  function save() {
-    const trimmed = text.trim()
-    if (trimmed && trimmed !== item.text) onUpdate(trimmed)
-    setEditing(false)
-  }
-
-  function handleKeyDown(e: React.KeyboardEvent) {
-    if (e.key === 'Enter') save()
-    if (e.key === 'Escape') setEditing(false)
-  }
-
-  const { color: flagColor, fill: flagFill } = flagStyle(priority)
-
   return (
-    <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-100">
-      {jobColor && (
-        <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: jobColor }} />
-      )}
-      <input
-        type="checkbox"
-        checked={item.isDone}
-        onChange={onToggle}
-        disabled={readOnly}
-        className="w-5 h-5 shrink-0"
-        style={{ accentColor: jobColor ?? '#2563eb' }}
-      />
-      {editing ? (
+    <>
+      <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-100">
         <input
-          ref={inputRef}
-          type="text"
-          value={text}
-          onChange={e => setText(e.target.value)}
-          onBlur={save}
-          onKeyDown={handleKeyDown}
-          className="flex-1 px-2 py-1 border border-blue-400 rounded-lg text-sm focus:outline-none"
+          type="checkbox"
+          checked={item.isDone}
+          onChange={onToggle}
+          disabled={readOnly}
+          className="w-5 h-5 shrink-0"
+          style={{ accentColor: jobColor ?? '#2563eb' }}
         />
-      ) : (
-        <div className="flex-1 min-w-0" onClick={startEdit}>
+        <div className="flex-1 min-w-0">
           <p className={`text-sm ${item.isDone ? 'line-through text-gray-400' : 'text-gray-800'}`}>
             {item.text}
           </p>
@@ -88,21 +54,31 @@ export function TodoItemRow({ item, onToggle, onDelete, onUpdate, onSetPriority,
             </span>
           )}
         </div>
-      )}
-      {!readOnly && !editing && onSetPriority && (
-        <button
-          type="button"
-          onClick={() => onSetPriority(nextPriority(priority))}
-          className="p-1 shrink-0 active:opacity-60"
-        >
-          <FlagIcon size={15} style={{ color: flagColor, fill: flagFill }} />
-        </button>
-      )}
-      {!readOnly && !editing && (
-        <button type="button" onClick={onDelete} className="text-gray-300 active:text-red-500 p-1 -mr-1 shrink-0">
-          <XIcon size={16} />
-        </button>
-      )}
-    </div>
+        {!readOnly && onSetPriority && (
+          <button
+            type="button"
+            onClick={() => onSetPriority(nextPriority(priority))}
+            className="p-1 shrink-0 active:opacity-60"
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill={priority > 0 ? flagColor(priority) : 'none'} stroke={flagColor(priority)} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
+              <line x1="4" y1="22" x2="4" y2="15" />
+            </svg>
+          </button>
+        )}
+        {!readOnly && (
+          <button type="button" onClick={() => setEditOpen(true)} className="text-gray-300 active:text-gray-500 p-1 -mr-1 shrink-0">
+            <PencilIcon size={15} />
+          </button>
+        )}
+      </div>
+      <EditTodoItemSheet
+        open={editOpen}
+        onClose={() => setEditOpen(false)}
+        item={item}
+        onUpdate={onUpdate}
+        onDelete={onDelete}
+      />
+    </>
   )
 }

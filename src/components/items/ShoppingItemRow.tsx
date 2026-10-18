@@ -1,12 +1,13 @@
-import { FlagIcon, XIcon } from 'lucide-react'
-import { useRef, useState } from 'react'
+import { PencilIcon } from 'lucide-react'
+import { useState } from 'react'
 import type { ShoppingItem } from '../../types'
+import { EditShoppingItemSheet } from './EditShoppingItemSheet'
 
 interface Props {
   item: ShoppingItem
   onToggle: () => void
-  onDelete: () => void
   onUpdate: (qty: string, name: string) => void
+  onDelete: () => void
   onSetPriority?: (priority: number) => void
   jobColor?: string
   jobName?: string
@@ -19,75 +20,28 @@ function nextPriority(p: number) {
   return 0
 }
 
-function flagStyle(p: number): { color: string; fill: string } {
-  if (p === 2) return { color: '#ef4444', fill: '#ef4444' }
-  if (p === 1) return { color: '#f59e0b', fill: '#f59e0b' }
-  return { color: '#d1d5db', fill: 'none' }
+function flagColor(p: number) {
+  if (p === 2) return '#ef4444'
+  if (p === 1) return '#f59e0b'
+  return '#d1d5db'
 }
 
-export function ShoppingItemRow({ item, onToggle, onDelete, onUpdate, onSetPriority, jobColor, jobName, readOnly = false }: Props) {
-  const [editing, setEditing] = useState(false)
-  const [qty, setQty] = useState(item.qty)
-  const [name, setName] = useState(item.name)
-  const nameRef = useRef<HTMLInputElement>(null)
+export function ShoppingItemRow({ item, onToggle, onUpdate, onDelete, onSetPriority, jobColor, jobName, readOnly = false }: Props) {
+  const [editOpen, setEditOpen] = useState(false)
   const priority = item.priority ?? 0
 
-  function startEdit() {
-    if (readOnly) return
-    setQty(item.qty)
-    setName(item.name)
-    setEditing(true)
-    setTimeout(() => nameRef.current?.focus(), 50)
-  }
-
-  function save() {
-    const trimmedName = name.trim()
-    if (trimmedName && (trimmedName !== item.name || qty.trim() !== item.qty)) {
-      onUpdate(qty.trim(), trimmedName)
-    }
-    setEditing(false)
-  }
-
-  function handleKeyDown(e: React.KeyboardEvent) {
-    if (e.key === 'Enter') save()
-    if (e.key === 'Escape') setEditing(false)
-  }
-
-  const { color: flagColor, fill: flagFill } = flagStyle(priority)
-
   return (
-    <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-100">
-      <input
-        type="checkbox"
-        checked={item.isGot}
-        onChange={onToggle}
-        disabled={readOnly}
-        className="w-5 h-5 shrink-0"
-        style={{ accentColor: jobColor ?? '#2563eb' }}
-      />
-      {editing ? (
-        <div className="flex-1 flex gap-2">
-          <input
-            type="text"
-            value={qty}
-            onChange={e => setQty(e.target.value)}
-            onBlur={save}
-            onKeyDown={handleKeyDown}
-            placeholder="Qty"
-            className="w-16 px-2 py-1 border border-blue-400 rounded-lg text-sm focus:outline-none"
-          />
-          <input
-            ref={nameRef}
-            type="text"
-            value={name}
-            onChange={e => setName(e.target.value)}
-            onBlur={save}
-            onKeyDown={handleKeyDown}
-            className="flex-1 px-2 py-1 border border-blue-400 rounded-lg text-sm focus:outline-none"
-          />
-        </div>
-      ) : (
-        <div className="flex-1 min-w-0" onClick={startEdit}>
+    <>
+      <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-100">
+        <input
+          type="checkbox"
+          checked={item.isGot}
+          onChange={onToggle}
+          disabled={readOnly}
+          className="w-5 h-5 shrink-0"
+          style={{ accentColor: jobColor ?? '#2563eb' }}
+        />
+        <div className="flex-1 min-w-0">
           <p className={`text-sm ${item.isGot ? 'line-through text-gray-400' : 'text-gray-800'}`}>
             {item.qty ? <span className="font-medium text-gray-500 mr-1">{item.qty}</span> : null}
             {item.name}
@@ -101,21 +55,31 @@ export function ShoppingItemRow({ item, onToggle, onDelete, onUpdate, onSetPrior
             </span>
           )}
         </div>
-      )}
-      {!readOnly && !editing && onSetPriority && (
-        <button
-          type="button"
-          onClick={() => onSetPriority(nextPriority(priority))}
-          className="p-1 shrink-0 active:opacity-60"
-        >
-          <FlagIcon size={15} style={{ color: flagColor, fill: flagFill }} />
-        </button>
-      )}
-      {!readOnly && !editing && (
-        <button type="button" onClick={onDelete} className="text-gray-300 active:text-red-500 p-1 -mr-1 shrink-0">
-          <XIcon size={16} />
-        </button>
-      )}
-    </div>
+        {!readOnly && onSetPriority && (
+          <button
+            type="button"
+            onClick={() => onSetPriority(nextPriority(priority))}
+            className="p-1 shrink-0 active:opacity-60"
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill={priority > 0 ? flagColor(priority) : 'none'} stroke={flagColor(priority)} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
+              <line x1="4" y1="22" x2="4" y2="15" />
+            </svg>
+          </button>
+        )}
+        {!readOnly && (
+          <button type="button" onClick={() => setEditOpen(true)} className="text-gray-300 active:text-gray-500 p-1 -mr-1 shrink-0">
+            <PencilIcon size={15} />
+          </button>
+        )}
+      </div>
+      <EditShoppingItemSheet
+        open={editOpen}
+        onClose={() => setEditOpen(false)}
+        item={item}
+        onUpdate={onUpdate}
+        onDelete={onDelete}
+      />
+    </>
   )
 }
