@@ -26,7 +26,7 @@ export default defineConfig({
         name: 'Job Tracker',
         short_name: 'Jobs',
         description: 'Job and shopping tracker for the crew',
-        theme_color: '#2563eb',
+        theme_color: '#111827',
         background_color: '#ffffff',
         display: 'standalone',
         orientation: 'portrait',
