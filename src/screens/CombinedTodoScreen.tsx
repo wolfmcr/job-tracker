@@ -74,7 +74,7 @@ export function CombinedTodoScreen() {
                 jobName={job?.name}
                 onToggle={() => toggleTodoItem(item.jobId, item.id, !item.isDone)}
                 onDelete={() => deleteTodoItem(item.jobId, item.id)}
-                onUpdate={(text) => updateTodoItem(item.jobId, item.id, text)}
+                onUpdate={(text, details) => updateTodoItem(item.jobId, item.id, text, details)}
                 onSetPriority={(p) => setTodoItemPriority(item.jobId, item.id, p)}
               />
             )
@@ -97,7 +97,7 @@ export function CombinedTodoScreen() {
                 jobName={job?.name}
                 onToggle={() => toggleTodoItem(item.jobId, item.id, !item.isDone)}
                 onDelete={() => deleteTodoItem(item.jobId, item.id)}
-                onUpdate={(text) => updateTodoItem(item.jobId, item.id, text)}
+                onUpdate={(text, details) => updateTodoItem(item.jobId, item.id, text, details)}
                 onSetPriority={(p) => setTodoItemPriority(item.jobId, item.id, p)}
               />
             )

@@ -93,8 +93,8 @@ export async function setTodoItemPriority(jobId: string, itemId: string, priorit
   await updateDoc(doc(db, 'jobs', jobId, 'todoItems', itemId), { priority })
 }
 
-export async function updateTodoItem(jobId: string, itemId: string, text: string) {
-  await updateDoc(doc(db, 'jobs', jobId, 'todoItems', itemId), { text })
+export async function updateTodoItem(jobId: string, itemId: string, text: string, details: string) {
+  await updateDoc(doc(db, 'jobs', jobId, 'todoItems', itemId), { text, details })
 }
 
 export async function deleteTodoItem(jobId: string, itemId: string) {

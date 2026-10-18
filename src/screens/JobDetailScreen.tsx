@@ -165,7 +165,7 @@ export function JobDetailScreen() {
             item={item}
             onToggle={readOnly ? () => {} : () => toggleTodoItem(jobId, item.id, !item.isDone)}
             onDelete={readOnly ? () => {} : () => deleteTodoItem(jobId, item.id)}
-            onUpdate={(text) => updateTodoItem(jobId, item.id, text)}
+            onUpdate={(text, details) => updateTodoItem(jobId, item.id, text, details)}
             readOnly={readOnly}
           />
         ))}
@@ -175,7 +175,7 @@ export function JobDetailScreen() {
             item={item}
             onToggle={readOnly ? () => {} : () => toggleTodoItem(jobId, item.id, !item.isDone)}
             onDelete={readOnly ? () => {} : () => deleteTodoItem(jobId, item.id)}
-            onUpdate={(text) => updateTodoItem(jobId, item.id, text)}
+            onUpdate={(text, details) => updateTodoItem(jobId, item.id, text, details)}
             readOnly={readOnly}
           />
         ))}

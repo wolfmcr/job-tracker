@@ -27,6 +27,7 @@ export interface TodoItem {
   jobId: string
   jobName?: string
   text: string
+  details?: string
   isDone: boolean
   priority?: number
   createdAt: Timestamp
