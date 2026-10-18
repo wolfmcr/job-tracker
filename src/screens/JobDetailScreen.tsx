@@ -3,6 +3,7 @@ import { ArrowLeftIcon, ChevronRightIcon, NavigationIcon, PencilIcon } from 'luc
 import { useState } from 'react'
 import { DEFAULT_JOB_COLOR } from '../constants/colors'
 import { EditJobSheet } from '../components/jobs/EditJobSheet'
+import { SectionHeader } from '../components/ui/SectionHeader'
 import { AddItemSheet } from '../components/items/AddItemSheet'
 import { ShoppingItemRow } from '../components/items/ShoppingItemRow'
 import { TodoItemRow } from '../components/items/TodoItemRow'
@@ -112,14 +113,14 @@ export function JobDetailScreen() {
 
       {/* Shopping list */}
       <div className="mt-2">
-        <div className="flex items-center justify-between px-4 py-2.5 bg-gray-50 border-y border-gray-100">
-          <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">Shopping</p>
-          {sortedShopping.filter(i => i.isGot).length > 0 && (
-            <button type="button" onClick={() => setShowDoneShopping(v => !v)} className="text-xs text-gray-400 font-medium">
+        <SectionHeader
+          title="Shopping"
+          action={sortedShopping.filter(i => i.isGot).length > 0 ? (
+            <button type="button" onClick={() => setShowDoneShopping(v => !v)} className="text-sm text-gray-400 font-medium">
               {showDoneShopping ? 'Hide completed' : `${sortedShopping.filter(i => i.isGot).length} completed`}
             </button>
-          )}
-        </div>
+          ) : undefined}
+        />
         {showDoneShopping && sortedShopping.filter(i => i.isGot).map(item => (
           <ShoppingItemRow
             key={item.id}
@@ -153,14 +154,14 @@ export function JobDetailScreen() {
 
       {/* To-do list */}
       <div className="mt-4">
-        <div className="flex items-center justify-between px-4 py-2.5 bg-gray-50 border-y border-gray-100">
-          <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">To-Do</p>
-          {sortedTodos.filter(i => i.isDone).length > 0 && (
-            <button type="button" onClick={() => setShowDoneTodos(v => !v)} className="text-xs text-gray-400 font-medium">
+        <SectionHeader
+          title="To-Do"
+          action={sortedTodos.filter(i => i.isDone).length > 0 ? (
+            <button type="button" onClick={() => setShowDoneTodos(v => !v)} className="text-sm text-gray-400 font-medium">
               {showDoneTodos ? 'Hide completed' : `${sortedTodos.filter(i => i.isDone).length} completed`}
             </button>
-          )}
-        </div>
+          ) : undefined}
+        />
         {showDoneTodos && sortedTodos.filter(i => i.isDone).map(item => (
           <TodoItemRow
             key={item.id}

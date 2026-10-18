@@ -32,17 +32,17 @@ export function ShoppingItemRow({ item, onToggle, onUpdate, onDelete, onSetPrior
 
   return (
     <>
-      <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-100">
+      <div className="flex items-center gap-4 px-4 py-4 border-b border-gray-100">
         <input
           type="checkbox"
           checked={item.isGot}
           onChange={onToggle}
           disabled={readOnly}
-          className="w-5 h-5 shrink-0"
+          className="w-6 h-6 shrink-0"
           style={{ accentColor: jobColor ?? '#2563eb' }}
         />
         <div className="flex-1 min-w-0">
-          <p className={`text-sm ${item.isGot ? 'line-through text-gray-400' : 'text-gray-800'}`}>
+          <p className={`text-base ${item.isGot ? 'line-through text-gray-400' : 'text-gray-800'}`}>
             {item.qty ? <span className="font-medium text-gray-500 mr-1">{item.qty}</span> : null}
             {item.name}
           </p>
@@ -59,17 +59,17 @@ export function ShoppingItemRow({ item, onToggle, onUpdate, onDelete, onSetPrior
           <button
             type="button"
             onClick={() => onSetPriority(nextPriority(priority))}
-            className="p-1 shrink-0 active:opacity-60"
+            className="p-2 shrink-0 active:opacity-60"
           >
-            <svg width="15" height="15" viewBox="0 0 24 24" fill={priority > 0 ? flagColor(priority) : 'none'} stroke={flagColor(priority)} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill={priority > 0 ? flagColor(priority) : 'none'} stroke={flagColor(priority)} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
               <line x1="4" y1="22" x2="4" y2="15" />
             </svg>
           </button>
         )}
         {!readOnly && (
-          <button type="button" onClick={() => setEditOpen(true)} className="text-gray-300 active:text-gray-500 p-1 -mr-1 shrink-0">
-            <PencilIcon size={15} />
+          <button type="button" onClick={() => setEditOpen(true)} className="text-gray-300 active:text-gray-500 p-2 -mr-2 shrink-0">
+            <PencilIcon size={20} />
           </button>
         )}
       </div>
