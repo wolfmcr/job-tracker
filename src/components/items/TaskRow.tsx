@@ -45,13 +45,8 @@ export function TaskRow({ task, onToggle, onUpdate, onDelete, jobColor, jobName,
               {task.text}
             </p>
             {expanded && (
-              <ul className="mt-1 flex flex-col gap-0.5 text-sm text-gray-500 wrap-break-word">
-                {bullets.map((bullet, i) => (
-                  <li key={i} className="flex gap-2">
-                    <span className="mt-2 w-1 h-1 rounded-full bg-gray-400 shrink-0" aria-hidden />
-                    {bullet}
-                  </li>
-                ))}
+              <ul className="tree-list mt-1 flex flex-col gap-0.5 text-sm text-gray-500 wrap-break-word">
+                {bullets.map((bullet, i) => <li key={i}>{bullet}</li>)}
               </ul>
             )}
             {jobName && jobColor && (
