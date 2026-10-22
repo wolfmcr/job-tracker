@@ -11,7 +11,7 @@ import { SortPills } from '../components/ui/SortPills'
 import { DEFAULT_JOB_COLOR } from '../constants/colors'
 import { useCombinedTasks } from '../hooks/useCombinedItems'
 import { useJobs } from '../hooks/useJobs'
-import { addTask, deleteTask, setTaskPriority, toggleTask, updateTask } from '../services/jobService'
+import { addTask, deleteTask, toggleTask, updateTask } from '../services/jobService'
 import type { Task } from '../types'
 
 type SortKey = 'priority' | 'job' | 'added'
@@ -61,7 +61,6 @@ export function CombinedTasksScreen() {
         onToggle={() => toggleTask(task.jobId, task.id, !task.isDone)}
         onDelete={() => deleteTask(task.jobId, task.id)}
         onUpdate={(fields) => updateTask(task.jobId, task.id, fields)}
-        onSetPriority={(p) => setTaskPriority(task.jobId, task.id, p)}
       />
     )
   }

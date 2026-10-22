@@ -21,7 +21,6 @@ import {
   deleteShoppingItem,
   deleteTask,
   restoreJob,
-  setTaskPriority,
   toggleShoppingItem,
   toggleTask,
   updateShoppingItem,
@@ -63,7 +62,6 @@ export function JobDetailScreen() {
         onToggle={readOnly ? () => {} : () => toggleTask(jobId, task.id, !task.isDone)}
         onDelete={readOnly ? () => {} : () => deleteTask(jobId, task.id)}
         onUpdate={readOnly ? () => {} : (fields) => updateTask(jobId, task.id, fields)}
-        onSetPriority={(p) => setTaskPriority(jobId, task.id, p)}
         readOnly={readOnly}
       />
     )

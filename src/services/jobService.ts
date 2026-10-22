@@ -90,10 +90,6 @@ export async function toggleTask(jobId: string, taskId: string, isDone: boolean)
   await updateDoc(doc(db, 'jobs', jobId, 'tasks', taskId), { isDone })
 }
 
-export async function setTaskPriority(jobId: string, taskId: string, priority: number) {
-  await updateDoc(doc(db, 'jobs', jobId, 'tasks', taskId), { priority })
-}
-
 export async function updateTask(jobId: string, taskId: string, fields: TaskFields) {
   await updateDoc(doc(db, 'jobs', jobId, 'tasks', taskId), fields)
 }

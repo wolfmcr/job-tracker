@@ -3,7 +3,6 @@ import { useState } from 'react'
 import type { TaskFields } from '../../services/jobService'
 import type { Task } from '../../types'
 import { JobBadge } from '../ui/JobBadge'
-import { PriorityFlagButton } from '../ui/PriorityFlagButton'
 import { EditTaskSheet } from './EditTaskSheet'
 
 interface Props {
@@ -11,16 +10,14 @@ interface Props {
   onToggle: () => void
   onUpdate: (fields: TaskFields) => void
   onDelete: () => void
-  onSetPriority?: (priority: number) => void
   jobColor?: string
   jobName?: string
   readOnly?: boolean
 }
 
-export function TaskRow({ task, onToggle, onUpdate, onDelete, onSetPriority, jobColor, jobName, readOnly = false }: Props) {
+export function TaskRow({ task, onToggle, onUpdate, onDelete, jobColor, jobName, readOnly = false }: Props) {
   const [sheetOpen, setSheetOpen] = useState(false)
   const [expanded, setExpanded] = useState(false)
-  const priority = task.priority ?? 0
   const bullets = task.bullets ?? []
 
   return (
@@ -56,21 +53,15 @@ export function TaskRow({ task, onToggle, onUpdate, onDelete, onSetPriority, job
               type="button"
               onClick={e => { e.stopPropagation(); setExpanded(v => !v) }}
               aria-expanded={expanded}
-              aria-label={`${expanded ? 'Hide' : 'Show'} ${bullets.length} details`}
-              className="flex items-center gap-0.5 p-2 shrink-0 text-sm text-gray-400 active:opacity-60"
+              aria-label={expanded ? 'Hide details' : 'Show details'}
+              className="p-2 -mr-2 shrink-0 text-gray-400 active:opacity-60"
             >
-              {bullets.length}
               <ChevronDownIcon size={18} className={`transition-transform ${expanded ? 'rotate-180' : ''}`} />
             </button>
           )}
-          {!readOnly && onSetPriority && (
-            <div onClick={e => e.stopPropagation()}>
-              <PriorityFlagButton priority={priority} onSetPriority={onSetPriority} />
-            </div>
-          )}
         </div>
         {expanded && (
-          <ul className="list-disc pl-10 pr-12 mt-2 flex flex-col gap-1 text-sm text-gray-600 wrap-break-word">
+          <ul className="list-disc pl-10 pr-6 mt-2 flex flex-col gap-1 text-sm text-gray-600 wrap-break-word">
             {bullets.map((bullet, i) => <li key={i}>{bullet}</li>)}
           </ul>
         )}
