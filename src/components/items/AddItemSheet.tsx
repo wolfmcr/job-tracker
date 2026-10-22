@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { BottomSheet } from '../ui/BottomSheet'
-import { Field, FieldLabel } from '../ui/Field'
+import { Field } from '../ui/Field'
+import { JobPicker } from '../ui/JobPicker'
 import { SubmitButton } from '../ui/SubmitButton'
-import { DEFAULT_JOB_COLOR } from '../../constants/colors'
 import type { Job } from '../../types'
 
 interface Props {
@@ -50,30 +50,7 @@ export function AddItemSheet({ open, onClose, onAdd, title, hasQty = false, labe
     <BottomSheet open={open} onClose={onClose} title={title}>
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         {jobs && jobs.length > 0 && (
-          <div role="group" aria-label="Job" className="flex flex-col gap-1.5">
-            <FieldLabel required>Job</FieldLabel>
-            <div className="flex flex-wrap gap-2">
-              {jobs.map(job => {
-                const jobColor = job.color || DEFAULT_JOB_COLOR
-                const selected = selectedJobId === job.id
-                return (
-                  <button
-                    key={job.id}
-                    type="button"
-                    onClick={() => setSelectedJobId(job.id)}
-                    className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium border transition-colors"
-                    style={selected
-                      ? { backgroundColor: jobColor, color: '#fff', borderColor: jobColor }
-                      : { backgroundColor: `${jobColor}15`, color: jobColor, borderColor: `${jobColor}30` }
-                    }
-                  >
-                    <span className="w-2.5 h-2.5 rounded-full shrink-0 bg-current opacity-70" />
-                    {job.name}
-                  </button>
-                )
-              })}
-            </div>
-          </div>
+          <JobPicker jobs={jobs} value={selectedJobId} onChange={setSelectedJobId} />
         )}
         {hasQty && (
           <Field label="Quantity">

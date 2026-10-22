@@ -1,59 +1,53 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import type { TodoItem } from '../../types'
+import { useEffect, useState } from 'react'
+import type { TaskFields } from '../../services/jobService'
+import type { Task } from '../../types'
 import { BottomSheet } from '../ui/BottomSheet'
+import { cleanBullets } from '../../lib/format'
+import { BulletListInput } from '../ui/BulletListInput'
 import { DeleteButton } from '../ui/DeleteButton'
-import { JobBadge } from '../ui/JobBadge'
 import { Field } from '../ui/Field'
+import { JobBadge } from '../ui/JobBadge'
+import { PriorityPicker } from '../ui/PriorityPicker'
 import { SubmitButton } from '../ui/SubmitButton'
 
 interface Props {
   open: boolean
   onClose: () => void
-  item: TodoItem
-  onUpdate: (text: string, details: string) => void
+  task: Task
+  onUpdate: (fields: TaskFields) => void
   onDelete: () => void
   jobColor?: string
   jobName?: string
   readOnly?: boolean
 }
 
-function useAutoGrow(value: string, active: boolean) {
-  const ref = useRef<HTMLTextAreaElement>(null)
-  useLayoutEffect(() => {
-    const el = ref.current
-    if (!el) return
-    el.style.height = 'auto'
-    el.style.height = `${el.scrollHeight + el.offsetHeight - el.clientHeight}px`
-  }, [value, active])
-  return ref
-}
-
-function formatCreated(item: TodoItem) {
-  const date = item.createdAt?.toDate?.()
+function formatCreated(task: Task) {
+  const date = task.createdAt?.toDate?.()
   if (!date) return null
   return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
-export function EditTodoItemSheet({ open, onClose, item, onUpdate, onDelete, jobColor, jobName, readOnly = false }: Props) {
+export function EditTaskSheet({ open, onClose, task, onUpdate, onDelete, jobColor, jobName, readOnly = false }: Props) {
   const [editing, setEditing] = useState(false)
-  const [text, setText] = useState(item.text)
-  const [details, setDetails] = useState(item.details ?? '')
-  const detailsRef = useAutoGrow(details, editing)
+  const [text, setText] = useState(task.text)
+  const [bullets, setBullets] = useState<string[]>(task.bullets ?? [])
+  const [priority, setPriority] = useState(task.priority ?? 0)
 
   useEffect(() => {
     if (open) {
       setEditing(false)
-      setText(item.text)
-      setDetails(item.details ?? '')
+      setText(task.text)
+      setBullets(task.bullets ?? [])
+      setPriority(task.priority ?? 0)
     }
-  }, [open, item])
+  }, [open, task])
 
-  const created = formatCreated(item)
+  const created = formatCreated(task)
 
   function handleSave(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     if (!text.trim()) return
-    onUpdate(text.trim(), details.trim())
+    onUpdate({ text: text.trim(), bullets: cleanBullets(bullets), priority })
     onClose()
   }
 
@@ -82,26 +76,19 @@ export function EditTodoItemSheet({ open, onClose, item, onUpdate, onDelete, job
               required
             />
           </Field>
-          <Field label="Details">
-            <textarea
-              ref={detailsRef}
-              rows={3}
-              value={details}
-              onChange={e => setDetails(e.target.value)}
-              className="w-full resize-none max-h-[50vh] px-4 py-3 border border-gray-300 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </Field>
+          <BulletListInput label="Details" value={bullets} onChange={setBullets} />
+          <PriorityPicker value={priority} onChange={setPriority} />
           <SubmitButton label="Save" disabled={!text.trim()} />
         </form>
       ) : (
         <div className="flex flex-col gap-4">
-          <p className={`text-lg font-semibold ${item.isDone ? 'line-through text-gray-400' : 'text-gray-900'}`}>
-            {item.text}
+          <p className={`text-lg font-semibold ${task.isDone ? 'line-through text-gray-400' : 'text-gray-900'}`}>
+            {task.text}
           </p>
-          {item.details ? (
-            <p className="text-base text-gray-700 whitespace-pre-wrap wrap-break-word max-h-[50vh] overflow-y-auto">
-              {item.details}
-            </p>
+          {task.bullets && task.bullets.length > 0 ? (
+            <ul className="list-disc pl-5 flex flex-col gap-1 text-base text-gray-700 wrap-break-word max-h-[50vh] overflow-y-auto">
+              {task.bullets.map((bullet, i) => <li key={i}>{bullet}</li>)}
+            </ul>
           ) : (
             <p className="text-base text-gray-400">No details</p>
           )}

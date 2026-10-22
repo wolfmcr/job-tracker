@@ -1,13 +1,14 @@
 import { useState } from 'react'
-import type { TodoItem } from '../../types'
+import type { TaskFields } from '../../services/jobService'
+import type { Task } from '../../types'
 import { JobBadge } from '../ui/JobBadge'
 import { PriorityFlagButton } from '../ui/PriorityFlagButton'
-import { EditTodoItemSheet } from './EditTodoItemSheet'
+import { EditTaskSheet } from './EditTaskSheet'
 
 interface Props {
-  item: TodoItem
+  task: Task
   onToggle: () => void
-  onUpdate: (text: string, details: string) => void
+  onUpdate: (fields: TaskFields) => void
   onDelete: () => void
   onSetPriority?: (priority: number) => void
   jobColor?: string
@@ -15,9 +16,9 @@ interface Props {
   readOnly?: boolean
 }
 
-export function TodoItemRow({ item, onToggle, onUpdate, onDelete, onSetPriority, jobColor, jobName, readOnly = false }: Props) {
+export function TaskRow({ task, onToggle, onUpdate, onDelete, onSetPriority, jobColor, jobName, readOnly = false }: Props) {
   const [sheetOpen, setSheetOpen] = useState(false)
-  const priority = item.priority ?? 0
+  const priority = task.priority ?? 0
 
   return (
     <>
@@ -30,8 +31,8 @@ export function TodoItemRow({ item, onToggle, onUpdate, onDelete, onSetPriority,
       >
         <input
           type="checkbox"
-          checked={item.isDone}
-          aria-label={`Done: ${item.text}`}
+          checked={task.isDone}
+          aria-label={`Done: ${task.text}`}
           onChange={onToggle}
           onClick={e => e.stopPropagation()}
           disabled={readOnly}
@@ -39,11 +40,11 @@ export function TodoItemRow({ item, onToggle, onUpdate, onDelete, onSetPriority,
           style={{ accentColor: jobColor ?? '#2563eb' }}
         />
         <div className="flex-1 min-w-0">
-          <p className={`text-base ${item.isDone ? 'line-through text-gray-400' : 'text-gray-800'}`}>
-            {item.text}
+          <p className={`text-base ${task.isDone ? 'line-through text-gray-400' : 'text-gray-800'}`}>
+            {task.text}
           </p>
-          {item.details && (
-            <p className="text-sm text-gray-400 truncate">{item.details}</p>
+          {task.bullets && task.bullets.length > 0 && (
+            <p className="text-sm text-gray-400 truncate">{task.bullets.join(' · ')}</p>
           )}
           {jobName && jobColor && (
             <JobBadge name={jobName} color={jobColor} />
@@ -55,10 +56,10 @@ export function TodoItemRow({ item, onToggle, onUpdate, onDelete, onSetPriority,
           </div>
         )}
       </div>
-      <EditTodoItemSheet
+      <EditTaskSheet
         open={sheetOpen}
         onClose={() => setSheetOpen(false)}
-        item={item}
+        task={task}
         onUpdate={onUpdate}
         onDelete={onDelete}
         jobColor={jobColor}

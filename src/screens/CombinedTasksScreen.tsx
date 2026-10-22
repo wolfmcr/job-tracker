@@ -1,7 +1,7 @@
 import { CheckSquareIcon } from 'lucide-react'
 import { useMemo, useState } from 'react'
-import { AddItemSheet } from '../components/items/AddItemSheet'
-import { TodoItemRow } from '../components/items/TodoItemRow'
+import { AddTaskSheet } from '../components/items/AddTaskSheet'
+import { TaskRow } from '../components/items/TaskRow'
 import { EmptyState } from '../components/ui/EmptyState'
 import { FAB } from '../components/ui/FAB'
 import { LoadingSpinner } from '../components/ui/LoadingSpinner'
@@ -9,10 +9,10 @@ import { ScreenHeader } from '../components/ui/ScreenHeader'
 import { ShowCompletedToggle } from '../components/ui/ShowCompletedToggle'
 import { SortPills } from '../components/ui/SortPills'
 import { DEFAULT_JOB_COLOR } from '../constants/colors'
-import { useCombinedTodoItems } from '../hooks/useCombinedItems'
+import { useCombinedTasks } from '../hooks/useCombinedItems'
 import { useJobs } from '../hooks/useJobs'
-import { addTodoItem, deleteTodoItem, setTodoItemPriority, toggleTodoItem, updateTodoItem } from '../services/jobService'
-import type { TodoItem } from '../types'
+import { addTask, deleteTask, setTaskPriority, toggleTask, updateTask } from '../services/jobService'
+import type { Task } from '../types'
 
 type SortKey = 'priority' | 'job' | 'added'
 
@@ -22,9 +22,9 @@ const SORT_OPTIONS: { key: string; label: string }[] = [
   { key: 'added', label: 'Added' },
 ]
 
-export function CombinedTodoScreen() {
+export function CombinedTasksScreen() {
   const { jobs, loading: jobsLoading } = useJobs()
-  const { items: rawItems, loading: itemsLoading } = useCombinedTodoItems()
+  const { items: rawItems, loading: itemsLoading } = useCombinedTasks()
   const [sort, setSort] = useState<SortKey>('job')
   const [showCompleted, setShowCompleted] = useState(false)
   const [addOpen, setAddOpen] = useState(false)
@@ -34,7 +34,7 @@ export function CombinedTodoScreen() {
   const allItems = rawItems.filter(i => jobMap.has(i.jobId))
   const loading = jobsLoading || itemsLoading
 
-  function sortItems(items: TodoItem[]) {
+  function sortItems(items: Task[]) {
     const sorted = [...items]
     if (sort === 'job') {
       sorted.sort((a, b) => {
@@ -50,13 +50,29 @@ export function CombinedTodoScreen() {
     return sorted
   }
 
+  function renderRow(task: Task) {
+    const job = jobMap.get(task.jobId)
+    return (
+      <TaskRow
+        key={task.id}
+        task={task}
+        jobColor={job?.color || DEFAULT_JOB_COLOR}
+        jobName={job?.name}
+        onToggle={() => toggleTask(task.jobId, task.id, !task.isDone)}
+        onDelete={() => deleteTask(task.jobId, task.id)}
+        onUpdate={(fields) => updateTask(task.jobId, task.id, fields)}
+        onSetPriority={(p) => setTaskPriority(task.jobId, task.id, p)}
+      />
+    )
+  }
+
   const incomplete = sortItems(allItems.filter(i => !i.isDone))
   const completed = sortItems(allItems.filter(i => i.isDone))
 
   return (
     <div className="pb-24">
       <ScreenHeader
-        title="To-Do"
+        title="Tasks"
         right={incomplete.length > 0 ? <span className="text-sm text-gray-400">{incomplete.length} left</span> : undefined}
       />
       <div className="px-4 pb-3">
@@ -66,25 +82,10 @@ export function CombinedTodoScreen() {
       {loading ? (
         <LoadingSpinner />
       ) : allItems.length === 0 ? (
-        <EmptyState icon={<CheckSquareIcon size={40} />} message="Nothing to do." />
+        <EmptyState icon={<CheckSquareIcon size={40} />} message="No tasks." />
       ) : (
         <>
-          {incomplete.map(item => {
-            const job = jobMap.get(item.jobId)
-            const color = job?.color || DEFAULT_JOB_COLOR
-            return (
-              <TodoItemRow
-                key={item.id}
-                item={item}
-                jobColor={color}
-                jobName={job?.name}
-                onToggle={() => toggleTodoItem(item.jobId, item.id, !item.isDone)}
-                onDelete={() => deleteTodoItem(item.jobId, item.id)}
-                onUpdate={(text, details) => updateTodoItem(item.jobId, item.id, text, details)}
-                onSetPriority={(p) => setTodoItemPriority(item.jobId, item.id, p)}
-              />
-            )
-          })}
+          {incomplete.map(renderRow)}
 
           <ShowCompletedToggle
             count={completed.length}
@@ -92,31 +93,14 @@ export function CombinedTodoScreen() {
             onToggle={() => setShowCompleted(v => !v)}
           />
 
-          {showCompleted && completed.map(item => {
-            const job = jobMap.get(item.jobId)
-            const color = job?.color || DEFAULT_JOB_COLOR
-            return (
-              <TodoItemRow
-                key={item.id}
-                item={item}
-                jobColor={color}
-                jobName={job?.name}
-                onToggle={() => toggleTodoItem(item.jobId, item.id, !item.isDone)}
-                onDelete={() => deleteTodoItem(item.jobId, item.id)}
-                onUpdate={(text, details) => updateTodoItem(item.jobId, item.id, text, details)}
-                onSetPriority={(p) => setTodoItemPriority(item.jobId, item.id, p)}
-              />
-            )
-          })}
+          {showCompleted && completed.map(renderRow)}
         </>
       )}
       <FAB onClick={() => setAddOpen(true)} color="#111827" label="Add task" />
-      <AddItemSheet
+      <AddTaskSheet
         open={addOpen}
         onClose={() => setAddOpen(false)}
-        onAdd={(text, _qty, jobId) => addTodoItem(jobId!, text)}
-        title="Add Task"
-        label="Task"
+        onAdd={addTask}
         jobs={jobs}
       />
     </div>

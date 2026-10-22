@@ -23,3 +23,8 @@ export function parseISODate(iso: string) {
 export function formatDate(iso: string) {
   return parseISODate(iso).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })
 }
+
+// Trims bullets and drops empty ones (BulletListInput keeps a blank line for typing)
+export function cleanBullets(bullets: string[]) {
+  return bullets.map(b => b.trim()).filter(Boolean)
+}

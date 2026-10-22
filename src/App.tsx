@@ -1,9 +1,11 @@
 import { createRootRoute, createRoute, createRouter, Outlet, redirect, RouterProvider } from '@tanstack/react-router'
+import { useEffect } from 'react'
 import { AppShell } from './components/layout/AppShell'
 import { useAuth } from './hooks/useAuth'
+import { migrateTodosToTasks } from './lib/migrateTodosToTasks'
 import { ArchiveScreen } from './screens/ArchiveScreen'
 import { CombinedShoppingScreen } from './screens/CombinedShoppingScreen'
-import { CombinedTodoScreen } from './screens/CombinedTodoScreen'
+import { CombinedTasksScreen } from './screens/CombinedTasksScreen'
 import { HoursScreen } from './screens/HoursScreen'
 import { JobDetailScreen } from './screens/JobDetailScreen'
 import { JobsScreen } from './screens/JobsScreen'
@@ -36,10 +38,17 @@ const shoppingRoute = createRoute({
   component: CombinedShoppingScreen,
 })
 
-const todoRoute = createRoute({
+const tasksRoute = createRoute({
+  getParentRoute: () => layoutRoute,
+  path: '/tasks',
+  component: CombinedTasksScreen,
+})
+
+// Old path, kept so saved shortcuts still land on Tasks
+const legacyTodoRoute = createRoute({
   getParentRoute: () => layoutRoute,
   path: '/todo',
-  component: CombinedTodoScreen,
+  beforeLoad: () => { throw redirect({ to: '/tasks' }) },
 })
 
 const hoursRoute = createRoute({
@@ -62,7 +71,7 @@ const jobDetailRoute = createRoute({
 
 const routeTree = rootRoute.addChildren([
   indexRoute,
-  layoutRoute.addChildren([jobsRoute, jobDetailRoute, shoppingRoute, todoRoute, hoursRoute, archiveRoute]),
+  layoutRoute.addChildren([jobsRoute, jobDetailRoute, shoppingRoute, tasksRoute, legacyTodoRoute, hoursRoute, archiveRoute]),
 ])
 
 const router = createRouter({ routeTree })
@@ -73,6 +82,10 @@ declare module '@tanstack/react-router' {
 
 export function App() {
   const { user, loading } = useAuth()
+
+  useEffect(() => {
+    if (user) migrateTodosToTasks().catch(err => console.error('[migrateTodosToTasks] failed', err))
+  }, [user])
 
   if (loading) {
     return (

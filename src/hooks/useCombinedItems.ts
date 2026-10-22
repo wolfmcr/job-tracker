@@ -1,14 +1,14 @@
 import { collectionGroup, onSnapshot, orderBy, query } from 'firebase/firestore'
 import { useEffect, useState } from 'react'
 import { db } from '../lib/firebase'
-import type { ShoppingItem, TodoItem } from '../types'
+import type { ShoppingItem, Task } from '../types'
 
 const RETRY_MS = 2000
 
 // Listens to a subcollection across all jobs. Stays `loading` until the server
 // has answered (an empty local cache isn't treated as "no items"), and
 // resubscribes if the listener errors instead of silently going empty.
-function useCollectionGroup<T>(name: 'shoppingItems' | 'todoItems') {
+function useCollectionGroup<T>(name: 'shoppingItems' | 'tasks') {
   const [items, setItems] = useState<T[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -49,6 +49,6 @@ export function useCombinedShoppingItems() {
   return useCollectionGroup<ShoppingItem>('shoppingItems')
 }
 
-export function useCombinedTodoItems() {
-  return useCollectionGroup<TodoItem>('todoItems')
+export function useCombinedTasks() {
+  return useCollectionGroup<Task>('tasks')
 }

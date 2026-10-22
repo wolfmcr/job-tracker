@@ -49,12 +49,13 @@ export interface Payment {
   createdAt: Timestamp
 }
 
-export interface TodoItem {
+export interface Task {
   id: string
   jobId: string
   jobName?: string
   text: string
-  details?: string
+  // Plain bullet points for now; may become a checkable checklist later
+  bullets?: string[]
   isDone: boolean
   priority?: number
   createdAt: Timestamp

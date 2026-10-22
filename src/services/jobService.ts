@@ -1,6 +1,6 @@
 import { addDoc, collection, deleteDoc, doc, serverTimestamp, updateDoc } from 'firebase/firestore'
 import { db } from '../lib/firebase'
-import type { Job } from '../types'
+import type { Job, Task } from '../types'
 
 export type JobFields = Pick<Job, 'name' | 'address' | 'color' | 'clientName' | 'clientPhone' | 'notes'>
 
@@ -76,26 +76,28 @@ export async function deleteShoppingItem(jobId: string, itemId: string) {
   await deleteDoc(doc(db, 'jobs', jobId, 'shoppingItems', itemId))
 }
 
-export async function addTodoItem(jobId: string, text: string) {
-  await addDoc(collection(db, 'jobs', jobId, 'todoItems'), {
-    text,
+export type TaskFields = Pick<Task, 'text' | 'bullets' | 'priority'>
+
+export async function addTask(jobId: string, fields: TaskFields) {
+  await addDoc(collection(db, 'jobs', jobId, 'tasks'), {
+    ...fields,
     isDone: false,
     createdAt: serverTimestamp(),
   })
 }
 
-export async function toggleTodoItem(jobId: string, itemId: string, isDone: boolean) {
-  await updateDoc(doc(db, 'jobs', jobId, 'todoItems', itemId), { isDone })
+export async function toggleTask(jobId: string, taskId: string, isDone: boolean) {
+  await updateDoc(doc(db, 'jobs', jobId, 'tasks', taskId), { isDone })
 }
 
-export async function setTodoItemPriority(jobId: string, itemId: string, priority: number) {
-  await updateDoc(doc(db, 'jobs', jobId, 'todoItems', itemId), { priority })
+export async function setTaskPriority(jobId: string, taskId: string, priority: number) {
+  await updateDoc(doc(db, 'jobs', jobId, 'tasks', taskId), { priority })
 }
 
-export async function updateTodoItem(jobId: string, itemId: string, text: string, details: string) {
-  await updateDoc(doc(db, 'jobs', jobId, 'todoItems', itemId), { text, details })
+export async function updateTask(jobId: string, taskId: string, fields: TaskFields) {
+  await updateDoc(doc(db, 'jobs', jobId, 'tasks', taskId), fields)
 }
 
-export async function deleteTodoItem(jobId: string, itemId: string) {
-  await deleteDoc(doc(db, 'jobs', jobId, 'todoItems', itemId))
+export async function deleteTask(jobId: string, taskId: string) {
+  await deleteDoc(doc(db, 'jobs', jobId, 'tasks', taskId))
 }

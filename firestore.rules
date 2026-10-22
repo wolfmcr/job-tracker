@@ -8,6 +8,11 @@ service cloud.firestore {
         allow read, write: if request.auth != null;
       }
 
+      match /tasks/{taskId} {
+        allow read, write: if request.auth != null;
+      }
+
+      // Legacy: kept until the migrated copies in tasks are confirmed
       match /todoItems/{todoId} {
         allow read, write: if request.auth != null;
       }
@@ -20,6 +25,10 @@ service cloud.firestore {
 
     // Required for collectionGroup queries across all jobs
     match /{path=**}/shoppingItems/{itemId} {
+      allow read, write: if request.auth != null;
+    }
+
+    match /{path=**}/tasks/{taskId} {
       allow read, write: if request.auth != null;
     }
 

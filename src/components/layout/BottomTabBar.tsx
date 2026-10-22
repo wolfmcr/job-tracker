@@ -4,7 +4,7 @@ import { BriefcaseIcon, CheckSquareIcon, ClockIcon, ShoppingCartIcon } from 'luc
 const tabs = [
   { to: '/jobs', icon: BriefcaseIcon, label: 'Jobs', alsoActiveOn: ['/archive'] },
   { to: '/shopping', icon: ShoppingCartIcon, label: 'Shopping', alsoActiveOn: [] },
-  { to: '/todo', icon: CheckSquareIcon, label: 'To-Do', alsoActiveOn: [] },
+  { to: '/tasks', icon: CheckSquareIcon, label: 'Tasks', alsoActiveOn: [] },
   { to: '/hours', icon: ClockIcon, label: 'Hours', alsoActiveOn: [] },
 ] as const
 

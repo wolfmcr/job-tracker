@@ -8,23 +8,24 @@ import { SectionHeader } from '../components/ui/SectionHeader'
 import { AddButton } from '../components/ui/AddButton'
 import { AddItemSheet } from '../components/items/AddItemSheet'
 import { ShoppingItemRow } from '../components/items/ShoppingItemRow'
-import { TodoItemRow } from '../components/items/TodoItemRow'
+import { AddTaskSheet } from '../components/items/AddTaskSheet'
+import { TaskRow } from '../components/items/TaskRow'
 import { useJob } from '../hooks/useJob'
-import { useShoppingItems, useTodoItems } from '../hooks/useJobItems'
-import type { TodoItem } from '../types'
+import { useShoppingItems, useTasks } from '../hooks/useJobItems'
+import type { Task } from '../types'
 import {
   addShoppingItem,
-  addTodoItem,
+  addTask,
   archiveJob,
   completeJob,
   deleteShoppingItem,
-  deleteTodoItem,
+  deleteTask,
   restoreJob,
-  setTodoItemPriority,
+  setTaskPriority,
   toggleShoppingItem,
-  toggleTodoItem,
+  toggleTask,
   updateShoppingItem,
-  updateTodoItem,
+  updateTask,
 } from '../services/jobService'
 
 export function JobDetailScreen() {
@@ -34,12 +35,12 @@ export function JobDetailScreen() {
   const [editOpen, setEditOpen] = useState(false)
   const [notesOpen, setNotesOpen] = useState(false)
   const [addShoppingOpen, setAddShoppingOpen] = useState(false)
-  const [addTodoOpen, setAddTodoOpen] = useState(false)
+  const [addTaskOpen, setAddTaskOpen] = useState(false)
   const [showDoneShopping, setShowDoneShopping] = useState(false)
-  const [showDoneTodos, setShowDoneTodos] = useState(false)
+  const [showDoneTasks, setShowDoneTasks] = useState(false)
 
   const { items: shoppingItems } = useShoppingItems(jobId)
-  const { items: todoItems } = useTodoItems(jobId)
+  const { items: tasks } = useTasks(jobId)
 
   if (!job) return null
 
@@ -49,10 +50,24 @@ export function JobDetailScreen() {
   const color = job.color || DEFAULT_JOB_COLOR
 
   const sortedShopping = [...shoppingItems].sort((a, b) => Number(a.isGot) - Number(b.isGot))
-  const byPriority = (a: TodoItem, b: TodoItem) =>
+  const byPriority = (a: Task, b: Task) =>
     (b.priority ?? 0) - (a.priority ?? 0) || (a.createdAt?.toMillis() ?? Infinity) - (b.createdAt?.toMillis() ?? Infinity)
-  const openTodos = todoItems.filter(i => !i.isDone).sort(byPriority)
-  const doneTodos = todoItems.filter(i => i.isDone).sort(byPriority)
+  const openTasks = tasks.filter(i => !i.isDone).sort(byPriority)
+  const doneTasks = tasks.filter(i => i.isDone).sort(byPriority)
+
+  function renderTaskRow(task: Task) {
+    return (
+      <TaskRow
+        key={task.id}
+        task={task}
+        onToggle={readOnly ? () => {} : () => toggleTask(jobId, task.id, !task.isDone)}
+        onDelete={readOnly ? () => {} : () => deleteTask(jobId, task.id)}
+        onUpdate={readOnly ? () => {} : (fields) => updateTask(jobId, task.id, fields)}
+        onSetPriority={(p) => setTaskPriority(jobId, task.id, p)}
+        readOnly={readOnly}
+      />
+    )
+  }
 
   const backRoute = readOnly ? '/archive' : '/jobs'
 
@@ -200,41 +215,21 @@ export function JobDetailScreen() {
         )}
       </div>
 
-      {/* To-do list */}
+      {/* Tasks */}
       <div className="mt-4">
         <SectionHeader
-          title="To-Do"
+          title="Tasks"
           color={color}
-          action={doneTodos.length > 0 ? (
-            <button type="button" onClick={() => setShowDoneTodos(v => !v)} className="text-sm font-medium" style={{ color }}>
-              {showDoneTodos ? 'Hide completed' : `Show ${doneTodos.length} completed`}
+          action={doneTasks.length > 0 ? (
+            <button type="button" onClick={() => setShowDoneTasks(v => !v)} className="text-sm font-medium" style={{ color }}>
+              {showDoneTasks ? 'Hide completed' : `Show ${doneTasks.length} completed`}
             </button>
           ) : undefined}
         />
-        {openTodos.map(item => (
-          <TodoItemRow
-            key={item.id}
-            item={item}
-            onToggle={readOnly ? () => {} : () => toggleTodoItem(jobId, item.id, !item.isDone)}
-            onDelete={readOnly ? () => {} : () => deleteTodoItem(jobId, item.id)}
-            onUpdate={readOnly ? () => {} : (text, details) => updateTodoItem(jobId, item.id, text, details)}
-            onSetPriority={(p) => setTodoItemPriority(jobId, item.id, p)}
-            readOnly={readOnly}
-          />
-        ))}
-        {showDoneTodos && doneTodos.map(item => (
-          <TodoItemRow
-            key={item.id}
-            item={item}
-            onToggle={readOnly ? () => {} : () => toggleTodoItem(jobId, item.id, !item.isDone)}
-            onDelete={readOnly ? () => {} : () => deleteTodoItem(jobId, item.id)}
-            onUpdate={readOnly ? () => {} : (text, details) => updateTodoItem(jobId, item.id, text, details)}
-            onSetPriority={(p) => setTodoItemPriority(jobId, item.id, p)}
-            readOnly={readOnly}
-          />
-        ))}
+        {openTasks.map(renderTaskRow)}
+        {showDoneTasks && doneTasks.map(renderTaskRow)}
         {!readOnly && (
-          <AddButton label="Add task" onClick={() => setAddTodoOpen(true)} color={color} />
+          <AddButton label="Add task" onClick={() => setAddTaskOpen(true)} color={color} />
         )}
       </div>
 
@@ -282,12 +277,11 @@ export function JobDetailScreen() {
         label="Item"
         color={color}
       />
-      <AddItemSheet
-        open={addTodoOpen}
-        onClose={() => setAddTodoOpen(false)}
-        onAdd={(text) => addTodoItem(jobId, text)}
-        title="Add Task"
-        label="Task"
+      <AddTaskSheet
+        open={addTaskOpen}
+        onClose={() => setAddTaskOpen(false)}
+        onAdd={addTask}
+        defaultJobId={jobId}
         color={color}
       />
     </div>
