@@ -2,6 +2,7 @@ import { ChevronDownIcon } from 'lucide-react'
 import { useState } from 'react'
 import type { TaskFields } from '../../services/jobService'
 import type { Task } from '../../types'
+import { DueDateLabel } from '../ui/DueDateLabel'
 import { JobBadge } from '../ui/JobBadge'
 import { EditTaskSheet } from './EditTaskSheet'
 
@@ -44,6 +45,7 @@ export function TaskRow({ task, onToggle, onUpdate, onDelete, jobColor, jobName,
             <p className={`text-base ${task.isDone ? 'line-through text-gray-400' : 'text-gray-800'}`}>
               {task.text}
             </p>
+            {task.dueDate && !task.isDone && <DueDateLabel dueDate={task.dueDate} className="text-sm" />}
             {expanded && (
               <ul className="tree-list mt-1 flex flex-col gap-0.5 text-sm text-gray-500 wrap-break-word">
                 {bullets.map((bullet, i) => <li key={i}>{bullet}</li>)}

@@ -4,6 +4,7 @@ import type { TaskFields } from '../../services/jobService'
 import { BottomSheet } from '../ui/BottomSheet'
 import { cleanBullets } from '../../lib/format'
 import { BulletListInput } from '../ui/BulletListInput'
+import { DueDateField } from '../ui/DueDateField'
 import { Field } from '../ui/Field'
 import { JobPicker } from '../ui/JobPicker'
 import { PriorityPicker } from '../ui/PriorityPicker'
@@ -23,6 +24,7 @@ export function AddTaskSheet({ open, onClose, onAdd, color = '#111827', jobs, de
   const [text, setText] = useState('')
   const [bullets, setBullets] = useState<string[]>([])
   const [priority, setPriority] = useState(0)
+  const [dueDate, setDueDate] = useState('')
   const [saving, setSaving] = useState(false)
   const [selectedJobId, setSelectedJobId] = useState<string>(defaultJobId ?? '')
   const textRef = useRef<HTMLInputElement>(null)
@@ -32,6 +34,7 @@ export function AddTaskSheet({ open, onClose, onAdd, color = '#111827', jobs, de
       setText('')
       setBullets([])
       setPriority(0)
+      setDueDate('')
       setSelectedJobId(defaultJobId ?? jobs?.[0]?.id ?? '')
       setTimeout(() => textRef.current?.focus(), 80)
     }
@@ -44,7 +47,7 @@ export function AddTaskSheet({ open, onClose, onAdd, color = '#111827', jobs, de
     e.preventDefault()
     if (!text.trim() || !selectedJobId) return
     setSaving(true)
-    await onAdd(selectedJobId, { text: text.trim(), bullets: cleanBullets(bullets), priority })
+    await onAdd(selectedJobId, { text: text.trim(), bullets: cleanBullets(bullets), priority, dueDate })
     setSaving(false)
     onClose()
   }
@@ -65,6 +68,7 @@ export function AddTaskSheet({ open, onClose, onAdd, color = '#111827', jobs, de
           />
         </Field>
         <BulletListInput label="Details" value={bullets} onChange={setBullets} />
+        <DueDateField value={dueDate} onChange={setDueDate} />
         <PriorityPicker value={priority} onChange={setPriority} />
         <SubmitButton
           label="Add"

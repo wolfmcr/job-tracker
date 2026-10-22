@@ -6,7 +6,9 @@ import { BottomSheet } from '../ui/BottomSheet'
 import { cleanBullets } from '../../lib/format'
 import { BulletListInput } from '../ui/BulletListInput'
 import { DeleteButton } from '../ui/DeleteButton'
+import { DueDateField } from '../ui/DueDateField'
 import { Field } from '../ui/Field'
+import { DueDateLabel } from '../ui/DueDateLabel'
 import { JobBadge } from '../ui/JobBadge'
 import { PriorityPicker } from '../ui/PriorityPicker'
 import { SubmitButton } from '../ui/SubmitButton'
@@ -33,6 +35,7 @@ export function EditTaskSheet({ open, onClose, task, onUpdate, onDelete, jobColo
   const [text, setText] = useState(task.text)
   const [bullets, setBullets] = useState<string[]>(task.bullets ?? [])
   const [priority, setPriority] = useState(task.priority ?? 0)
+  const [dueDate, setDueDate] = useState(task.dueDate ?? '')
 
   useEffect(() => {
     if (open) {
@@ -40,6 +43,7 @@ export function EditTaskSheet({ open, onClose, task, onUpdate, onDelete, jobColo
       setText(task.text)
       setBullets(task.bullets ?? [])
       setPriority(task.priority ?? 0)
+      setDueDate(task.dueDate ?? '')
     }
   }, [open, task])
 
@@ -49,7 +53,7 @@ export function EditTaskSheet({ open, onClose, task, onUpdate, onDelete, jobColo
   function handleSave(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     if (!text.trim()) return
-    onUpdate({ text: text.trim(), bullets: cleanBullets(bullets), priority })
+    onUpdate({ text: text.trim(), bullets: cleanBullets(bullets), priority, dueDate })
     onClose()
   }
 
@@ -80,6 +84,7 @@ export function EditTaskSheet({ open, onClose, task, onUpdate, onDelete, jobColo
             />
           </Field>
           <BulletListInput label="Details" value={bullets} onChange={setBullets} />
+          <DueDateField value={dueDate} onChange={setDueDate} />
           <PriorityPicker value={priority} onChange={setPriority} />
           <SubmitButton label="Save" disabled={!text.trim()} />
         </form>
@@ -88,6 +93,7 @@ export function EditTaskSheet({ open, onClose, task, onUpdate, onDelete, jobColo
           <p className={`text-lg font-semibold ${task.isDone ? 'line-through text-gray-400' : 'text-gray-900'}`}>
             {task.text}
           </p>
+          {task.dueDate && !task.isDone && <DueDateLabel dueDate={task.dueDate} className="text-sm -mt-3" />}
           {task.bullets && task.bullets.length > 0 ? (
             <ul className="list-disc pl-5 flex flex-col gap-1 text-base text-gray-700 wrap-break-word max-h-[50vh] overflow-y-auto">
               {task.bullets.map((bullet, i) => <li key={i}>{bullet}</li>)}

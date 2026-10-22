@@ -28,3 +28,12 @@ export function formatDate(iso: string) {
 export function cleanBullets(bullets: string[]) {
   return bullets.map(b => b.trim()).filter(Boolean)
 }
+
+// "Due today", "Due tomorrow", "Overdue · Mon, Oct 20", else "Due Fri, Oct 24"; tone drives the colour
+export function describeDueDate(iso: string) {
+  const days = Math.round((parseISODate(iso).getTime() - parseISODate(todayISO()).getTime()) / 86_400_000)
+  if (days < 0) return { label: `Overdue · ${formatDate(iso)}`, tone: 'overdue' as const }
+  if (days === 0) return { label: 'Due today', tone: 'today' as const }
+  if (days === 1) return { label: 'Due tomorrow', tone: 'upcoming' as const }
+  return { label: `Due ${formatDate(iso)}`, tone: 'upcoming' as const }
+}

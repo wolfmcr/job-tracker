@@ -76,11 +76,12 @@ export async function deleteShoppingItem(jobId: string, itemId: string) {
   await deleteDoc(doc(db, 'jobs', jobId, 'shoppingItems', itemId))
 }
 
-export type TaskFields = Pick<Task, 'text' | 'bullets' | 'priority'>
+export type TaskFields = Pick<Task, 'text' | 'bullets' | 'priority'> & { dueDate: string } // '' = no due date
 
-export async function addTask(jobId: string, fields: TaskFields) {
+export async function addTask(jobId: string, { dueDate, ...fields }: TaskFields) {
   await addDoc(collection(db, 'jobs', jobId, 'tasks'), {
     ...fields,
+    ...(dueDate && { dueDate }),
     isDone: false,
     createdAt: serverTimestamp(),
   })
@@ -93,8 +94,11 @@ export async function toggleTask(jobId: string, taskId: string, isDone: boolean)
   })
 }
 
-export async function updateTask(jobId: string, taskId: string, fields: TaskFields) {
-  await updateDoc(doc(db, 'jobs', jobId, 'tasks', taskId), fields)
+export async function updateTask(jobId: string, taskId: string, { dueDate, ...fields }: TaskFields) {
+  await updateDoc(doc(db, 'jobs', jobId, 'tasks', taskId), {
+    ...fields,
+    dueDate: dueDate || deleteField(),
+  })
 }
 
 export async function deleteTask(jobId: string, taskId: string) {

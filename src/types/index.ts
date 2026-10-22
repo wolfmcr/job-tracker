@@ -58,6 +58,7 @@ export interface Task {
   bullets?: string[]
   isDone: boolean
   completedAt?: Timestamp
+  dueDate?: string // YYYY-MM-DD
   priority?: number
   createdAt: Timestamp
 }

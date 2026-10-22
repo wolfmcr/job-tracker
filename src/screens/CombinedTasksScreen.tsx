@@ -11,7 +11,7 @@ import { SortPills } from '../components/ui/SortPills'
 import { DEFAULT_JOB_COLOR } from '../constants/colors'
 import { useCombinedTasks } from '../hooks/useCombinedItems'
 import { useJobs } from '../hooks/useJobs'
-import { DEFAULT_DIRECTION, SORT_OPTIONS, sortByCompleted, sortItems, type SortDirection, type SortKey } from '../lib/sortItems'
+import { DEFAULT_DIRECTION, TASK_SORT_OPTIONS, sortByCompleted, sortItems, type SortDirection, type SortKey } from '../lib/sortItems'
 import { addTask, deleteTask, toggleTask, updateTask } from '../services/jobService'
 import type { Task } from '../types'
 
@@ -61,7 +61,7 @@ export function CombinedTasksScreen() {
       />
       <div className="px-4 pb-3">
         <SortPills
-          options={SORT_OPTIONS}
+          options={TASK_SORT_OPTIONS}
           active={sort}
           onChange={key => changeSort(key as SortKey)}
           direction={direction}
