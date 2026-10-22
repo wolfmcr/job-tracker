@@ -11,6 +11,7 @@ import { ShoppingItemRow } from '../components/items/ShoppingItemRow'
 import { TodoItemRow } from '../components/items/TodoItemRow'
 import { useJob } from '../hooks/useJob'
 import { useShoppingItems, useTodoItems } from '../hooks/useJobItems'
+import type { TodoItem } from '../types'
 import {
   addShoppingItem,
   addTodoItem,
@@ -19,6 +20,7 @@ import {
   deleteShoppingItem,
   deleteTodoItem,
   restoreJob,
+  setTodoItemPriority,
   toggleShoppingItem,
   toggleTodoItem,
   updateShoppingItem,
@@ -47,7 +49,10 @@ export function JobDetailScreen() {
   const color = job.color || DEFAULT_JOB_COLOR
 
   const sortedShopping = [...shoppingItems].sort((a, b) => Number(a.isGot) - Number(b.isGot))
-  const sortedTodos = [...todoItems].sort((a, b) => Number(a.isDone) - Number(b.isDone))
+  const byPriority = (a: TodoItem, b: TodoItem) =>
+    (b.priority ?? 0) - (a.priority ?? 0) || (a.createdAt?.toMillis() ?? Infinity) - (b.createdAt?.toMillis() ?? Infinity)
+  const openTodos = todoItems.filter(i => !i.isDone).sort(byPriority)
+  const doneTodos = todoItems.filter(i => i.isDone).sort(byPriority)
 
   const backRoute = readOnly ? '/archive' : '/jobs'
 
@@ -200,29 +205,31 @@ export function JobDetailScreen() {
         <SectionHeader
           title="To-Do"
           color={color}
-          action={sortedTodos.filter(i => i.isDone).length > 0 ? (
+          action={doneTodos.length > 0 ? (
             <button type="button" onClick={() => setShowDoneTodos(v => !v)} className="text-sm font-medium" style={{ color }}>
-              {showDoneTodos ? 'Hide completed' : `Show ${sortedTodos.filter(i => i.isDone).length} completed`}
+              {showDoneTodos ? 'Hide completed' : `Show ${doneTodos.length} completed`}
             </button>
           ) : undefined}
         />
-        {showDoneTodos && sortedTodos.filter(i => i.isDone).map(item => (
+        {openTodos.map(item => (
           <TodoItemRow
             key={item.id}
             item={item}
             onToggle={readOnly ? () => {} : () => toggleTodoItem(jobId, item.id, !item.isDone)}
             onDelete={readOnly ? () => {} : () => deleteTodoItem(jobId, item.id)}
-            onUpdate={(text, details) => updateTodoItem(jobId, item.id, text, details)}
+            onUpdate={readOnly ? () => {} : (text, details) => updateTodoItem(jobId, item.id, text, details)}
+            onSetPriority={(p) => setTodoItemPriority(jobId, item.id, p)}
             readOnly={readOnly}
           />
         ))}
-        {sortedTodos.filter(i => !i.isDone).map(item => (
+        {showDoneTodos && doneTodos.map(item => (
           <TodoItemRow
             key={item.id}
             item={item}
             onToggle={readOnly ? () => {} : () => toggleTodoItem(jobId, item.id, !item.isDone)}
             onDelete={readOnly ? () => {} : () => deleteTodoItem(jobId, item.id)}
-            onUpdate={(text, details) => updateTodoItem(jobId, item.id, text, details)}
+            onUpdate={readOnly ? () => {} : (text, details) => updateTodoItem(jobId, item.id, text, details)}
+            onSetPriority={(p) => setTodoItemPriority(jobId, item.id, p)}
             readOnly={readOnly}
           />
         ))}
