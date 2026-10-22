@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { TaskFields } from '../../services/jobService'
 import type { Timestamp } from 'firebase/firestore'
-import type { Task } from '../../types'
+import type { ShoppingItem, Task } from '../../types'
 import { BottomSheet } from '../ui/BottomSheet'
 import { cleanBullets } from '../../lib/format'
 import { BulletListInput } from '../ui/BulletListInput'
@@ -12,13 +12,15 @@ import { DueDateLabel } from '../ui/DueDateLabel'
 import { JobBadge } from '../ui/JobBadge'
 import { PriorityPicker } from '../ui/PriorityPicker'
 import { SubmitButton } from '../ui/SubmitButton'
+import { TaskShoppingList } from './TaskShoppingList'
 
 interface Props {
   open: boolean
   onClose: () => void
   task: Task
+  shoppingItems: ShoppingItem[]
   onUpdate: (fields: TaskFields) => void
-  onDelete: () => void
+  onDelete: (deleteShopping: boolean) => void
   jobColor?: string
   jobName?: string
   readOnly?: boolean
@@ -30,8 +32,9 @@ function formatTimestamp(timestamp: Timestamp | undefined) {
   return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
-export function EditTaskSheet({ open, onClose, task, onUpdate, onDelete, jobColor, jobName, readOnly = false }: Props) {
+export function EditTaskSheet({ open, onClose, task, shoppingItems, onUpdate, onDelete, jobColor, jobName, readOnly = false }: Props) {
   const [editing, setEditing] = useState(false)
+  const [choosingDelete, setChoosingDelete] = useState(false)
   const [text, setText] = useState(task.text)
   const [bullets, setBullets] = useState<string[]>(task.bullets ?? [])
   const [priority, setPriority] = useState(task.priority ?? 0)
@@ -40,6 +43,7 @@ export function EditTaskSheet({ open, onClose, task, onUpdate, onDelete, jobColo
   useEffect(() => {
     if (open) {
       setEditing(false)
+      setChoosingDelete(false)
       setText(task.text)
       setBullets(task.bullets ?? [])
       setPriority(task.priority ?? 0)
@@ -57,8 +61,8 @@ export function EditTaskSheet({ open, onClose, task, onUpdate, onDelete, jobColo
     onClose()
   }
 
-  function handleDelete() {
-    onDelete()
+  function handleDelete(deleteShopping: boolean) {
+    onDelete(deleteShopping)
     onClose()
   }
 
@@ -101,6 +105,7 @@ export function EditTaskSheet({ open, onClose, task, onUpdate, onDelete, jobColo
           ) : (
             <p className="text-base text-gray-400">No details</p>
           )}
+          <TaskShoppingList task={task} items={shoppingItems} jobColor={jobColor} readOnly={readOnly} />
           {!readOnly && (
             <>
               <button
@@ -111,7 +116,40 @@ export function EditTaskSheet({ open, onClose, task, onUpdate, onDelete, jobColo
               >
                 Edit
               </button>
-              <DeleteButton onDelete={handleDelete} />
+              {shoppingItems.length === 0 ? (
+                <DeleteButton onDelete={() => handleDelete(false)} />
+              ) : choosingDelete ? (
+                <div className="flex flex-col gap-2 p-3 rounded-xl border border-red-100">
+                  <p className="text-sm text-gray-700">
+                    This task has {shoppingItems.length} shopping {shoppingItems.length === 1 ? 'item' : 'items'}. Delete {shoppingItems.length === 1 ? 'it' : 'them'} too?
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => handleDelete(true)}
+                    className="w-full py-3 font-semibold rounded-xl text-base bg-red-500 text-white active:bg-red-600"
+                  >
+                    Delete task and shopping
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDelete(false)}
+                    className="w-full py-3 font-semibold rounded-xl text-base border border-red-100 text-red-500 active:bg-red-50"
+                  >
+                    Delete task, keep shopping on job list
+                  </button>
+                  <button type="button" onClick={() => setChoosingDelete(false)} className="w-full py-2 text-sm text-gray-500">
+                    Cancel
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setChoosingDelete(true)}
+                  className="w-full py-3 font-semibold rounded-xl text-base border text-red-500 border-red-100 active:bg-red-50"
+                >
+                  Delete
+                </button>
+              )}
             </>
           )}
         </div>

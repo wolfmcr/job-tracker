@@ -9,7 +9,7 @@ import { ScreenHeader } from '../components/ui/ScreenHeader'
 import { ShowCompletedToggle } from '../components/ui/ShowCompletedToggle'
 import { SortPills } from '../components/ui/SortPills'
 import { DEFAULT_JOB_COLOR } from '../constants/colors'
-import { useCombinedShoppingItems } from '../hooks/useCombinedItems'
+import { useCombinedShoppingItems, useCombinedTasks } from '../hooks/useCombinedItems'
 import { useJobs } from '../hooks/useJobs'
 import { DEFAULT_DIRECTION, SORT_OPTIONS, sortItems, type SortDirection, type SortKey } from '../lib/sortItems'
 import { addShoppingItem, deleteShoppingItem, setShoppingItemPriority, toggleShoppingItem, updateShoppingItem } from '../services/jobService'
@@ -17,6 +17,7 @@ import { addShoppingItem, deleteShoppingItem, setShoppingItemPriority, toggleSho
 export function CombinedShoppingScreen() {
   const { jobs, loading: jobsLoading } = useJobs()
   const { items: rawItems, loading: itemsLoading } = useCombinedShoppingItems()
+  const { items: tasks } = useCombinedTasks()
   const [sort, setSort] = useState<SortKey>('job')
   const [direction, setDirection] = useState<SortDirection>(DEFAULT_DIRECTION.job)
   const [showCompleted, setShowCompleted] = useState(false)
@@ -28,6 +29,8 @@ export function CombinedShoppingScreen() {
   const loading = jobsLoading || itemsLoading
 
   const jobName = (jobId: string) => jobMap.get(jobId)?.name ?? ''
+  const taskMap = useMemo(() => new Map(tasks.map(t => [t.id, t.text])), [tasks])
+  const taskName = (taskId?: string) => (taskId ? taskMap.get(taskId) : undefined)
 
   function changeSort(key: SortKey) {
     setSort(key)
@@ -66,6 +69,7 @@ export function CombinedShoppingScreen() {
               <ShoppingItemRow
                 key={item.id}
                 item={item}
+                taskName={taskName(item.taskId)}
                 jobColor={color}
                 jobName={job?.name}
                 onToggle={() => toggleShoppingItem(item.jobId, item.id, !item.isGot)}
@@ -89,6 +93,7 @@ export function CombinedShoppingScreen() {
               <ShoppingItemRow
                 key={item.id}
                 item={item}
+                taskName={taskName(item.taskId)}
                 jobColor={color}
                 jobName={job?.name}
                 onToggle={() => toggleShoppingItem(item.jobId, item.id, !item.isGot)}

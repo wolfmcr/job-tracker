@@ -1,4 +1,4 @@
-import { PencilIcon } from 'lucide-react'
+import { CheckSquareIcon, PencilIcon } from 'lucide-react'
 import { useState } from 'react'
 import type { ShoppingItem } from '../../types'
 import { JobBadge } from '../ui/JobBadge'
@@ -13,10 +13,11 @@ interface Props {
   onSetPriority?: (priority: number) => void
   jobColor?: string
   jobName?: string
+  taskName?: string // set when the item is on a task's shopping list
   readOnly?: boolean
 }
 
-export function ShoppingItemRow({ item, onToggle, onUpdate, onDelete, onSetPriority, jobColor, jobName, readOnly = false }: Props) {
+export function ShoppingItemRow({ item, onToggle, onUpdate, onDelete, onSetPriority, jobColor, jobName, taskName, readOnly = false }: Props) {
   const [editOpen, setEditOpen] = useState(false)
   const priority = item.priority ?? 0
 
@@ -37,6 +38,12 @@ export function ShoppingItemRow({ item, onToggle, onUpdate, onDelete, onSetPrior
             {item.qty ? <span className="font-medium text-gray-500 mr-1">{item.qty}</span> : null}
             {item.name}
           </p>
+          {taskName && (
+            <p className="flex items-center gap-1 text-sm text-gray-500 truncate">
+              <CheckSquareIcon size={13} className="shrink-0" />
+              <span className="truncate">{taskName}</span>
+            </p>
+          )}
           {jobName && jobColor && (
             <JobBadge name={jobName} color={jobColor} />
           )}

@@ -1,4 +1,4 @@
-import { addDoc, collection, deleteDoc, deleteField, doc, serverTimestamp, updateDoc } from 'firebase/firestore'
+import { addDoc, collection, deleteDoc, deleteField, doc, serverTimestamp, updateDoc, writeBatch } from 'firebase/firestore'
 import { db } from '../lib/firebase'
 import type { Job, Task } from '../types'
 
@@ -51,10 +51,11 @@ export async function completeJob(jobId: string) {
   })
 }
 
-export async function addShoppingItem(jobId: string, qty: string, name: string) {
+export async function addShoppingItem(jobId: string, qty: string, name: string, taskId?: string) {
   await addDoc(collection(db, 'jobs', jobId, 'shoppingItems'), {
     qty,
     name,
+    ...(taskId && { taskId }),
     isGot: false,
     createdAt: serverTimestamp(),
   })
@@ -101,6 +102,14 @@ export async function updateTask(jobId: string, taskId: string, { dueDate, ...fi
   })
 }
 
-export async function deleteTask(jobId: string, taskId: string) {
-  await deleteDoc(doc(db, 'jobs', jobId, 'tasks', taskId))
+// The task's shopping items are either deleted with it or kept on the job's list without the task link
+export async function deleteTask(jobId: string, taskId: string, shoppingItemIds: string[], deleteShopping: boolean) {
+  const batch = writeBatch(db)
+  batch.delete(doc(db, 'jobs', jobId, 'tasks', taskId))
+  for (const itemId of shoppingItemIds) {
+    const ref = doc(db, 'jobs', jobId, 'shoppingItems', itemId)
+    if (deleteShopping) batch.delete(ref)
+    else batch.update(ref, { taskId: deleteField() })
+  }
+  await batch.commit()
 }

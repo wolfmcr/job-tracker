@@ -20,6 +20,7 @@ export interface ShoppingItem {
   jobName?: string
   qty: string
   name: string
+  taskId?: string // set when the item belongs to a task's shopping list
   isGot: boolean
   priority?: number
   createdAt: Timestamp

@@ -9,8 +9,9 @@ import { ScreenHeader } from '../components/ui/ScreenHeader'
 import { ShowCompletedToggle } from '../components/ui/ShowCompletedToggle'
 import { SortPills } from '../components/ui/SortPills'
 import { DEFAULT_JOB_COLOR } from '../constants/colors'
-import { useCombinedTasks } from '../hooks/useCombinedItems'
+import { useCombinedShoppingItems, useCombinedTasks } from '../hooks/useCombinedItems'
 import { useJobs } from '../hooks/useJobs'
+import { groupShoppingByTask } from '../lib/shopping'
 import { DEFAULT_DIRECTION, TASK_SORT_OPTIONS, sortByCompleted, sortItems, type SortDirection, type SortKey } from '../lib/sortItems'
 import { addTask, deleteTask, toggleTask, updateTask } from '../services/jobService'
 import type { Task } from '../types'
@@ -18,6 +19,7 @@ import type { Task } from '../types'
 export function CombinedTasksScreen() {
   const { jobs, loading: jobsLoading } = useJobs()
   const { items: rawItems, loading: itemsLoading } = useCombinedTasks()
+  const { items: shoppingItems } = useCombinedShoppingItems()
   const [sort, setSort] = useState<SortKey>('job')
   const [direction, setDirection] = useState<SortDirection>(DEFAULT_DIRECTION.job)
   const [showCompleted, setShowCompleted] = useState(false)
@@ -29,6 +31,7 @@ export function CombinedTasksScreen() {
   const loading = jobsLoading || itemsLoading
 
   const jobName = (jobId: string) => jobMap.get(jobId)?.name ?? ''
+  const shoppingFor = useMemo(() => groupShoppingByTask(shoppingItems), [shoppingItems])
 
   function changeSort(key: SortKey) {
     setSort(key)
@@ -41,10 +44,11 @@ export function CombinedTasksScreen() {
       <TaskRow
         key={task.id}
         task={task}
+        shoppingItems={shoppingFor(task.id)}
         jobColor={job?.color || DEFAULT_JOB_COLOR}
         jobName={job?.name}
         onToggle={() => toggleTask(task.jobId, task.id, !task.isDone)}
-        onDelete={() => deleteTask(task.jobId, task.id)}
+        onDelete={(deleteShopping) => deleteTask(task.jobId, task.id, shoppingFor(task.id).map(i => i.id), deleteShopping)}
         onUpdate={(fields) => updateTask(task.jobId, task.id, fields)}
       />
     )

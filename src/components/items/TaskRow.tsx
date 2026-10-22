@@ -1,25 +1,27 @@
-import { ChevronDownIcon } from 'lucide-react'
+import { ChevronDownIcon, ShoppingCartIcon } from 'lucide-react'
 import { useState } from 'react'
 import type { TaskFields } from '../../services/jobService'
-import type { Task } from '../../types'
+import type { ShoppingItem, Task } from '../../types'
 import { DueDateLabel } from '../ui/DueDateLabel'
 import { JobBadge } from '../ui/JobBadge'
 import { EditTaskSheet } from './EditTaskSheet'
 
 interface Props {
   task: Task
+  shoppingItems: ShoppingItem[]
   onToggle: () => void
   onUpdate: (fields: TaskFields) => void
-  onDelete: () => void
+  onDelete: (deleteShopping: boolean) => void
   jobColor?: string
   jobName?: string
   readOnly?: boolean
 }
 
-export function TaskRow({ task, onToggle, onUpdate, onDelete, jobColor, jobName, readOnly = false }: Props) {
+export function TaskRow({ task, shoppingItems, onToggle, onUpdate, onDelete, jobColor, jobName, readOnly = false }: Props) {
   const [sheetOpen, setSheetOpen] = useState(false)
   const [expanded, setExpanded] = useState(false)
   const bullets = task.bullets ?? []
+  const hasShopping = shoppingItems.some(i => !i.isGot)
 
   return (
     <>
@@ -55,6 +57,9 @@ export function TaskRow({ task, onToggle, onUpdate, onDelete, jobColor, jobName,
               <JobBadge name={jobName} color={jobColor} />
             )}
           </div>
+          {hasShopping && (
+            <ShoppingCartIcon size={16} aria-label="Has things to buy" className="shrink-0 mt-1 text-gray-400" />
+          )}
           {bullets.length > 0 && (
             <button
               type="button"
@@ -72,6 +77,7 @@ export function TaskRow({ task, onToggle, onUpdate, onDelete, jobColor, jobName,
         open={sheetOpen}
         onClose={() => setSheetOpen(false)}
         task={task}
+        shoppingItems={shoppingItems}
         onUpdate={onUpdate}
         onDelete={onDelete}
         jobColor={jobColor}

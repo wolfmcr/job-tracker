@@ -12,6 +12,7 @@ import { AddTaskSheet } from '../components/items/AddTaskSheet'
 import { TaskRow } from '../components/items/TaskRow'
 import { useJob } from '../hooks/useJob'
 import { useShoppingItems, useTasks } from '../hooks/useJobItems'
+import { groupShoppingByTask } from '../lib/shopping'
 import { sortByCompleted, sortItems } from '../lib/sortItems'
 import type { Task } from '../types'
 import {
@@ -50,6 +51,8 @@ export function JobDetailScreen() {
   const color = job.color || DEFAULT_JOB_COLOR
 
   const sortedShopping = [...shoppingItems].sort((a, b) => Number(a.isGot) - Number(b.isGot))
+  const shoppingFor = groupShoppingByTask(shoppingItems)
+  const taskName = (taskId?: string) => (taskId ? tasks.find(t => t.id === taskId)?.text : undefined)
   const openTasks = sortItems(tasks.filter(i => !i.isDone), 'priority', 'desc', () => '')
   const doneTasks = sortByCompleted(tasks.filter(i => i.isDone))
 
@@ -58,8 +61,9 @@ export function JobDetailScreen() {
       <TaskRow
         key={task.id}
         task={task}
+        shoppingItems={shoppingFor(task.id)}
         onToggle={readOnly ? () => {} : () => toggleTask(jobId, task.id, !task.isDone)}
-        onDelete={readOnly ? () => {} : () => deleteTask(jobId, task.id)}
+        onDelete={readOnly ? () => {} : (deleteShopping) => deleteTask(jobId, task.id, shoppingFor(task.id).map(i => i.id), deleteShopping)}
         onUpdate={readOnly ? () => {} : (fields) => updateTask(jobId, task.id, fields)}
         readOnly={readOnly}
       />
@@ -191,6 +195,7 @@ export function JobDetailScreen() {
           <ShoppingItemRow
             key={item.id}
             item={item}
+            taskName={taskName(item.taskId)}
             onToggle={readOnly ? () => {} : () => toggleShoppingItem(jobId, item.id, !item.isGot)}
             onDelete={readOnly ? () => {} : () => deleteShoppingItem(jobId, item.id)}
             onUpdate={(qty, name) => updateShoppingItem(jobId, item.id, qty, name)}
@@ -201,6 +206,7 @@ export function JobDetailScreen() {
           <ShoppingItemRow
             key={item.id}
             item={item}
+            taskName={taskName(item.taskId)}
             onToggle={readOnly ? () => {} : () => toggleShoppingItem(jobId, item.id, !item.isGot)}
             onDelete={readOnly ? () => {} : () => deleteShoppingItem(jobId, item.id)}
             onUpdate={(qty, name) => updateShoppingItem(jobId, item.id, qty, name)}
