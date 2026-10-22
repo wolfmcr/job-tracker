@@ -4,8 +4,8 @@ export type SortKey = 'priority' | 'job' | 'added' | 'due'
 export type SortDirection = 'asc' | 'desc'
 
 export const SORT_OPTIONS: { key: SortKey; label: string }[] = [
-  { key: 'priority', label: 'Priority' },
   { key: 'job', label: 'Job' },
+  { key: 'priority', label: 'Priority' },
   { key: 'added', label: 'Added' },
 ]
 
