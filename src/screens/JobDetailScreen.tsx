@@ -6,15 +6,16 @@ import { EditJobSheet } from '../components/jobs/EditJobSheet'
 import { JobNotesSheet } from '../components/jobs/JobNotesSheet'
 import { SectionHeader } from '../components/ui/SectionHeader'
 import { AddButton } from '../components/ui/AddButton'
-import { AddItemSheet } from '../components/items/AddItemSheet'
+import { AddShoppingItemSheet } from '../components/items/AddShoppingItemSheet'
 import { ShoppingItemRow } from '../components/items/ShoppingItemRow'
 import { AddTaskSheet } from '../components/items/AddTaskSheet'
 import { TaskRow } from '../components/items/TaskRow'
 import { useJob } from '../hooks/useJob'
 import { useShoppingItems, useTasks } from '../hooks/useJobItems'
+import { formatPhone } from '../lib/format'
 import { groupShoppingByTask } from '../lib/shopping'
 import { sortByCompleted, sortItems } from '../lib/sortItems'
-import type { Task } from '../types'
+import type { ShoppingItem, Task } from '../types'
 import {
   addShoppingItem,
   addTask,
@@ -50,11 +51,26 @@ export function JobDetailScreen() {
   const readOnly = job.isArchived
   const color = job.color || DEFAULT_JOB_COLOR
 
-  const sortedShopping = [...shoppingItems].sort((a, b) => Number(a.isGot) - Number(b.isGot))
+  const openShopping = sortItems(shoppingItems.filter(i => !i.isGot), 'priority', 'desc', () => '')
+  const doneShopping = sortItems(shoppingItems.filter(i => i.isGot), 'priority', 'desc', () => '')
   const shoppingFor = groupShoppingByTask(shoppingItems)
   const taskName = (taskId?: string) => (taskId ? tasks.find(t => t.id === taskId)?.text : undefined)
   const openTasks = sortItems(tasks.filter(i => !i.isDone), 'priority', 'desc', () => '')
   const doneTasks = sortByCompleted(tasks.filter(i => i.isDone))
+
+  function renderShoppingRow(item: ShoppingItem) {
+    return (
+      <ShoppingItemRow
+        key={item.id}
+        item={item}
+        taskName={taskName(item.taskId)}
+        onToggle={readOnly ? () => {} : () => toggleShoppingItem(jobId, item.id, !item.isGot)}
+        onDelete={readOnly ? () => {} : () => deleteShoppingItem(jobId, item.id)}
+        onUpdate={readOnly ? () => {} : (fields) => updateShoppingItem(jobId, item.id, fields)}
+        readOnly={readOnly}
+      />
+    )
+  }
 
   function renderTaskRow(task: Task) {
     return (
@@ -139,7 +155,7 @@ export function JobDetailScreen() {
             <UserIcon size={16} style={{ color }} className="shrink-0" />
             <div className="flex-1 min-w-0">
               {job.clientName && <p className="text-sm text-gray-700 truncate">{job.clientName}</p>}
-              {job.clientPhone && <p className="text-xs text-gray-400 truncate">{job.clientPhone}</p>}
+              {job.clientPhone && <p className="text-xs text-gray-400 truncate">{formatPhone(job.clientPhone)}</p>}
             </div>
             {phoneDigits && (
               <>
@@ -185,34 +201,14 @@ export function JobDetailScreen() {
         <SectionHeader
           title="Shopping"
           color={color}
-          action={sortedShopping.filter(i => i.isGot).length > 0 ? (
+          action={doneShopping.length > 0 ? (
             <button type="button" onClick={() => setShowDoneShopping(v => !v)} className="text-sm font-medium" style={{ color }}>
-              {showDoneShopping ? 'Hide completed' : `Show ${sortedShopping.filter(i => i.isGot).length} completed`}
+              {showDoneShopping ? 'Hide completed' : `Show ${doneShopping.length} completed`}
             </button>
           ) : undefined}
         />
-        {showDoneShopping && sortedShopping.filter(i => i.isGot).map(item => (
-          <ShoppingItemRow
-            key={item.id}
-            item={item}
-            taskName={taskName(item.taskId)}
-            onToggle={readOnly ? () => {} : () => toggleShoppingItem(jobId, item.id, !item.isGot)}
-            onDelete={readOnly ? () => {} : () => deleteShoppingItem(jobId, item.id)}
-            onUpdate={(qty, name) => updateShoppingItem(jobId, item.id, qty, name)}
-            readOnly={readOnly}
-          />
-        ))}
-        {sortedShopping.filter(i => !i.isGot).map(item => (
-          <ShoppingItemRow
-            key={item.id}
-            item={item}
-            taskName={taskName(item.taskId)}
-            onToggle={readOnly ? () => {} : () => toggleShoppingItem(jobId, item.id, !item.isGot)}
-            onDelete={readOnly ? () => {} : () => deleteShoppingItem(jobId, item.id)}
-            onUpdate={(qty, name) => updateShoppingItem(jobId, item.id, qty, name)}
-            readOnly={readOnly}
-          />
-        ))}
+        {openShopping.map(renderShoppingRow)}
+        {showDoneShopping && doneShopping.map(renderShoppingRow)}
         {!readOnly && (
           <AddButton label="Add item" onClick={() => setAddShoppingOpen(true)} color={color} />
         )}
@@ -271,13 +267,11 @@ export function JobDetailScreen() {
           <JobNotesSheet job={job} open={notesOpen} onClose={() => setNotesOpen(false)} color={color} />
         </>
       )}
-      <AddItemSheet
+      <AddShoppingItemSheet
         open={addShoppingOpen}
         onClose={() => setAddShoppingOpen(false)}
-        onAdd={(name, qty) => addShoppingItem(jobId, qty ?? '', name)}
-        title="Add Shopping Item"
-        hasQty
-        label="Item"
+        onAdd={addShoppingItem}
+        defaultJobId={jobId}
         color={color}
       />
       <AddTaskSheet

@@ -1,6 +1,6 @@
 import { addDoc, collection, deleteDoc, deleteField, doc, serverTimestamp, updateDoc, writeBatch } from 'firebase/firestore'
 import { db } from '../lib/firebase'
-import type { Job, Task } from '../types'
+import type { Job, ShoppingItem, Task } from '../types'
 
 export type JobFields = Pick<Job, 'name' | 'address' | 'color' | 'clientName' | 'clientPhone' | 'notes'>
 
@@ -51,10 +51,11 @@ export async function completeJob(jobId: string) {
   })
 }
 
-export async function addShoppingItem(jobId: string, qty: string, name: string, taskId?: string) {
+export type ShoppingItemFields = Pick<ShoppingItem, 'qty' | 'name' | 'priority'>
+
+export async function addShoppingItem(jobId: string, fields: ShoppingItemFields, taskId?: string) {
   await addDoc(collection(db, 'jobs', jobId, 'shoppingItems'), {
-    qty,
-    name,
+    ...fields,
     ...(taskId && { taskId }),
     isGot: false,
     createdAt: serverTimestamp(),
@@ -65,12 +66,8 @@ export async function toggleShoppingItem(jobId: string, itemId: string, isGot: b
   await updateDoc(doc(db, 'jobs', jobId, 'shoppingItems', itemId), { isGot })
 }
 
-export async function setShoppingItemPriority(jobId: string, itemId: string, priority: number) {
-  await updateDoc(doc(db, 'jobs', jobId, 'shoppingItems', itemId), { priority })
-}
-
-export async function updateShoppingItem(jobId: string, itemId: string, qty: string, name: string) {
-  await updateDoc(doc(db, 'jobs', jobId, 'shoppingItems', itemId), { qty, name })
+export async function updateShoppingItem(jobId: string, itemId: string, fields: ShoppingItemFields) {
+  await updateDoc(doc(db, 'jobs', jobId, 'shoppingItems', itemId), fields)
 }
 
 export async function deleteShoppingItem(jobId: string, itemId: string) {

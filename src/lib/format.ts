@@ -37,3 +37,16 @@ export function describeDueDate(iso: string) {
   if (days === 1) return { label: 'Due tomorrow', tone: 'upcoming' as const }
   return { label: `Due ${formatDate(iso)}`, tone: 'upcoming' as const }
 }
+
+// US phone numbers as (503) 555-1234, formatting progressively while typing.
+// Anything that isn't a 10-digit (or 1 + 10-digit) number is left as typed.
+export function formatPhone(raw: string) {
+  const digits = raw.replace(/\D/g, '')
+  const national = digits.length === 11 && digits.startsWith('1') ? digits.slice(1) : digits
+  if (raw.trim().startsWith('+') && !raw.trim().startsWith('+1')) return raw
+  if (national.length > 10) return raw
+  if (national.length === 0) return ''
+  if (national.length <= 3) return `(${national}`
+  if (national.length <= 6) return `(${national.slice(0, 3)}) ${national.slice(3)}`
+  return `(${national.slice(0, 3)}) ${national.slice(3, 6)}-${national.slice(6)}`
+}

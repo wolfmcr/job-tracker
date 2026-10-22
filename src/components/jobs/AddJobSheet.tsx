@@ -2,6 +2,8 @@ import { useMutation } from '@tanstack/react-query'
 import { useEffect, useRef, useState } from 'react'
 import { DEFAULT_JOB_COLOR } from '../../constants/colors'
 import { addJob } from '../../services/jobService'
+import { formatPhone } from '../../lib/format'
+import { AddressInput } from '../ui/AddressInput'
 import { BottomSheet } from '../ui/BottomSheet'
 import { Field } from '../ui/Field'
 import { SubmitButton } from '../ui/SubmitButton'
@@ -79,14 +81,7 @@ export function AddJobSheet({ open, onClose }: Props) {
             />
           </Field>
         </div>
-        <Field label="Address">
-          <input
-            type="text"
-            value={address}
-            onChange={e => setAddress(e.target.value)}
-            className="w-full px-4 py-3 border border-gray-300 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </Field>
+        <AddressInput value={address} onChange={setAddress} />
         <Field label="Client name">
           <input
             type="text"
@@ -100,7 +95,7 @@ export function AddJobSheet({ open, onClose }: Props) {
           <input
             type="tel"
             value={clientPhone}
-            onChange={e => setClientPhone(e.target.value)}
+            onChange={e => setClientPhone(formatPhone(e.target.value))}
             autoComplete="off"
             className="w-full px-4 py-3 border border-gray-300 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
           />

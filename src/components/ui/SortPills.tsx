@@ -11,7 +11,8 @@ interface Props {
 
 export function SortPills({ options, active, onChange, direction, onToggleDirection }: Props) {
   return (
-    <div className="flex gap-2">
+    // Scrolls sideways rather than clipping when the pills outgrow a narrow screen
+    <div className="flex gap-2 overflow-x-auto [scrollbar-width:none]">
       {options.map(option => {
         const isActive = active === option.key
         const showArrow = isActive && direction && onToggleDirection
@@ -21,7 +22,7 @@ export function SortPills({ options, active, onChange, direction, onToggleDirect
             type="button"
             onClick={() => (isActive && onToggleDirection ? onToggleDirection() : onChange(option.key))}
             aria-label={showArrow ? `${option.label}, ${direction === 'asc' ? 'ascending' : 'descending'}` : undefined}
-            className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium ${
+            className={`flex items-center gap-1 shrink-0 px-3 py-1.5 rounded-full text-sm font-medium ${
               isActive ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-500'
             }`}
           >

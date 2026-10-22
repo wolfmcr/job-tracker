@@ -28,7 +28,7 @@ export function TaskShoppingList({ task, items, jobColor, readOnly = false }: Pr
     const [q, n] = [qty.trim(), name.trim()]
     setQty('')
     setName('')
-    await addShoppingItem(task.jobId, q, n, task.id)
+    await addShoppingItem(task.jobId, { qty: q, name: n }, task.id)
   }
 
   return (

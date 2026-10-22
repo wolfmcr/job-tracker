@@ -63,7 +63,7 @@ export function CombinedTasksScreen() {
         title="Tasks"
         right={incomplete.length > 0 ? <span className="text-sm text-gray-400">{incomplete.length} left</span> : undefined}
       />
-      <div className="px-4 pb-3">
+      <div className="px-4 pt-2 pb-3 border-b border-gray-100">
         <SortPills
           options={TASK_SORT_OPTIONS}
           active={sort}

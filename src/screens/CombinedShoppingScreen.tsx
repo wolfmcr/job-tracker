@@ -1,6 +1,6 @@
 import { ShoppingCartIcon } from 'lucide-react'
 import { useMemo, useState } from 'react'
-import { AddItemSheet } from '../components/items/AddItemSheet'
+import { AddShoppingItemSheet } from '../components/items/AddShoppingItemSheet'
 import { ShoppingItemRow } from '../components/items/ShoppingItemRow'
 import { EmptyState } from '../components/ui/EmptyState'
 import { FAB } from '../components/ui/FAB'
@@ -12,7 +12,8 @@ import { DEFAULT_JOB_COLOR } from '../constants/colors'
 import { useCombinedShoppingItems, useCombinedTasks } from '../hooks/useCombinedItems'
 import { useJobs } from '../hooks/useJobs'
 import { DEFAULT_DIRECTION, SORT_OPTIONS, sortItems, type SortDirection, type SortKey } from '../lib/sortItems'
-import { addShoppingItem, deleteShoppingItem, setShoppingItemPriority, toggleShoppingItem, updateShoppingItem } from '../services/jobService'
+import { addShoppingItem, deleteShoppingItem, toggleShoppingItem, updateShoppingItem } from '../services/jobService'
+import type { ShoppingItem } from '../types'
 
 export function CombinedShoppingScreen() {
   const { jobs, loading: jobsLoading } = useJobs()
@@ -37,6 +38,22 @@ export function CombinedShoppingScreen() {
     setDirection(DEFAULT_DIRECTION[key])
   }
 
+  function renderRow(item: ShoppingItem) {
+    const job = jobMap.get(item.jobId)
+    return (
+      <ShoppingItemRow
+        key={item.id}
+        item={item}
+        taskName={taskName(item.taskId)}
+        jobColor={job?.color || DEFAULT_JOB_COLOR}
+        jobName={job?.name}
+        onToggle={() => toggleShoppingItem(item.jobId, item.id, !item.isGot)}
+        onDelete={() => deleteShoppingItem(item.jobId, item.id)}
+        onUpdate={(fields) => updateShoppingItem(item.jobId, item.id, fields)}
+      />
+    )
+  }
+
   const incomplete = sortItems(allItems.filter(i => !i.isGot), sort, direction, jobName)
   const completed = sortItems(allItems.filter(i => i.isGot), sort, direction, jobName)
 
@@ -46,7 +63,7 @@ export function CombinedShoppingScreen() {
         title="Shopping"
         right={incomplete.length > 0 ? <span className="text-sm text-gray-400">{incomplete.length} left</span> : undefined}
       />
-      <div className="px-4 pb-3">
+      <div className="px-4 pt-2 pb-3 border-b border-gray-100">
         <SortPills
           options={SORT_OPTIONS}
           active={sort}
@@ -62,23 +79,7 @@ export function CombinedShoppingScreen() {
         <EmptyState icon={<ShoppingCartIcon size={40} />} message="No shopping items." />
       ) : (
         <>
-          {incomplete.map(item => {
-            const job = jobMap.get(item.jobId)
-            const color = job?.color || DEFAULT_JOB_COLOR
-            return (
-              <ShoppingItemRow
-                key={item.id}
-                item={item}
-                taskName={taskName(item.taskId)}
-                jobColor={color}
-                jobName={job?.name}
-                onToggle={() => toggleShoppingItem(item.jobId, item.id, !item.isGot)}
-                onDelete={() => deleteShoppingItem(item.jobId, item.id)}
-                onUpdate={(qty, name) => updateShoppingItem(item.jobId, item.id, qty, name)}
-                onSetPriority={(p) => setShoppingItemPriority(item.jobId, item.id, p)}
-              />
-            )
-          })}
+          {incomplete.map(renderRow)}
 
           <ShowCompletedToggle
             count={completed.length}
@@ -86,33 +87,14 @@ export function CombinedShoppingScreen() {
             onToggle={() => setShowCompleted(v => !v)}
           />
 
-          {showCompleted && completed.map(item => {
-            const job = jobMap.get(item.jobId)
-            const color = job?.color || DEFAULT_JOB_COLOR
-            return (
-              <ShoppingItemRow
-                key={item.id}
-                item={item}
-                taskName={taskName(item.taskId)}
-                jobColor={color}
-                jobName={job?.name}
-                onToggle={() => toggleShoppingItem(item.jobId, item.id, !item.isGot)}
-                onDelete={() => deleteShoppingItem(item.jobId, item.id)}
-                onUpdate={(qty, name) => updateShoppingItem(item.jobId, item.id, qty, name)}
-                onSetPriority={(p) => setShoppingItemPriority(item.jobId, item.id, p)}
-              />
-            )
-          })}
+          {showCompleted && completed.map(renderRow)}
         </>
       )}
       <FAB onClick={() => setAddOpen(true)} color="#111827" label="Add item" />
-      <AddItemSheet
+      <AddShoppingItemSheet
         open={addOpen}
         onClose={() => setAddOpen(false)}
-        onAdd={(name, qty, jobId) => addShoppingItem(jobId!, qty ?? '', name)}
-        title="Add Shopping Item"
-        hasQty
-        label="Item"
+        onAdd={(jobId, fields) => addShoppingItem(jobId, fields)}
         jobs={jobs}
       />
     </div>

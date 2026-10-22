@@ -3,6 +3,8 @@ import { useEffect, useRef, useState } from 'react'
 import { DEFAULT_JOB_COLOR } from '../../constants/colors'
 import { updateJob } from '../../services/jobService'
 import type { Job } from '../../types'
+import { formatPhone } from '../../lib/format'
+import { AddressInput } from '../ui/AddressInput'
 import { BottomSheet } from '../ui/BottomSheet'
 import { Field } from '../ui/Field'
 import { SubmitButton } from '../ui/SubmitButton'
@@ -18,7 +20,7 @@ export function EditJobSheet({ job, open, onClose }: Props) {
   const [address, setAddress] = useState(job.address)
   const [color, setColor] = useState(job.color || DEFAULT_JOB_COLOR)
   const [clientName, setClientName] = useState(job.clientName ?? '')
-  const [clientPhone, setClientPhone] = useState(job.clientPhone ?? '')
+  const [clientPhone, setClientPhone] = useState(formatPhone(job.clientPhone ?? ''))
   const colorRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -27,7 +29,7 @@ export function EditJobSheet({ job, open, onClose }: Props) {
       setAddress(job.address)
       setColor(job.color || DEFAULT_JOB_COLOR)
       setClientName(job.clientName ?? '')
-      setClientPhone(job.clientPhone ?? '')
+      setClientPhone(formatPhone(job.clientPhone ?? ''))
     }
   }, [open, job])
 
@@ -73,14 +75,7 @@ export function EditJobSheet({ job, open, onClose }: Props) {
             />
           </Field>
         </div>
-        <Field label="Address">
-          <input
-            type="text"
-            value={address}
-            onChange={e => setAddress(e.target.value)}
-            className="w-full px-4 py-3 border border-gray-300 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </Field>
+        <AddressInput value={address} onChange={setAddress} />
         <Field label="Client name">
           <input
             type="text"
@@ -94,7 +89,7 @@ export function EditJobSheet({ job, open, onClose }: Props) {
           <input
             type="tel"
             value={clientPhone}
-            onChange={e => setClientPhone(e.target.value)}
+            onChange={e => setClientPhone(formatPhone(e.target.value))}
             autoComplete="off"
             className="w-full px-4 py-3 border border-gray-300 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
