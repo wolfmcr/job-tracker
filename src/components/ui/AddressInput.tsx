@@ -85,6 +85,8 @@ export function AddressInput({ value, onChange }: Props) {
         const addresses = data.features
           .map(f => f.properties)
           .filter(p => p.countrycode === 'US')
+          // Typed a house number? Only suggest actual addresses, not bare streets
+          .filter(p => !/^\d/.test(query) || p.housenumber)
           .map(formatAddress)
         setSuggestions([...new Set(addresses)].slice(0, 5))
       } catch {

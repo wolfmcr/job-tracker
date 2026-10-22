@@ -37,21 +37,8 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,svg,woff2}'],
-        runtimeCaching: [
-          {
-            urlPattern: /^https:\/\/firestore\.googleapis\.com\/.*/i,
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'firebase-firestore-cache',
-              expiration: { maxEntries: 50, maxAgeSeconds: 86400 },
-            },
-          },
-          {
-            urlPattern: /^https:\/\/identitytoolkit\.googleapis\.com\/.*/i,
-            handler: 'NetworkFirst',
-            options: { cacheName: 'firebase-auth-cache' },
-          },
-        ],
+        // No runtime caching for Firestore/Auth: Firestore keeps its own offline cache, and routing its
+        // long-lived listen requests through the service worker kept new versions stuck in "waiting".
       },
     }),
   ],
