@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import { DEFAULT_JOB_COLOR } from '../../constants/colors'
 import { addJob } from '../../services/jobService'
 import { BottomSheet } from '../ui/BottomSheet'
-import { RequiredMark } from '../ui/RequiredMark'
+import { Field } from '../ui/Field'
 import { SubmitButton } from '../ui/SubmitButton'
 
 interface Props {
@@ -52,7 +52,7 @@ export function AddJobSheet({ open, onClose }: Props) {
   return (
     <BottomSheet open={open} onClose={onClose} title="Add Job">
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <div className="flex gap-3 items-center">
+        <div className="flex gap-3 items-end">
           {/* Color picker — circle taps open native color wheel */}
           <button
             type="button"
@@ -68,42 +68,43 @@ export function AddJobSheet({ open, onClose }: Props) {
             onChange={e => setColor(e.target.value)}
             className="sr-only"
           />
-          <div className="relative flex-1">
+          <Field label="Job name" required className="flex-1">
             <input
               ref={nameRef}
               type="text"
-              placeholder="Job name"
               value={name}
               onChange={e => setName(e.target.value)}
               className="w-full px-4 py-3 border border-gray-300 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
             />
-            <RequiredMark show={!name} />
-          </div>
+          </Field>
         </div>
-        <input
-          type="text"
-          placeholder="Address"
-          value={address}
-          onChange={e => setAddress(e.target.value)}
-          className="w-full px-4 py-3 border border-gray-300 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-        <input
-          type="text"
-          placeholder="Client name"
-          value={clientName}
-          onChange={e => setClientName(e.target.value)}
-          autoComplete="off"
-          className="w-full px-4 py-3 border border-gray-300 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-        <input
-          type="tel"
-          placeholder="Client phone"
-          value={clientPhone}
-          onChange={e => setClientPhone(e.target.value)}
-          autoComplete="off"
-          className="w-full px-4 py-3 border border-gray-300 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
+        <Field label="Address">
+          <input
+            type="text"
+            value={address}
+            onChange={e => setAddress(e.target.value)}
+            className="w-full px-4 py-3 border border-gray-300 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </Field>
+        <Field label="Client name">
+          <input
+            type="text"
+            value={clientName}
+            onChange={e => setClientName(e.target.value)}
+            autoComplete="off"
+            className="w-full px-4 py-3 border border-gray-300 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </Field>
+        <Field label="Client phone">
+          <input
+            type="tel"
+            value={clientPhone}
+            onChange={e => setClientPhone(e.target.value)}
+            autoComplete="off"
+            className="w-full px-4 py-3 border border-gray-300 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </Field>
         {mutation.isError && (
           <p className="text-red-600 text-sm text-center">Failed to add job. Try again.</p>
         )}

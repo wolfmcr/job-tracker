@@ -26,6 +26,7 @@ export function ShoppingItemRow({ item, onToggle, onUpdate, onDelete, onSetPrior
         <input
           type="checkbox"
           checked={item.isGot}
+          aria-label={`Got: ${item.name}`}
           onChange={onToggle}
           disabled={readOnly}
           className="w-6 h-6 shrink-0"

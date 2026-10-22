@@ -31,6 +31,7 @@ export function TodoItemRow({ item, onToggle, onUpdate, onDelete, onSetPriority,
         <input
           type="checkbox"
           checked={item.isDone}
+          aria-label={`Done: ${item.text}`}
           onChange={onToggle}
           onClick={e => e.stopPropagation()}
           disabled={readOnly}

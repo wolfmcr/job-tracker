@@ -272,7 +272,7 @@ export function JobDetailScreen() {
         onAdd={(name, qty) => addShoppingItem(jobId, qty ?? '', name)}
         title="Add Shopping Item"
         hasQty
-        placeholder="Item name"
+        label="Item"
         color={color}
       />
       <AddItemSheet
@@ -280,7 +280,7 @@ export function JobDetailScreen() {
         onClose={() => setAddTodoOpen(false)}
         onAdd={(text) => addTodoItem(jobId, text)}
         title="Add Task"
-        placeholder="Task"
+        label="Task"
         color={color}
       />
     </div>

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import type { ShoppingItem } from '../../types'
 import { BottomSheet } from '../ui/BottomSheet'
 import { DeleteButton } from '../ui/DeleteButton'
-import { RequiredMark } from '../ui/RequiredMark'
+import { Field } from '../ui/Field'
 import { SubmitButton } from '../ui/SubmitButton'
 
 interface Props {
@@ -39,24 +39,24 @@ export function EditShoppingItemSheet({ open, onClose, item, onUpdate, onDelete 
   return (
     <BottomSheet open={open} onClose={onClose} title="Edit Item">
       <form onSubmit={handleSave} className="flex flex-col gap-4">
-        <input
-          type="text"
-          placeholder="Quantity (e.g. 3x, 1 bag)"
-          value={qty}
-          onChange={e => setQty(e.target.value)}
-          className="w-full px-4 py-3 border border-gray-300 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-        <div className="relative">
+        <Field label="Quantity">
           <input
             type="text"
-            placeholder="Item name"
+            placeholder="e.g. 3x, 1 bag"
+            value={qty}
+            onChange={e => setQty(e.target.value)}
+            className="w-full px-4 py-3 border border-gray-300 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </Field>
+        <Field label="Item" required>
+          <input
+            type="text"
             value={name}
             onChange={e => setName(e.target.value)}
             className="w-full px-4 py-3 border border-gray-300 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
           />
-          <RequiredMark show={!name} />
-        </div>
+        </Field>
         <SubmitButton label="Save" disabled={!name.trim()} />
         <DeleteButton onDelete={handleDelete} />
       </form>

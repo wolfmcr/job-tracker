@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { formatMoney, todayISO } from '../../lib/format'
 import { BottomSheet } from '../ui/BottomSheet'
 import { DeleteButton } from '../ui/DeleteButton'
-import { RequiredMark } from '../ui/RequiredMark'
+import { Field } from '../ui/Field'
 import { SubmitButton } from '../ui/SubmitButton'
 
 interface Props {
@@ -52,32 +52,34 @@ export function LedgerEntrySheet({ open, onClose, kind, initial, onSave, onDelet
   return (
     <BottomSheet open={open} onClose={onClose} title={title}>
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <input
-          type="date"
-          value={date}
-          onChange={e => setDate(e.target.value)}
-          className={inputClass}
-          required
-        />
-        <div className="relative">
+        <Field label="Date" required>
+          <input
+            type="date"
+            value={date}
+            onChange={e => setDate(e.target.value)}
+            className={inputClass}
+            required
+          />
+        </Field>
+        <Field label={isHours ? 'Hours' : 'Amount ($)'} required>
           <input
             type="text"
             inputMode="decimal"
-            placeholder={isHours ? 'Hours' : 'Amount ($)'}
+            placeholder={isHours ? 'e.g. 7.5' : 'e.g. 250'}
             value={value}
             onChange={e => setValue(e.target.value.replace(/[^\d.]/g, ''))}
             className={inputClass}
             required
           />
-          <RequiredMark show={!value} />
-        </div>
-        <input
-          type="text"
-          placeholder="Note"
-          value={note}
-          onChange={e => setNote(e.target.value)}
-          className={inputClass}
-        />
+        </Field>
+        <Field label="Note">
+          <input
+            type="text"
+            value={note}
+            onChange={e => setNote(e.target.value)}
+            className={inputClass}
+          />
+        </Field>
         {isHours && initial?.rate !== undefined && (
           <p className="text-sm text-gray-400 -mt-1">Logged at {formatMoney(initial.rate)}/hr</p>
         )}

@@ -113,7 +113,7 @@ export function CombinedTodoScreen() {
         onClose={() => setAddOpen(false)}
         onAdd={(text, _qty, jobId) => addTodoItem(jobId!, text)}
         title="Add Task"
-        placeholder="Task"
+        label="Task"
         jobs={jobs}
       />
     </div>

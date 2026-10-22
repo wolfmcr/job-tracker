@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { RequiredMark } from '../ui/RequiredMark'
+import { Field } from '../ui/Field'
 import { SubmitButton } from '../ui/SubmitButton'
 
 interface Props {
@@ -32,30 +32,27 @@ export function EmployeeForm({ initialName = '', initialRate, submitLabel, onSav
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-      <div className="relative">
+      <Field label="Name" required>
         <input
           type="text"
-          placeholder="Employee name"
           value={name}
           onChange={e => setName(e.target.value)}
           autoComplete="off"
           className={inputClass}
           required
         />
-        <RequiredMark show={!name} />
-      </div>
-      <div className="relative">
+      </Field>
+      <Field label="Hourly rate ($)" required>
         <input
           type="text"
           inputMode="decimal"
-          placeholder="Hourly rate ($)"
+          placeholder="e.g. 30"
           value={rate}
           onChange={e => setRate(e.target.value.replace(/[^\d.]/g, ''))}
           className={inputClass}
           required
         />
-        <RequiredMark show={!rate} />
-      </div>
+      </Field>
       <SubmitButton label={submitLabel} disabled={!valid} />
     </form>
   )

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { BottomSheet } from '../ui/BottomSheet'
-import { RequiredMark } from '../ui/RequiredMark'
+import { Field, FieldLabel } from '../ui/Field'
 import { SubmitButton } from '../ui/SubmitButton'
 import { DEFAULT_JOB_COLOR } from '../../constants/colors'
 import type { Job } from '../../types'
@@ -11,13 +11,13 @@ interface Props {
   onAdd: (text: string, qty?: string, jobId?: string) => Promise<void>
   title: string
   hasQty?: boolean
-  placeholder?: string
+  label?: string
   color?: string
   jobs?: Job[]
   defaultJobId?: string
 }
 
-export function AddItemSheet({ open, onClose, onAdd, title, hasQty = false, placeholder = 'Item', color = '#2563eb', jobs, defaultJobId }: Props) {
+export function AddItemSheet({ open, onClose, onAdd, title, hasQty = false, label = 'Item', color = '#2563eb', jobs, defaultJobId }: Props) {
   const [text, setText] = useState('')
   const [qty, setQty] = useState('')
   const [saving, setSaving] = useState(false)
@@ -50,8 +50,8 @@ export function AddItemSheet({ open, onClose, onAdd, title, hasQty = false, plac
     <BottomSheet open={open} onClose={onClose} title={title}>
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         {jobs && jobs.length > 0 && (
-          <div className="flex flex-col gap-2">
-            <p className="text-sm font-medium text-gray-500">Job</p>
+          <div role="group" aria-label="Job" className="flex flex-col gap-1.5">
+            <FieldLabel required>Job</FieldLabel>
             <div className="flex flex-wrap gap-2">
               {jobs.map(job => {
                 const jobColor = job.color || DEFAULT_JOB_COLOR
@@ -76,25 +76,25 @@ export function AddItemSheet({ open, onClose, onAdd, title, hasQty = false, plac
           </div>
         )}
         {hasQty && (
-          <input
-            type="text"
-            placeholder="Quantity (e.g. 3x, 1 bag)"
-            value={qty}
-            onChange={e => setQty(e.target.value)}
-            className="w-full px-4 py-3 border border-gray-300 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
+          <Field label="Quantity">
+            <input
+              type="text"
+              placeholder="e.g. 3x, 1 bag"
+              value={qty}
+              onChange={e => setQty(e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </Field>
         )}
-        <div className="relative">
+        <Field label={label} required>
           <input
             ref={textRef}
             type="text"
-            placeholder={placeholder}
             value={text}
             onChange={e => setText(e.target.value)}
             className="w-full px-4 py-3 border border-gray-300 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
-          <RequiredMark show={!text} />
-        </div>
+        </Field>
         <SubmitButton
           label="Add"
           loadingLabel="Adding…"

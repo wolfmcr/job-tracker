@@ -1,6 +1,7 @@
 import { signInWithEmailAndPassword } from 'firebase/auth'
 import { BriefcaseIcon } from 'lucide-react'
 import { useState } from 'react'
+import { Field } from '../components/ui/Field'
 import { auth } from '../lib/firebase'
 
 export function LoginScreen() {
@@ -32,24 +33,26 @@ export function LoginScreen() {
         </div>
         <h1 className="text-2xl font-bold text-gray-900 text-center mb-8">Job Tracker</h1>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <input
-            type="email"
-            placeholder="Email"
-            autoComplete="email"
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-            className="w-full px-4 py-3 border border-gray-300 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
-          />
-          <input
-            type="password"
-            placeholder="Password"
-            autoComplete="current-password"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            className="w-full px-4 py-3 border border-gray-300 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
-          />
+          <Field label="Email" required>
+            <input
+              type="email"
+              autoComplete="email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
+            />
+          </Field>
+          <Field label="Password" required>
+            <input
+              type="password"
+              autoComplete="current-password"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
+            />
+          </Field>
           {error && <p className="text-red-600 text-sm text-center">{error}</p>}
           <button
             type="submit"
