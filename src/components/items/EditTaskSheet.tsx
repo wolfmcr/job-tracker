@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { TaskFields } from '../../services/jobService'
+import type { Timestamp } from 'firebase/firestore'
 import type { Task } from '../../types'
 import { BottomSheet } from '../ui/BottomSheet'
 import { cleanBullets } from '../../lib/format'
@@ -21,8 +22,8 @@ interface Props {
   readOnly?: boolean
 }
 
-function formatCreated(task: Task) {
-  const date = task.createdAt?.toDate?.()
+function formatTimestamp(timestamp: Timestamp | undefined) {
+  const date = timestamp?.toDate?.()
   if (!date) return null
   return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
 }
@@ -42,7 +43,8 @@ export function EditTaskSheet({ open, onClose, task, onUpdate, onDelete, jobColo
     }
   }, [open, task])
 
-  const created = formatCreated(task)
+  const created = formatTimestamp(task.createdAt)
+  const completed = task.isDone ? formatTimestamp(task.completedAt) : null
 
   function handleSave(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -62,6 +64,7 @@ export function EditTaskSheet({ open, onClose, task, onUpdate, onDelete, jobColo
         <div className="flex items-center gap-2 -mt-3 mb-4">
           {jobName && jobColor && <JobBadge name={jobName} color={jobColor} />}
           {created && <span className="text-xs text-gray-400 mt-1">Added {created}</span>}
+          {completed && <span className="text-xs text-gray-400 mt-1">· Done {completed}</span>}
         </div>
       ) : null}
 

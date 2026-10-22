@@ -57,6 +57,7 @@ export interface Task {
   // Plain bullet points for now; may become a checkable checklist later
   bullets?: string[]
   isDone: boolean
+  completedAt?: Timestamp
   priority?: number
   createdAt: Timestamp
 }

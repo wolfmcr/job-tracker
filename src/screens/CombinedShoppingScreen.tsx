@@ -11,21 +11,14 @@ import { SortPills } from '../components/ui/SortPills'
 import { DEFAULT_JOB_COLOR } from '../constants/colors'
 import { useCombinedShoppingItems } from '../hooks/useCombinedItems'
 import { useJobs } from '../hooks/useJobs'
+import { DEFAULT_DIRECTION, SORT_OPTIONS, sortItems, type SortDirection, type SortKey } from '../lib/sortItems'
 import { addShoppingItem, deleteShoppingItem, setShoppingItemPriority, toggleShoppingItem, updateShoppingItem } from '../services/jobService'
-import type { ShoppingItem } from '../types'
-
-type SortKey = 'priority' | 'job' | 'added'
-
-const SORT_OPTIONS: { key: string; label: string }[] = [
-  { key: 'priority', label: 'Priority' },
-  { key: 'job', label: 'Job' },
-  { key: 'added', label: 'Added' },
-]
 
 export function CombinedShoppingScreen() {
   const { jobs, loading: jobsLoading } = useJobs()
   const { items: rawItems, loading: itemsLoading } = useCombinedShoppingItems()
   const [sort, setSort] = useState<SortKey>('job')
+  const [direction, setDirection] = useState<SortDirection>(DEFAULT_DIRECTION.job)
   const [showCompleted, setShowCompleted] = useState(false)
   const [addOpen, setAddOpen] = useState(false)
 
@@ -34,24 +27,15 @@ export function CombinedShoppingScreen() {
   const allItems = rawItems.filter(i => jobMap.has(i.jobId))
   const loading = jobsLoading || itemsLoading
 
-  function sortItems(items: ShoppingItem[]) {
-    const sorted = [...items]
-    if (sort === 'job') {
-      sorted.sort((a, b) => {
-        const nameA = jobMap.get(a.jobId)?.name ?? ''
-        const nameB = jobMap.get(b.jobId)?.name ?? ''
-        return nameA.localeCompare(nameB) || (b.priority ?? 0) - (a.priority ?? 0)
-      })
-    } else if (sort === 'added') {
-      sorted.sort((a, b) => a.createdAt.toMillis() - b.createdAt.toMillis())
-    } else {
-      sorted.sort((a, b) => (b.priority ?? 0) - (a.priority ?? 0) || a.createdAt.toMillis() - b.createdAt.toMillis())
-    }
-    return sorted
+  const jobName = (jobId: string) => jobMap.get(jobId)?.name ?? ''
+
+  function changeSort(key: SortKey) {
+    setSort(key)
+    setDirection(DEFAULT_DIRECTION[key])
   }
 
-  const incomplete = sortItems(allItems.filter(i => !i.isGot))
-  const completed = sortItems(allItems.filter(i => i.isGot))
+  const incomplete = sortItems(allItems.filter(i => !i.isGot), sort, direction, jobName)
+  const completed = sortItems(allItems.filter(i => i.isGot), sort, direction, jobName)
 
   return (
     <div className="pb-24">
@@ -60,7 +44,13 @@ export function CombinedShoppingScreen() {
         right={incomplete.length > 0 ? <span className="text-sm text-gray-400">{incomplete.length} left</span> : undefined}
       />
       <div className="px-4 pb-3">
-        <SortPills options={SORT_OPTIONS} active={sort} onChange={key => setSort(key as SortKey)} />
+        <SortPills
+          options={SORT_OPTIONS}
+          active={sort}
+          onChange={key => changeSort(key as SortKey)}
+          direction={direction}
+          onToggleDirection={() => setDirection(d => (d === 'asc' ? 'desc' : 'asc'))}
+        />
       </div>
 
       {loading ? (

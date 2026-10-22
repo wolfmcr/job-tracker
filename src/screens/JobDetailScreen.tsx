@@ -12,6 +12,7 @@ import { AddTaskSheet } from '../components/items/AddTaskSheet'
 import { TaskRow } from '../components/items/TaskRow'
 import { useJob } from '../hooks/useJob'
 import { useShoppingItems, useTasks } from '../hooks/useJobItems'
+import { sortByCompleted, sortItems } from '../lib/sortItems'
 import type { Task } from '../types'
 import {
   addShoppingItem,
@@ -49,10 +50,8 @@ export function JobDetailScreen() {
   const color = job.color || DEFAULT_JOB_COLOR
 
   const sortedShopping = [...shoppingItems].sort((a, b) => Number(a.isGot) - Number(b.isGot))
-  const byPriority = (a: Task, b: Task) =>
-    (b.priority ?? 0) - (a.priority ?? 0) || (a.createdAt?.toMillis() ?? Infinity) - (b.createdAt?.toMillis() ?? Infinity)
-  const openTasks = tasks.filter(i => !i.isDone).sort(byPriority)
-  const doneTasks = tasks.filter(i => i.isDone).sort(byPriority)
+  const openTasks = sortItems(tasks.filter(i => !i.isDone), 'priority', 'desc', () => '')
+  const doneTasks = sortByCompleted(tasks.filter(i => i.isDone))
 
   function renderTaskRow(task: Task) {
     return (

@@ -1,4 +1,4 @@
-import { addDoc, collection, deleteDoc, doc, serverTimestamp, updateDoc } from 'firebase/firestore'
+import { addDoc, collection, deleteDoc, deleteField, doc, serverTimestamp, updateDoc } from 'firebase/firestore'
 import { db } from '../lib/firebase'
 import type { Job, Task } from '../types'
 
@@ -87,7 +87,10 @@ export async function addTask(jobId: string, fields: TaskFields) {
 }
 
 export async function toggleTask(jobId: string, taskId: string, isDone: boolean) {
-  await updateDoc(doc(db, 'jobs', jobId, 'tasks', taskId), { isDone })
+  await updateDoc(doc(db, 'jobs', jobId, 'tasks', taskId), {
+    isDone,
+    completedAt: isDone ? serverTimestamp() : deleteField(),
+  })
 }
 
 export async function updateTask(jobId: string, taskId: string, fields: TaskFields) {
