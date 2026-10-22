@@ -23,13 +23,16 @@ const SORT_OPTIONS: { key: string; label: string }[] = [
 ]
 
 export function CombinedShoppingScreen() {
-  const { jobs } = useJobs()
-  const { items: allItems, loading } = useCombinedShoppingItems()
+  const { jobs, loading: jobsLoading } = useJobs()
+  const { items: rawItems, loading: itemsLoading } = useCombinedShoppingItems()
   const [sort, setSort] = useState<SortKey>('job')
   const [showCompleted, setShowCompleted] = useState(false)
   const [addOpen, setAddOpen] = useState(false)
 
   const jobMap = useMemo(() => new Map(jobs.map(j => [j.id, j])), [jobs])
+  // Items from archived jobs stay in Firestore but don't belong on the active list
+  const allItems = rawItems.filter(i => jobMap.has(i.jobId))
+  const loading = jobsLoading || itemsLoading
 
   function sortItems(items: ShoppingItem[]) {
     const sorted = [...items]
