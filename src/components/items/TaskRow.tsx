@@ -29,7 +29,7 @@ export function TaskRow({ task, onToggle, onUpdate, onDelete, jobColor, jobName,
         onKeyDown={e => { if (e.key === 'Enter') setSheetOpen(true) }}
         className="px-4 py-4 border-b border-gray-100 cursor-pointer active:bg-gray-50"
       >
-        <div className="flex items-center gap-4">
+        <div className="flex items-start gap-4">
           <input
             type="checkbox"
             checked={task.isDone}
@@ -44,6 +44,16 @@ export function TaskRow({ task, onToggle, onUpdate, onDelete, jobColor, jobName,
             <p className={`text-base ${task.isDone ? 'line-through text-gray-400' : 'text-gray-800'}`}>
               {task.text}
             </p>
+            {expanded && (
+              <ul className="mt-1 flex flex-col gap-0.5 text-sm text-gray-500 wrap-break-word">
+                {bullets.map((bullet, i) => (
+                  <li key={i} className="flex gap-2">
+                    <span className="mt-2 w-1 h-1 rounded-full bg-gray-400 shrink-0" aria-hidden />
+                    {bullet}
+                  </li>
+                ))}
+              </ul>
+            )}
             {jobName && jobColor && (
               <JobBadge name={jobName} color={jobColor} />
             )}
@@ -54,17 +64,12 @@ export function TaskRow({ task, onToggle, onUpdate, onDelete, jobColor, jobName,
               onClick={e => { e.stopPropagation(); setExpanded(v => !v) }}
               aria-expanded={expanded}
               aria-label={expanded ? 'Hide details' : 'Show details'}
-              className="p-2 -mr-2 shrink-0 text-gray-400 active:opacity-60"
+              className="p-2 -mr-2 -mt-1 shrink-0 text-gray-400 active:opacity-60"
             >
               <ChevronDownIcon size={18} className={`transition-transform ${expanded ? 'rotate-180' : ''}`} />
             </button>
           )}
         </div>
-        {expanded && (
-          <ul className="list-disc pl-10 pr-6 mt-2 flex flex-col gap-1 text-sm text-gray-600 wrap-break-word">
-            {bullets.map((bullet, i) => <li key={i}>{bullet}</li>)}
-          </ul>
-        )}
       </div>
       <EditTaskSheet
         open={sheetOpen}
