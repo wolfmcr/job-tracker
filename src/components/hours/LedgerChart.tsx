@@ -1,14 +1,19 @@
-import { useMemo, useState } from 'react'
-import { Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import { useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { Bar, BarChart, CartesianGrid, Cell, XAxis, YAxis } from 'recharts'
 import { SortPills } from '../ui/SortPills'
-import { formatHours, formatMoney } from '../../lib/format'
+import { formatHours, formatMoney, parseISODate } from '../../lib/format'
 import type { Payment, TimeEntry } from '../../types'
 
 const EARNED_COLOR = '#3b82f6'
 const PAID_COLOR = '#16a34a'
-const PERIOD_COUNT = 8
+const Y_AXIS_WIDTH = 34
+const COLUMN_WIDTH = 52
+const CHART_HEIGHT = 144
+const CHART_TOP = 4
 
 type Range = 'week' | 'month'
+
+const PERIOD_COUNT: Record<Range, number> = { week: 26, month: 12 }
 
 interface Bucket {
   key: string
@@ -17,11 +22,6 @@ interface Bucket {
   hours: number
   earned: number
   paid: number
-}
-
-function parseISO(iso: string) {
-  const [y, m, d] = iso.split('-').map(Number)
-  return new Date(y, m - 1, d)
 }
 
 // Start of the period containing `date` (weeks start Monday)
@@ -41,7 +41,7 @@ function shiftPeriod(start: Date, range: Range, by: number) {
 function buildBuckets(timeEntries: TimeEntry[], payments: Payment[], range: Range): Bucket[] {
   const current = periodStart(new Date(), range)
   const buckets: Bucket[] = []
-  for (let i = PERIOD_COUNT - 1; i >= 0; i--) {
+  for (let i = PERIOD_COUNT[range] - 1; i >= 0; i--) {
     const start = shiftPeriod(current, range, -i)
     const end = new Date(shiftPeriod(start, range, 1).getTime() - 1)
     buckets.push({
@@ -59,16 +59,24 @@ function buildBuckets(timeEntries: TimeEntry[], payments: Payment[], range: Rang
   }
   const byKey = new Map(buckets.map(b => [b.key, b]))
   for (const e of timeEntries) {
-    const bucket = byKey.get(periodStart(parseISO(e.date), range).toDateString())
+    const bucket = byKey.get(periodStart(parseISODate(e.date), range).toDateString())
     if (!bucket) continue
     bucket.hours += e.hours
     bucket.earned += e.hours * e.rate
   }
   for (const p of payments) {
-    const bucket = byKey.get(periodStart(parseISO(p.date), range).toDateString())
+    const bucket = byKey.get(periodStart(parseISODate(p.date), range).toDateString())
     if (bucket) bucket.paid += p.amount
   }
   return buckets
+}
+
+// Round the axis max up to a 1/2/5 step so gridlines land on clean numbers
+function niceMax(value: number) {
+  if (value <= 0) return 100
+  const magnitude = 10 ** Math.floor(Math.log10(value))
+  const step = [1, 2, 5, 10].find(s => s * magnitude >= value) ?? 10
+  return step * magnitude
 }
 
 function compactMoney(amount: number) {
@@ -82,9 +90,19 @@ interface Props {
 
 export function LedgerChart({ timeEntries, payments }: Props) {
   const [range, setRange] = useState<Range>('week')
-  const [selected, setSelected] = useState<number>(PERIOD_COUNT - 1)
+  const [selected, setSelected] = useState<number>(PERIOD_COUNT.week - 1)
   const buckets = useMemo(() => buildBuckets(timeEntries, payments, range), [timeEntries, payments, range])
+  const scrollRef = useRef<HTMLDivElement>(null)
 
+  // Start scrolled to the most recent period
+  useLayoutEffect(() => {
+    const el = scrollRef.current
+    if (el) el.scrollLeft = el.scrollWidth
+  }, [range])
+
+  const max = niceMax(Math.max(...buckets.map(b => Math.max(b.earned, b.paid))))
+  const ticks = [0, max / 2, max]
+  const plotWidth = buckets.length * COLUMN_WIDTH
   const detail = buckets[selected]
 
   return (
@@ -95,7 +113,7 @@ export function LedgerChart({ timeEntries, payments }: Props) {
           active={range}
           onChange={key => {
             setRange(key as Range)
-            setSelected(PERIOD_COUNT - 1)
+            setSelected(PERIOD_COUNT[key as Range] - 1)
           }}
         />
         <div className="flex gap-3 text-xs text-gray-500">
@@ -104,21 +122,33 @@ export function LedgerChart({ timeEntries, payments }: Props) {
         </div>
       </div>
 
-      <div className="h-40" aria-label={`Earned and paid per ${range}`}>
-        <ResponsiveContainer width="100%" height="100%">
+      <div className="flex">
+        {/* Fixed y-axis labels; the bars and period labels scroll beside them */}
+        <div className="relative shrink-0" style={{ width: Y_AXIS_WIDTH, height: CHART_HEIGHT }}>
+          {ticks.map(tick => (
+            <span
+              key={tick}
+              className="absolute right-1.5 -translate-y-1/2 text-[10px] text-gray-400"
+              style={{ top: CHART_TOP + (1 - tick / max) * (CHART_HEIGHT - CHART_TOP) }}
+            >
+              {compactMoney(tick)}
+            </span>
+          ))}
+        </div>
+
+        <div ref={scrollRef} className="flex-1 min-w-0 overflow-x-auto [scrollbar-width:none]">
           <BarChart
+            width={plotWidth}
+            height={CHART_HEIGHT}
             data={buckets}
-            margin={{ top: 4, right: 0, bottom: 0, left: 0 }}
+            margin={{ top: CHART_TOP, right: 0, bottom: 0, left: 0 }}
             barGap={2}
-            onClick={state => {
-              const index = Number(state.activeTooltipIndex)
-              if (!Number.isNaN(index)) setSelected(index)
-            }}
+            accessibilityLayer={false}
+            aria-label={`Earned and paid per ${range}`}
           >
             <CartesianGrid vertical={false} stroke="#f3f4f6" />
-            <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fontSize: 10, fill: '#9ca3af' }} interval={0} />
-            <YAxis tickLine={false} axisLine={false} tick={{ fontSize: 10, fill: '#9ca3af' }} tickFormatter={compactMoney} width={40} tickCount={3} />
-            <Tooltip cursor={{ fill: '#f9fafb' }} content={() => null} />
+            <XAxis dataKey="label" hide />
+            <YAxis hide domain={[0, max]} ticks={ticks} />
             <Bar dataKey="earned" name="Earned" fill={EARNED_COLOR} radius={[4, 4, 0, 0]} maxBarSize={14} isAnimationActive={false}>
               {buckets.map((b, i) => <Cell key={b.key} fillOpacity={i === selected ? 1 : 0.55} />)}
             </Bar>
@@ -126,10 +156,31 @@ export function LedgerChart({ timeEntries, payments }: Props) {
               {buckets.map((b, i) => <Cell key={b.key} fillOpacity={i === selected ? 1 : 0.55} />)}
             </Bar>
           </BarChart>
-        </ResponsiveContainer>
+
+          {/* Period labels double as the selector, one per bar column */}
+          <div className="flex" style={{ width: plotWidth }}>
+            {buckets.map((b, i) => (
+              <button
+                key={b.key}
+                type="button"
+                onClick={() => setSelected(i)}
+                className="h-10 flex items-center justify-center shrink-0"
+                style={{ width: COLUMN_WIDTH }}
+              >
+                <span
+                  className={`px-2 py-0.5 rounded-full text-[11px] font-semibold whitespace-nowrap ${
+                    i === selected ? 'bg-gray-900 text-white' : 'text-gray-400'
+                  }`}
+                >
+                  {b.label}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
 
-      <div className="mt-3 pt-3 border-t border-gray-100">
+      <div className="mt-2 pt-3 border-t border-gray-100">
         <p className="text-xs text-gray-400">{detail.rangeLabel}</p>
         <div className="flex gap-4 mt-1 text-sm">
           <span className="text-gray-800 font-semibold">{formatHours(detail.hours)}</span>

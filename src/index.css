@@ -15,6 +15,13 @@ body {
   overscroll-behavior-y: contain;
 }
 
+/* Recharts surfaces are focusable; clicking/tapping them shouldn't draw a focus ring or tap highlight */
+.recharts-wrapper,
+.recharts-wrapper * {
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
 #root {
   min-height: 100dvh;
   display: flex;

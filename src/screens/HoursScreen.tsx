@@ -1,6 +1,7 @@
 import { BanknoteIcon, ClockIcon, PencilIcon } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { EmployeeForm } from '../components/hours/EmployeeForm'
+import { HoursPaidBar } from '../components/hours/HoursPaidBar'
 import { LedgerChart } from '../components/hours/LedgerChart'
 import { LedgerEntrySheet } from '../components/hours/LedgerEntrySheet'
 import { BottomSheet } from '../components/ui/BottomSheet'
@@ -97,9 +98,10 @@ function EmployeeLedger({ employee }: { employee: Employee }) {
             {owed < 0 ? 'Paid ahead' : 'Owed'}
           </p>
           <p className="text-3xl font-bold text-gray-900 mt-1">{formatMoney(Math.abs(owed))}</p>
-          {employee.hourlyRate > 0 && owed !== 0 && (
-            <p className="text-sm text-gray-500 mt-0.5">≈ {formatHours(Math.abs(owedHours))} at current rate</p>
+          {employee.hourlyRate > 0 && owed < 0 && (
+            <p className="text-sm text-gray-500 mt-0.5">≈ {formatHours(-owedHours)} at current rate</p>
           )}
+          {employee.hourlyRate > 0 && totalHours > 0 && <HoursPaidBar worked={totalHours} owedHours={owedHours} />}
           <div className="flex gap-4 mt-3 text-xs text-gray-400">
             <span>{formatHours(totalHours)} total</span>
             <span>Earned {formatMoney(earned)}</span>

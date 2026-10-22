@@ -14,7 +14,12 @@ export function todayISO() {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
-export function formatDate(iso: string) {
+// YYYY-MM-DD as a local-midnight Date
+export function parseISODate(iso: string) {
   const [y, m, d] = iso.split('-').map(Number)
-  return new Date(y, m - 1, d).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })
+  return new Date(y, m - 1, d)
+}
+
+export function formatDate(iso: string) {
+  return parseISODate(iso).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })
 }
