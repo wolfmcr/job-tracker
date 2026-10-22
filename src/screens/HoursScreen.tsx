@@ -1,6 +1,7 @@
 import { BanknoteIcon, ClockIcon, PencilIcon } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { EmployeeForm } from '../components/hours/EmployeeForm'
+import { LedgerChart } from '../components/hours/LedgerChart'
 import { LedgerEntrySheet } from '../components/hours/LedgerEntrySheet'
 import { BottomSheet } from '../components/ui/BottomSheet'
 import { EmptyState } from '../components/ui/EmptyState'
@@ -126,6 +127,8 @@ function EmployeeLedger({ employee }: { employee: Employee }) {
           Add payment
         </button>
       </div>
+
+      {rows.length > 0 && <LedgerChart timeEntries={timeEntries} payments={payments} />}
 
       <SectionHeader title="History" />
       {rows.length === 0 ? (
