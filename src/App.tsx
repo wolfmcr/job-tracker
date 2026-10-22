@@ -4,6 +4,7 @@ import { useAuth } from './hooks/useAuth'
 import { ArchiveScreen } from './screens/ArchiveScreen'
 import { CombinedShoppingScreen } from './screens/CombinedShoppingScreen'
 import { CombinedTodoScreen } from './screens/CombinedTodoScreen'
+import { HoursScreen } from './screens/HoursScreen'
 import { JobDetailScreen } from './screens/JobDetailScreen'
 import { JobsScreen } from './screens/JobsScreen'
 import { LoginScreen } from './screens/LoginScreen'
@@ -41,6 +42,12 @@ const todoRoute = createRoute({
   component: CombinedTodoScreen,
 })
 
+const hoursRoute = createRoute({
+  getParentRoute: () => layoutRoute,
+  path: '/hours',
+  component: HoursScreen,
+})
+
 const archiveRoute = createRoute({
   getParentRoute: () => layoutRoute,
   path: '/archive',
@@ -55,7 +62,7 @@ const jobDetailRoute = createRoute({
 
 const routeTree = rootRoute.addChildren([
   indexRoute,
-  layoutRoute.addChildren([jobsRoute, jobDetailRoute, shoppingRoute, todoRoute, archiveRoute]),
+  layoutRoute.addChildren([jobsRoute, jobDetailRoute, shoppingRoute, todoRoute, hoursRoute, archiveRoute]),
 ])
 
 const router = createRouter({ routeTree })

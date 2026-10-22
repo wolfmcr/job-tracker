@@ -1,5 +1,5 @@
 import { useNavigate } from '@tanstack/react-router'
-import { ArchiveIcon, ChevronRightIcon } from 'lucide-react'
+import { ArchiveIcon, ArrowLeftIcon, ChevronRightIcon } from 'lucide-react'
 import { DEFAULT_JOB_COLOR } from '../constants/colors'
 import { EmptyState } from '../components/ui/EmptyState'
 import { LoadingSpinner } from '../components/ui/LoadingSpinner'
@@ -16,7 +16,16 @@ export function ArchiveScreen() {
 
   return (
     <div>
-      <ScreenHeader title="Archive" />
+      <button
+        type="button"
+        onClick={() => navigate({ to: '/jobs' })}
+        className="absolute top-3 left-3 p-1 text-gray-500"
+        style={{ marginTop: 'env(safe-area-inset-top)' }}
+        aria-label="Back to jobs"
+      >
+        <ArrowLeftIcon size={20} />
+      </button>
+      <ScreenHeader title="Archived Jobs" />
 
       {jobs.length === 0 ? (
         <EmptyState icon={<ArchiveIcon size={40} />} message="No archived jobs." />

@@ -13,6 +13,11 @@ service cloud.firestore {
       }
     }
 
+    // Employees and their timeEntries/payments subcollections
+    match /employees/{path=**} {
+      allow read, write: if request.auth != null;
+    }
+
     // Required for collectionGroup queries across all jobs
     match /{path=**}/shoppingItems/{itemId} {
       allow read, write: if request.auth != null;

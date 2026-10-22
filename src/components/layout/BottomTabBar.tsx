@@ -1,11 +1,11 @@
 import { Link, useRouterState } from '@tanstack/react-router'
-import { ArchiveIcon, BriefcaseIcon, CheckSquareIcon, ShoppingCartIcon } from 'lucide-react'
+import { BriefcaseIcon, CheckSquareIcon, ClockIcon, ShoppingCartIcon } from 'lucide-react'
 
 const tabs = [
-  { to: '/jobs', icon: BriefcaseIcon, label: 'Jobs' },
-  { to: '/shopping', icon: ShoppingCartIcon, label: 'Shopping' },
-  { to: '/todo', icon: CheckSquareIcon, label: 'To-Do' },
-  { to: '/archive', icon: ArchiveIcon, label: 'Archive' },
+  { to: '/jobs', icon: BriefcaseIcon, label: 'Jobs', alsoActiveOn: ['/archive'] },
+  { to: '/shopping', icon: ShoppingCartIcon, label: 'Shopping', alsoActiveOn: [] },
+  { to: '/todo', icon: CheckSquareIcon, label: 'To-Do', alsoActiveOn: [] },
+  { to: '/hours', icon: ClockIcon, label: 'Hours', alsoActiveOn: [] },
 ] as const
 
 export function BottomTabBar() {
@@ -14,8 +14,8 @@ export function BottomTabBar() {
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex z-20"
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
-      {tabs.map(({ to, icon: Icon, label }) => {
-        const active = pathname.startsWith(to)
+      {tabs.map(({ to, icon: Icon, label, alsoActiveOn }) => {
+        const active = [to, ...alsoActiveOn].some(path => pathname.startsWith(path))
         return (
           <Link
             key={to}

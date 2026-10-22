@@ -25,6 +25,30 @@ export interface ShoppingItem {
   createdAt: Timestamp
 }
 
+export interface Employee {
+  id: string
+  name: string
+  hourlyRate: number
+  createdAt: Timestamp
+}
+
+export interface TimeEntry {
+  id: string
+  date: string // YYYY-MM-DD
+  hours: number
+  rate: number // hourly rate when logged, so later rate changes don't rewrite history
+  note: string
+  createdAt: Timestamp
+}
+
+export interface Payment {
+  id: string
+  date: string // YYYY-MM-DD
+  amount: number
+  note: string
+  createdAt: Timestamp
+}
+
 export interface TodoItem {
   id: string
   jobId: string
