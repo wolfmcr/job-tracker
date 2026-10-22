@@ -1,8 +1,6 @@
 import { createRootRoute, createRoute, createRouter, Outlet, redirect, RouterProvider } from '@tanstack/react-router'
-import { useEffect } from 'react'
 import { AppShell } from './components/layout/AppShell'
 import { useAuth } from './hooks/useAuth'
-import { migrateTodosToTasks } from './lib/migrateTodosToTasks'
 import { ArchiveScreen } from './screens/ArchiveScreen'
 import { CombinedShoppingScreen } from './screens/CombinedShoppingScreen'
 import { CombinedTasksScreen } from './screens/CombinedTasksScreen'
@@ -82,10 +80,6 @@ declare module '@tanstack/react-router' {
 
 export function App() {
   const { user, loading } = useAuth()
-
-  useEffect(() => {
-    if (user) migrateTodosToTasks().catch(err => console.error('[migrateTodosToTasks] failed', err))
-  }, [user])
 
   if (loading) {
     return (
