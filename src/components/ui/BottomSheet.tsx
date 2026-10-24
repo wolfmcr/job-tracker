@@ -9,10 +9,8 @@ interface Props {
 }
 
 export function BottomSheet({ open, onClose, title, children }: Props) {
-  const { keyboardInset, height } = useVisualViewport()
+  const { keyboardOpen, keyboardInset, height } = useVisualViewport()
   if (!open) return null
-
-  const keyboardOpen = keyboardInset > 0
 
   // Brings the field being typed in into view once the keyboard has finished opening
   function handleFocus(e: React.FocusEvent<HTMLDivElement>) {
