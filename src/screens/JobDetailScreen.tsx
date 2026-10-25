@@ -196,26 +196,8 @@ export function JobDetailScreen() {
         )}
       </div>
 
-      {/* Shopping list */}
-      <div className="mt-2">
-        <SectionHeader
-          title="Shopping"
-          color={color}
-          action={doneShopping.length > 0 ? (
-            <button type="button" onClick={() => setShowDoneShopping(v => !v)} className="text-sm font-medium" style={{ color }}>
-              {showDoneShopping ? 'Hide completed' : `Show ${doneShopping.length} completed`}
-            </button>
-          ) : undefined}
-        />
-        {openShopping.map(renderShoppingRow)}
-        {showDoneShopping && doneShopping.map(renderShoppingRow)}
-        {!readOnly && (
-          <AddButton label="Add item" onClick={() => setAddShoppingOpen(true)} color={color} />
-        )}
-      </div>
-
       {/* Tasks */}
-      <div className="mt-4">
+      <div className="mt-2">
         <SectionHeader
           title="Tasks"
           color={color}
@@ -229,6 +211,24 @@ export function JobDetailScreen() {
         {showDoneTasks && doneTasks.map(renderTaskRow)}
         {!readOnly && (
           <AddButton label="Add task" onClick={() => setAddTaskOpen(true)} color={color} />
+        )}
+      </div>
+
+      {/* Shopping list */}
+      <div className="mt-4">
+        <SectionHeader
+          title="Shopping"
+          color={color}
+          action={doneShopping.length > 0 ? (
+            <button type="button" onClick={() => setShowDoneShopping(v => !v)} className="text-sm font-medium" style={{ color }}>
+              {showDoneShopping ? 'Hide completed' : `Show ${doneShopping.length} completed`}
+            </button>
+          ) : undefined}
+        />
+        {openShopping.map(renderShoppingRow)}
+        {showDoneShopping && doneShopping.map(renderShoppingRow)}
+        {!readOnly && (
+          <AddButton label="Add item" onClick={() => setAddShoppingOpen(true)} color={color} />
         )}
       </div>
 
