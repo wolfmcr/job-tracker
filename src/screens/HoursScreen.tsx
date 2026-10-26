@@ -11,6 +11,7 @@ import { ScreenHeader } from '../components/ui/ScreenHeader'
 import { SectionHeader } from '../components/ui/SectionHeader'
 import { useEmployee, useEmployeeLedger } from '../hooks/useEmployee'
 import { formatDate, formatHours, formatMoney } from '../lib/format'
+import { ledgerRows, summarizeLedger, type LedgerRow } from '../lib/ledger'
 import {
   addEmployee,
   addPayment,
@@ -21,11 +22,7 @@ import {
   updatePayment,
   updateTimeEntry,
 } from '../services/employeeService'
-import type { Employee, Payment, TimeEntry } from '../types'
-
-type LedgerRow =
-  | { kind: 'hours'; entry: TimeEntry }
-  | { kind: 'payment'; entry: Payment }
+import type { Employee } from '../types'
 
 export function HoursScreen() {
   const { employee, loading } = useEmployee()
@@ -54,22 +51,8 @@ function EmployeeLedger({ employee }: { employee: Employee }) {
   const [addPaymentOpen, setAddPaymentOpen] = useState(false)
   const [editing, setEditing] = useState<LedgerRow | null>(null)
 
-  const totalHours = timeEntries.reduce((sum, e) => sum + e.hours, 0)
-  const earned = timeEntries.reduce((sum, e) => sum + e.hours * e.rate, 0)
-  const paid = payments.reduce((sum, p) => sum + p.amount, 0)
-  const owed = earned - paid
-  const owedHours = employee.hourlyRate > 0 ? owed / employee.hourlyRate : 0
-
-  const rows = useMemo<LedgerRow[]>(() => {
-    const all: LedgerRow[] = [
-      ...timeEntries.map(entry => ({ kind: 'hours' as const, entry })),
-      ...payments.map(entry => ({ kind: 'payment' as const, entry })),
-    ]
-    return all.sort((a, b) =>
-      b.entry.date.localeCompare(a.entry.date)
-      || (b.entry.createdAt?.toMillis?.() ?? Infinity) - (a.entry.createdAt?.toMillis?.() ?? Infinity),
-    )
-  }, [timeEntries, payments])
+  const { totalHours, earned, paid, owed, owedHours } = summarizeLedger(timeEntries, payments, employee.hourlyRate)
+  const rows = useMemo(() => ledgerRows(timeEntries, payments), [timeEntries, payments])
 
   const editingInitial = useMemo(() => {
     if (!editing) return undefined

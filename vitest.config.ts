@@ -1,6 +1,9 @@
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vitest/config'
 
+// Date tests assume the crew's timezone (CI runs in UTC)
+process.env.TZ = 'America/Los_Angeles'
+
 export default defineConfig({
   plugins: [react()],
   define: {

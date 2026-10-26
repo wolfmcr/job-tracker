@@ -1,7 +1,8 @@
 import { useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { Bar, BarChart, CartesianGrid, Cell, XAxis, YAxis } from 'recharts'
 import { SortPills } from '../ui/SortPills'
-import { formatHours, formatMoney, parseISODate } from '../../lib/format'
+import { formatHours, formatMoney } from '../../lib/format'
+import { buildBuckets, compactMoney, niceMax, PERIOD_COUNT, type Range } from '../../lib/ledger'
 import type { Payment, TimeEntry } from '../../types'
 
 const EARNED_COLOR = '#3b82f6'
@@ -10,78 +11,6 @@ const Y_AXIS_WIDTH = 34
 const COLUMN_WIDTH = 52
 const CHART_HEIGHT = 144
 const CHART_TOP = 4
-
-type Range = 'week' | 'month'
-
-const PERIOD_COUNT: Record<Range, number> = { week: 26, month: 12 }
-
-interface Bucket {
-  key: string
-  label: string
-  rangeLabel: string
-  hours: number
-  earned: number
-  paid: number
-}
-
-// Start of the period containing `date` (weeks start Monday)
-function periodStart(date: Date, range: Range) {
-  if (range === 'month') return new Date(date.getFullYear(), date.getMonth(), 1)
-  const start = new Date(date.getFullYear(), date.getMonth(), date.getDate())
-  start.setDate(start.getDate() - ((start.getDay() + 6) % 7))
-  return start
-}
-
-function shiftPeriod(start: Date, range: Range, by: number) {
-  return range === 'month'
-    ? new Date(start.getFullYear(), start.getMonth() + by, 1)
-    : new Date(start.getFullYear(), start.getMonth(), start.getDate() + 7 * by)
-}
-
-function buildBuckets(timeEntries: TimeEntry[], payments: Payment[], range: Range): Bucket[] {
-  const current = periodStart(new Date(), range)
-  const buckets: Bucket[] = []
-  for (let i = PERIOD_COUNT[range] - 1; i >= 0; i--) {
-    const start = shiftPeriod(current, range, -i)
-    const end = new Date(shiftPeriod(start, range, 1).getTime() - 1)
-    buckets.push({
-      key: start.toDateString(),
-      label: range === 'month'
-        ? start.toLocaleDateString(undefined, { month: 'short' })
-        : start.toLocaleDateString(undefined, { month: 'numeric', day: 'numeric' }),
-      rangeLabel: range === 'month'
-        ? start.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })
-        : `${start.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} – ${end.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`,
-      hours: 0,
-      earned: 0,
-      paid: 0,
-    })
-  }
-  const byKey = new Map(buckets.map(b => [b.key, b]))
-  for (const e of timeEntries) {
-    const bucket = byKey.get(periodStart(parseISODate(e.date), range).toDateString())
-    if (!bucket) continue
-    bucket.hours += e.hours
-    bucket.earned += e.hours * e.rate
-  }
-  for (const p of payments) {
-    const bucket = byKey.get(periodStart(parseISODate(p.date), range).toDateString())
-    if (bucket) bucket.paid += p.amount
-  }
-  return buckets
-}
-
-// Round the axis max up to a 1/2/5 step so gridlines land on clean numbers
-function niceMax(value: number) {
-  if (value <= 0) return 100
-  const magnitude = 10 ** Math.floor(Math.log10(value))
-  const step = [1, 2, 5, 10].find(s => s * magnitude >= value) ?? 10
-  return step * magnitude
-}
-
-function compactMoney(amount: number) {
-  return amount >= 1000 ? `$${Number((amount / 1000).toFixed(1))}k` : `$${amount}`
-}
 
 interface Props {
   timeEntries: TimeEntry[]
