@@ -75,6 +75,21 @@ describe('jobs', () => {
   })
 })
 
+describe('failed writes', () => {
+  it('resolve false instead of throwing when the rules reject them', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    const id = await newJob()
+    await expect(updateJob(id, { name: '' })).resolves.toBe(false)
+    expect(await data(`jobs/${id}`)).toMatchObject({ name: 'Alder St' })
+    vi.restoreAllMocks()
+  })
+
+  it('resolve true when they save', async () => {
+    const id = await newJob()
+    await expect(toggleJobDone(id, true)).resolves.toBe(true)
+  })
+})
+
 describe('shopping items', () => {
   it('addShoppingItem only stores taskId when given', async () => {
     const jobId = await newJob()

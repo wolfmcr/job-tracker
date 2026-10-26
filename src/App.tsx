@@ -1,5 +1,7 @@
 import { createRootRoute, createRoute, createRouter, Outlet, redirect, RouterProvider } from '@tanstack/react-router'
 import { AppShell } from './components/layout/AppShell'
+import { OfflineOverlay } from './components/layout/OfflineOverlay'
+import { Toaster } from './components/layout/Toaster'
 import { useAuth } from './hooks/useAuth'
 import { ArchiveScreen } from './screens/ArchiveScreen'
 import { CombinedShoppingScreen } from './screens/CombinedShoppingScreen'
@@ -79,6 +81,16 @@ declare module '@tanstack/react-router' {
 }
 
 export function App() {
+  return (
+    <>
+      <AuthGate />
+      <Toaster />
+      <OfflineOverlay />
+    </>
+  )
+}
+
+function AuthGate() {
   const { user, loading } = useAuth()
 
   if (loading) {

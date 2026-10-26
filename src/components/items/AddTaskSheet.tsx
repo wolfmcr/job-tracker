@@ -13,7 +13,7 @@ import { SubmitButton } from '../ui/SubmitButton'
 interface Props {
   open: boolean
   onClose: () => void
-  onAdd: (jobId: string, fields: TaskFields) => Promise<void>
+  onAdd: (jobId: string, fields: TaskFields) => unknown
   color?: string
   // Shows a job picker; omit when the job is fixed (pass defaultJobId instead)
   jobs?: Job[]
@@ -25,7 +25,6 @@ export function AddTaskSheet({ open, onClose, onAdd, color = '#111827', jobs, de
   const [bullets, setBullets] = useState<string[]>([])
   const [priority, setPriority] = useState(0)
   const [dueDate, setDueDate] = useState('')
-  const [saving, setSaving] = useState(false)
   const [selectedJobId, setSelectedJobId] = useState<string>(defaultJobId ?? '')
   const textRef = useRef<HTMLInputElement>(null)
 
@@ -43,12 +42,10 @@ export function AddTaskSheet({ open, onClose, onAdd, color = '#111827', jobs, de
   const selectedJob = jobs?.find(j => j.id === selectedJobId)
   const submitColor = selectedJob?.color || color
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     if (!text.trim() || !selectedJobId) return
-    setSaving(true)
-    await onAdd(selectedJobId, { text: text.trim(), bullets: cleanBullets(bullets), priority, dueDate })
-    setSaving(false)
+    onAdd(selectedJobId, { text: text.trim(), bullets: cleanBullets(bullets), priority, dueDate })
     onClose()
   }
 
@@ -72,9 +69,7 @@ export function AddTaskSheet({ open, onClose, onAdd, color = '#111827', jobs, de
         <PriorityPicker value={priority} onChange={setPriority} />
         <SubmitButton
           label="Add"
-          loadingLabel="Adding…"
-          loading={saving}
-          disabled={saving || !text.trim() || !selectedJobId}
+          disabled={!text.trim() || !selectedJobId}
           color={submitColor}
         />
       </form>

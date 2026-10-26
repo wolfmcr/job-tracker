@@ -22,13 +22,13 @@ export function TaskShoppingList({ task, items, jobColor, readOnly = false }: Pr
 
   const sorted = [...items].sort((a, b) => Number(a.isGot) - Number(b.isGot) || createdMillis(a) - createdMillis(b))
 
-  async function handleAdd(e: React.FormEvent<HTMLFormElement>) {
+  function handleAdd(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     if (!name.trim()) return
     const [q, n] = [qty.trim(), name.trim()]
     setQty('')
     setName('')
-    await addShoppingItem(task.jobId, { qty: q, name: n }, task.id)
+    addShoppingItem(task.jobId, { qty: q, name: n }, task.id)
   }
 
   return (

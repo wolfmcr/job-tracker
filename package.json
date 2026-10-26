@@ -14,8 +14,6 @@
     "test:emulator": "PATH=\"${JAVA21_HOME:-/opt/homebrew/opt/openjdk@21}/bin:$PATH\" firebase emulators:exec --only firestore --project demo-job-tracker 'vitest run --project emulator'"
   },
   "dependencies": {
-    "@tanstack/react-query": "^5.104.3",
-    "@tanstack/react-query-devtools": "^5.104.3",
     "@tanstack/react-router": "^1.170.44",
     "firebase": "^13.0.0",
     "lucide-react": "^1.58.0",

@@ -10,7 +10,7 @@ import { SubmitButton } from '../ui/SubmitButton'
 interface Props {
   open: boolean
   onClose: () => void
-  onAdd: (jobId: string, fields: ShoppingItemFields) => Promise<void>
+  onAdd: (jobId: string, fields: ShoppingItemFields) => unknown
   color?: string
   // Shows a job picker; omit when the job is fixed (pass defaultJobId instead)
   jobs?: Job[]
@@ -21,7 +21,6 @@ export function AddShoppingItemSheet({ open, onClose, onAdd, color = '#111827', 
   const [qty, setQty] = useState('')
   const [name, setName] = useState('')
   const [priority, setPriority] = useState(0)
-  const [saving, setSaving] = useState(false)
   const [selectedJobId, setSelectedJobId] = useState<string>(defaultJobId ?? '')
   const nameRef = useRef<HTMLInputElement>(null)
 
@@ -38,12 +37,10 @@ export function AddShoppingItemSheet({ open, onClose, onAdd, color = '#111827', 
   const selectedJob = jobs?.find(j => j.id === selectedJobId)
   const submitColor = selectedJob?.color || color
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     if (!name.trim() || !selectedJobId) return
-    setSaving(true)
-    await onAdd(selectedJobId, { qty: qty.trim(), name: name.trim(), priority })
-    setSaving(false)
+    onAdd(selectedJobId, { qty: qty.trim(), name: name.trim(), priority })
     onClose()
   }
 
@@ -75,9 +72,7 @@ export function AddShoppingItemSheet({ open, onClose, onAdd, color = '#111827', 
         <PriorityPicker value={priority} onChange={setPriority} />
         <SubmitButton
           label="Add"
-          loadingLabel="Adding…"
-          loading={saving}
-          disabled={saving || !name.trim() || !selectedJobId}
+          disabled={!name.trim() || !selectedJobId}
           color={submitColor}
         />
       </form>

@@ -1,4 +1,3 @@
-import { useMutation } from '@tanstack/react-query'
 import { useEffect, useRef, useState } from 'react'
 import { DEFAULT_JOB_COLOR } from '../../constants/colors'
 import { updateJob } from '../../services/jobService'
@@ -33,21 +32,23 @@ export function EditJobSheet({ job, open, onClose }: Props) {
     }
   }, [open, job])
 
-  const mutation = useMutation({
-    mutationFn: () => updateJob(job.id, {
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    if (!name.trim()) return
+    updateJob(job.id, {
       name: name.trim(),
       address: address.trim(),
       color,
       clientName: clientName.trim(),
       clientPhone: clientPhone.trim(),
-    }),
-    onSuccess: onClose,
-  })
+    })
+    onClose()
+  }
 
   return (
     <BottomSheet open={open} onClose={onClose} title="Edit Job">
       <form
-        onSubmit={(e: React.FormEvent<HTMLFormElement>) => { e.preventDefault(); mutation.mutate() }}
+        onSubmit={handleSubmit}
         className="flex flex-col gap-4"
       >
         <div className="flex gap-3 items-end">
@@ -94,14 +95,9 @@ export function EditJobSheet({ job, open, onClose }: Props) {
             className="w-full px-4 py-3 border border-gray-300 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </Field>
-        {mutation.isError && (
-          <p className="text-red-600 text-sm text-center">Failed to save. Try again.</p>
-        )}
         <SubmitButton
           label="Save"
-          loadingLabel="Saving…"
-          loading={mutation.isPending}
-          disabled={mutation.isPending || !name.trim()}
+          disabled={!name.trim()}
           color={color}
         />
       </form>

@@ -88,20 +88,20 @@ export function JobDetailScreen() {
 
   const backRoute = readOnly ? '/archive' : '/jobs'
 
-  async function handleComplete() {
+  function handleComplete() {
     if (!window.confirm(`Mark "${job!.name}" as complete and archive it?`)) return
-    await completeJob(jobId)
+    completeJob(jobId)
     navigate({ to: '/jobs' })
   }
 
-  async function handleArchive() {
+  function handleArchive() {
     if (!window.confirm(`Archive "${job!.name}"?`)) return
-    await archiveJob(jobId)
+    archiveJob(jobId)
     navigate({ to: '/jobs' })
   }
 
-  async function handleRestore() {
-    await restoreJob(jobId)
+  function handleRestore() {
+    restoreJob(jobId)
     navigate({ to: '/jobs' })
   }
 

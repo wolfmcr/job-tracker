@@ -1,4 +1,3 @@
-import { useMutation } from '@tanstack/react-query'
 import { useEffect, useRef, useState } from 'react'
 import { DEFAULT_JOB_COLOR } from '../../constants/colors'
 import { addJob } from '../../services/jobService'
@@ -22,33 +21,26 @@ export function AddJobSheet({ open, onClose }: Props) {
   const nameRef = useRef<HTMLInputElement>(null)
   const colorRef = useRef<HTMLInputElement>(null)
 
-  const mutation = useMutation({
-    mutationFn: addJob,
-    onSuccess: () => {
-      setName('')
-      setAddress('')
-      setColor(DEFAULT_JOB_COLOR)
-      setClientName('')
-      setClientPhone('')
-      onClose()
-    },
-  })
-
   useEffect(() => {
     if (open) setTimeout(() => nameRef.current?.focus(), 100)
-    else mutation.reset()
-  }, [open]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [open])
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     if (!name.trim()) return
-    mutation.mutate({
+    addJob({
       name: name.trim(),
       address: address.trim(),
       color,
       clientName: clientName.trim(),
       clientPhone: clientPhone.trim(),
     })
+    setName('')
+    setAddress('')
+    setColor(DEFAULT_JOB_COLOR)
+    setClientName('')
+    setClientPhone('')
+    onClose()
   }
 
   return (
@@ -100,14 +92,9 @@ export function AddJobSheet({ open, onClose }: Props) {
             className="w-full px-4 py-3 border border-gray-300 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </Field>
-        {mutation.isError && (
-          <p className="text-red-600 text-sm text-center">Failed to add job. Try again.</p>
-        )}
         <SubmitButton
           label="Add Job"
-          loadingLabel="Adding…"
-          loading={mutation.isPending}
-          disabled={mutation.isPending || !name.trim()}
+          disabled={!name.trim()}
           color={color}
         />
       </form>
