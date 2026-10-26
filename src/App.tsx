@@ -1,5 +1,6 @@
 import { createRootRoute, createRoute, createRouter, Outlet, redirect, RouterProvider } from '@tanstack/react-router'
 import { AppShell } from './components/layout/AppShell'
+import { ErrorBoundary, ErrorFallback } from './components/layout/ErrorBoundary'
 import { OfflineOverlay } from './components/layout/OfflineOverlay'
 import { Toaster } from './components/layout/Toaster'
 import { useAuth } from './hooks/useAuth'
@@ -74,7 +75,8 @@ const routeTree = rootRoute.addChildren([
   layoutRoute.addChildren([jobsRoute, jobDetailRoute, shoppingRoute, tasksRoute, legacyTodoRoute, hoursRoute, archiveRoute]),
 ])
 
-const router = createRouter({ routeTree })
+// Route errors get the same fallback as the rest of the app instead of the router's default
+const router = createRouter({ routeTree, defaultErrorComponent: ErrorFallback })
 
 declare module '@tanstack/react-router' {
   interface Register { router: typeof router }
@@ -82,11 +84,11 @@ declare module '@tanstack/react-router' {
 
 export function App() {
   return (
-    <>
+    <ErrorBoundary>
       <AuthGate />
       <Toaster />
       <OfflineOverlay />
-    </>
+    </ErrorBoundary>
   )
 }
 

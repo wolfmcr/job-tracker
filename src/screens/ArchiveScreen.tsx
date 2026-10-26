@@ -4,7 +4,7 @@ import { DEFAULT_JOB_COLOR } from '../constants/colors'
 import { EmptyState } from '../components/ui/EmptyState'
 import { LoadingSpinner } from '../components/ui/LoadingSpinner'
 import { ScreenHeader } from '../components/ui/ScreenHeader'
-import { useArchivedJobs } from '../hooks/useArchivedJobs'
+import { useArchivedJobs } from '../hooks/useJobs'
 
 export function ArchiveScreen() {
   const { jobs, loading } = useArchivedJobs()

@@ -1,9 +1,11 @@
 import { useNavigate, useParams } from '@tanstack/react-router'
-import { ArrowLeftIcon, ChevronRightIcon, MessageSquareIcon, NavigationIcon, PencilIcon, PhoneIcon, StickyNoteIcon, UserIcon } from 'lucide-react'
+import { ArrowLeftIcon, BriefcaseIcon, ChevronRightIcon, MessageSquareIcon, NavigationIcon, PencilIcon, PhoneIcon, StickyNoteIcon, UserIcon } from 'lucide-react'
 import { useState } from 'react'
 import { DEFAULT_JOB_COLOR } from '../constants/colors'
 import { EditJobSheet } from '../components/jobs/EditJobSheet'
 import { JobNotesSheet } from '../components/jobs/JobNotesSheet'
+import { EmptyState } from '../components/ui/EmptyState'
+import { LoadingSpinner } from '../components/ui/LoadingSpinner'
 import { SectionHeader } from '../components/ui/SectionHeader'
 import { AddButton } from '../components/ui/AddButton'
 import { AddShoppingItemSheet } from '../components/items/AddShoppingItemSheet'
@@ -33,7 +35,7 @@ import {
 export function JobDetailScreen() {
   const { jobId } = useParams({ from: '/layout/jobs/$jobId' })
   const navigate = useNavigate()
-  const job = useJob(jobId)
+  const { job, loading } = useJob(jobId)
   const [editOpen, setEditOpen] = useState(false)
   const [notesOpen, setNotesOpen] = useState(false)
   const [addShoppingOpen, setAddShoppingOpen] = useState(false)
@@ -44,7 +46,18 @@ export function JobDetailScreen() {
   const { items: shoppingItems } = useShoppingItems(jobId)
   const { items: tasks } = useTasks(jobId)
 
-  if (!job) return null
+  if (loading) return <LoadingSpinner />
+
+  if (!job) {
+    return (
+      <div className="px-4 pt-3">
+        <button type="button" onClick={() => navigate({ to: '/jobs' })} className="text-gray-500 -ml-1 p-1" aria-label="Back to jobs">
+          <ArrowLeftIcon size={20} />
+        </button>
+        <EmptyState icon={<BriefcaseIcon size={40} />} message="This job doesn’t exist any more." />
+      </div>
+    )
+  }
 
   const mapsUrl = `https://maps.google.com/?q=${encodeURIComponent(job.address)}`
   const phoneDigits = job.clientPhone?.replace(/[^\d+]/g, '') ?? ''
@@ -87,15 +100,16 @@ export function JobDetailScreen() {
   }
 
   const backRoute = readOnly ? '/archive' : '/jobs'
+  const jobName = job.name
 
   function handleComplete() {
-    if (!window.confirm(`Mark "${job!.name}" as complete and archive it?`)) return
+    if (!window.confirm(`Mark "${jobName}" as complete and archive it?`)) return
     completeJob(jobId)
     navigate({ to: '/jobs' })
   }
 
   function handleArchive() {
-    if (!window.confirm(`Archive "${job!.name}"?`)) return
+    if (!window.confirm(`Archive "${jobName}"?`)) return
     archiveJob(jobId)
     navigate({ to: '/jobs' })
   }
