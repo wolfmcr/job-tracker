@@ -1,4 +1,5 @@
 import { initializeApp } from 'firebase/app'
+import { initializeAppCheck, ReCaptchaEnterpriseProvider } from 'firebase/app-check'
 import { connectAuthEmulator, getAuth } from 'firebase/auth'
 import { connectFirestoreEmulator, getFirestore } from 'firebase/firestore'
 import { connectStorageEmulator, getStorage } from 'firebase/storage'
@@ -12,7 +13,14 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
 }
 
-const app = initializeApp(firebaseConfig)
+export const app = initializeApp(firebaseConfig)
+
+// Proves requests come from this app, so the public API key alone can't be used to run up
+// Gemini (AI Logic) or Storage costs. Enforcement is switched on in the Firebase console.
+const recaptchaKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY
+if (recaptchaKey && import.meta.env.VITE_EMULATORS !== 'true') {
+  initializeAppCheck(app, { provider: new ReCaptchaEnterpriseProvider(recaptchaKey), isTokenAutoRefreshEnabled: true })
+}
 
 // Online-only: no offline cache, so what's on screen is always what the server has.
 // While offline the app is covered by OfflineOverlay.
