@@ -1,15 +1,19 @@
 import { initializeApp } from 'firebase/app'
 import { connectFirestoreEmulator, getFirestore } from 'firebase/firestore'
-import { PROJECT_ID } from './rulesEnv'
+import { connectStorageEmulator, getStorage } from 'firebase/storage'
+import { PROJECT_ID, STORAGE_PORT } from './rulesEnv'
 
 // Must be on the allowlist in firestore.rules, so the app's own writes are checked against the rules
 export const OWNER_UID = 'Eim2A7s7g7Rntq7X2oWd3jRdMbg1'
 
 // Same Firestore API the app uses, pointed at the emulator and signed in as the owner
 export function createEmulatorDb() {
-  const db = getFirestore(initializeApp({ projectId: PROJECT_ID }, 'emulator-tests'))
+  const app = initializeApp({ projectId: PROJECT_ID, storageBucket: `${PROJECT_ID}.appspot.com` }, 'emulator-tests')
+  const db = getFirestore(app)
   connectFirestoreEmulator(db, '127.0.0.1', 8080, { mockUserToken: { sub: OWNER_UID } })
-  return db
+  const storage = getStorage(app)
+  connectStorageEmulator(storage, '127.0.0.1', STORAGE_PORT, { mockUserToken: { sub: OWNER_UID } })
+  return { db, storage }
 }
 
 export async function clearEmulator() {

@@ -8,4 +8,4 @@ afterEach(() => cleanup())
 Element.prototype.scrollIntoView = () => {}
 
 // Unit tests never talk to a real Firebase project (CI has no config); emulator tests use their own
-vi.mock('../lib/firebase', () => ({ db: {}, auth: {} }))
+vi.mock('../lib/firebase', () => ({ db: {}, auth: {}, storage: {} }))

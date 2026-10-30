@@ -20,7 +20,7 @@ import {
 
 vi.mock('../lib/firebase', async () => {
   const { createEmulatorDb } = await import('../test/emulatorDb')
-  return { db: createEmulatorDb(), auth: {} }
+  return { ...createEmulatorDb(), auth: {} }
 })
 
 const { db } = await import('../lib/firebase')

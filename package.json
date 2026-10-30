@@ -11,7 +11,7 @@
     "typecheck": "tsc -b",
     "test": "vitest run --project unit",
     "test:watch": "vitest --project unit",
-    "test:emulator": "PATH=\"${JAVA21_HOME:-/opt/homebrew/opt/openjdk@21}/bin:$PATH\" firebase emulators:exec --only firestore --project demo-job-tracker 'vitest run --project emulator'"
+    "test:emulator": "PATH=\"${JAVA21_HOME:-/opt/homebrew/opt/openjdk@21}/bin:$PATH\" firebase emulators:exec --only firestore,storage --project demo-job-tracker 'vitest run --project emulator'"
   },
   "dependencies": {
     "@tanstack/react-router": "^1.170.44",
