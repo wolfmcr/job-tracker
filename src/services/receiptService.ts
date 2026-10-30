@@ -43,3 +43,8 @@ export async function deleteReceipt(receipt: Pick<Receipt, 'id' | 'photoPath'>) 
   }
   return deleted
 }
+
+// For a photo uploaded for a receipt that then wasn't saved
+export function discardReceiptPhoto(path: string) {
+  deleteObject(ref(storage, path)).catch(error => console.error('[receipts] photo not discarded', error))
+}

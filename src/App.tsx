@@ -7,6 +7,7 @@ import { useAuth } from './hooks/useAuth'
 import { ArchiveScreen } from './screens/ArchiveScreen'
 import { CombinedShoppingScreen } from './screens/CombinedShoppingScreen'
 import { CombinedTasksScreen } from './screens/CombinedTasksScreen'
+import { ExpensesScreen } from './screens/ExpensesScreen'
 import { HoursScreen } from './screens/HoursScreen'
 import { JobDetailScreen } from './screens/JobDetailScreen'
 import { JobsScreen } from './screens/JobsScreen'
@@ -58,6 +59,12 @@ const hoursRoute = createRoute({
   component: HoursScreen,
 })
 
+const expensesRoute = createRoute({
+  getParentRoute: () => layoutRoute,
+  path: '/expenses',
+  component: ExpensesScreen,
+})
+
 const archiveRoute = createRoute({
   getParentRoute: () => layoutRoute,
   path: '/archive',
@@ -72,7 +79,7 @@ const jobDetailRoute = createRoute({
 
 const routeTree = rootRoute.addChildren([
   indexRoute,
-  layoutRoute.addChildren([jobsRoute, jobDetailRoute, shoppingRoute, tasksRoute, legacyTodoRoute, hoursRoute, archiveRoute]),
+  layoutRoute.addChildren([jobsRoute, jobDetailRoute, shoppingRoute, tasksRoute, legacyTodoRoute, hoursRoute, expensesRoute, archiveRoute]),
 ])
 
 // Route errors get the same fallback as the rest of the app instead of the router's default

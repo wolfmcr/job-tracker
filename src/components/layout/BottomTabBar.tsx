@@ -1,11 +1,12 @@
 import { Link, useRouterState } from '@tanstack/react-router'
-import { BriefcaseIcon, CheckSquareIcon, ClockIcon, ShoppingCartIcon } from 'lucide-react'
+import { BriefcaseIcon, CheckSquareIcon, ClockIcon, ReceiptIcon, ShoppingCartIcon } from 'lucide-react'
 
 const tabs = [
   { to: '/jobs', icon: BriefcaseIcon, label: 'Jobs', alsoActiveOn: ['/archive'] },
   { to: '/shopping', icon: ShoppingCartIcon, label: 'Shopping', alsoActiveOn: [] },
   { to: '/tasks', icon: CheckSquareIcon, label: 'Tasks', alsoActiveOn: [] },
   { to: '/hours', icon: ClockIcon, label: 'Hours', alsoActiveOn: [] },
+  { to: '/expenses', icon: ReceiptIcon, label: 'Expenses', alsoActiveOn: [] },
 ] as const
 
 export function BottomTabBar() {
