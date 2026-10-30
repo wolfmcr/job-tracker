@@ -8,6 +8,7 @@ import { EmptyState } from '../components/ui/EmptyState'
 import { LoadingSpinner } from '../components/ui/LoadingSpinner'
 import { SectionHeader } from '../components/ui/SectionHeader'
 import { AddButton } from '../components/ui/AddButton'
+import { JobExpenses } from '../components/receipts/JobExpenses'
 import { AddShoppingItemSheet } from '../components/items/AddShoppingItemSheet'
 import { ShoppingItemRow } from '../components/items/ShoppingItemRow'
 import { AddTaskSheet } from '../components/items/AddTaskSheet'
@@ -245,6 +246,8 @@ export function JobDetailScreen() {
           <AddButton label="Add item" onClick={() => setAddShoppingOpen(true)} color={color} />
         )}
       </div>
+
+      <JobExpenses jobId={jobId} color={color} readOnly={readOnly} />
 
       {/* Actions */}
       <div className="mt-8 px-4 flex flex-col gap-3">
