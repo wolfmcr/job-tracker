@@ -60,11 +60,11 @@ jobs:
           # Pinned so CLI upgrades (and any new IAM permissions they need) happen deliberately
           firebaseToolsVersion: 15.34.1
 
-      # Rules and indexes ship from the repo too, so they can't drift from what the tests checked
-      - name: Deploy Firestore rules and indexes
+      # Rules (Firestore and Storage) and indexes ship from the repo too, so they can't drift from what the tests checked
+      - name: Deploy Firestore and Storage rules, and indexes
         run: |
           printf '%s' "$SERVICE_ACCOUNT" > "$RUNNER_TEMP/sa.json"
-          npx firebase deploy --only firestore --project job-tracker-9eef5 --non-interactive
+          npx firebase deploy --only firestore,storage --project job-tracker-9eef5 --non-interactive
         env:
           SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/sa.json

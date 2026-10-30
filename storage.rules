@@ -1,0 +1,22 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // Same accounts as firestore.rules; keep the two lists in step
+    function isAllowed() {
+      return request.auth != null && request.auth.uid in [
+        'Eim2A7s7g7Rntq7X2oWd3jRdMbg1',
+      ];
+    }
+
+    // Receipt photos, one per receipt, named after the receipt's Firestore ID.
+    // The app shrinks them to a JPEG well under this size before uploading.
+    match /receipts/{fileName} {
+      allow read, delete: if isAllowed();
+      allow create, update: if isAllowed()
+        && fileName.matches('^[A-Za-z0-9]{1,40}[.]jpg$')
+        && request.resource.contentType == 'image/jpeg'
+        && request.resource.size < 5 * 1024 * 1024;
+    }
+  }
+}

@@ -50,6 +50,25 @@ export interface Payment {
   createdAt: Timestamp
 }
 
+export interface ReceiptItem {
+  name: string
+  amount: number // dollars; negative for discounts
+  jobId: string | null // null = not for a job
+}
+
+export interface Receipt {
+  id: string
+  store: string
+  date: string // YYYY-MM-DD
+  tax: number
+  total: number // what was paid; job shares are split from this
+  items: ReceiptItem[]
+  jobIds: string[] // distinct item jobIds, so a job's receipts can be queried
+  photoPath?: string // Storage path, receipts/{id}.jpg
+  note: string
+  createdAt: Timestamp
+}
+
 export interface Task {
   id: string
   jobId: string

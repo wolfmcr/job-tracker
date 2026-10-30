@@ -42,7 +42,7 @@ const task = () => ({ text: 'Paint door', isDone: false, createdAt: serverTimest
 const seededJob = { name: 'Alder St', address: '', isDone: false, isArchived: false, createdAt: past, updatedAt: past }
 
 describe('who can get in', () => {
-  const paths = ['jobs/j', 'jobs/j/shoppingItems/i', 'jobs/j/tasks/t', 'employees/e', 'employees/e/timeEntries/x', 'employees/e/payments/p']
+  const paths = ['jobs/j', 'jobs/j/shoppingItems/i', 'jobs/j/tasks/t', 'employees/e', 'employees/e/timeEntries/x', 'employees/e/payments/p', 'receipts/r']
 
   it.each([
     ['signed out', () => env.unauthenticatedContext()],
@@ -188,5 +188,47 @@ describe('employees and the ledger', () => {
     await assertSucceeds(addDoc(collection(owner, 'employees/e/payments'), payment))
     await assertFails(addDoc(collection(owner, 'employees/e/payments'), { ...payment, amount: 0 }))
     await assertFails(addDoc(collection(owner, 'employees/e/payments'), { ...payment, amount: -5 }))
+  })
+})
+
+describe('receipts', () => {
+  const receipt = () => ({
+    store: 'Hardware Co',
+    date: '2026-10-29',
+    tax: 8,
+    total: 108,
+    items: [{ name: 'Studs', amount: 60, jobId: 'a' }, { name: 'Roller', amount: 40, jobId: null }],
+    jobIds: ['a'],
+    note: '',
+    createdAt: serverTimestamp(),
+  })
+
+  it('accepts a receipt as printed, with or without a photo', async () => {
+    await assertSucceeds(setDoc(doc(owner, 'receipts/r1'), { ...receipt(), photoPath: 'receipts/r1.jpg' }))
+    await assertSucceeds(setDoc(doc(owner, 'receipts/r2'), receipt()))
+  })
+
+  it('accepts negative amounts, for returns', async () => {
+    await assertSucceeds(setDoc(doc(owner, 'receipts/r'), { ...receipt(), tax: -0.8, total: -10.8, items: [{ name: 'Caulk', amount: -10, jobId: 'a' }] }))
+  })
+
+  it.each([
+    ['a blank store', { store: '' }],
+    ['a bad date', { date: '10/29/2026' }],
+    ['a total as text', { total: '108' }],
+    ['items that aren’t a list', { items: 'Studs' }],
+    ['over 100 items', { items: Array.from({ length: 101 }, () => ({ name: 'x', amount: 1, jobId: null })) }],
+    ['another receipt’s photo', { photoPath: 'receipts/other.jpg' }],
+    ['an unknown field', { billed: true }],
+  ])('rejects %s', async (_, change) => {
+    await assertFails(setDoc(doc(owner, 'receipts/r'), { ...receipt(), ...change }))
+  })
+
+  it('can be edited, re-tagged and deleted, but createdAt stays', async () => {
+    await seed('receipts/r', { ...receipt(), createdAt: past })
+    await assertSucceeds(updateDoc(doc(owner, 'receipts/r'), { items: [{ name: 'Studs', amount: 60, jobId: 'b' }], jobIds: ['b'] }))
+    await assertSucceeds(updateDoc(doc(owner, 'receipts/r'), { photoPath: 'receipts/r.jpg' }))
+    await assertFails(updateDoc(doc(owner, 'receipts/r'), { createdAt: serverTimestamp() }))
+    await assertSucceeds(deleteDoc(doc(owner, 'receipts/r')))
   })
 })

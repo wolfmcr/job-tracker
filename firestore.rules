@@ -2,7 +2,7 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Accounts allowed to use the app. Add a user's UID here to give them access.
+    // Accounts allowed to use the app. Add a user's UID here to give them access (and in storage.rules).
     function isAllowed() {
       return request.auth != null && request.auth.uid in [
         'Eim2A7s7g7Rntq7X2oWd3jRdMbg1',
@@ -138,6 +138,31 @@ service cloud.firestore {
           && isValidCreate(['date', 'amount', 'note', 'createdAt'], ['date', 'amount', 'note', 'createdAt']);
         allow update: if isAllowed() && isValidPayment() && onlyChanges(['date', 'amount', 'note']);
       }
+    }
+
+    match /receipts/{receiptId} {
+      // Saved as printed; anything worked out from it (like each job's share of tax) is done in the app
+      function isMoney(value) {
+        return value is number && value >= -1000000 && value <= 1000000;
+      }
+
+      function isValidReceipt() {
+        return isText(data().store, 1, 200)
+          && isISODate(data().date)
+          && isMoney(data().tax)
+          && isMoney(data().total)
+          && data().items is list && data().items.size() <= 100
+          && data().jobIds is list && data().jobIds.size() <= 100
+          && isText(data().note, 0, 1000)
+          && (!('photoPath' in data()) || data().photoPath == 'receipts/' + receiptId + '.jpg');
+      }
+
+      allow read, delete: if isAllowed();
+      allow create: if isAllowed() && isValidReceipt() && isValidCreate(
+        ['store', 'date', 'tax', 'total', 'items', 'jobIds', 'photoPath', 'note', 'createdAt'],
+        ['store', 'date', 'tax', 'total', 'items', 'jobIds', 'note', 'createdAt']);
+      allow update: if isAllowed() && isValidReceipt()
+        && onlyChanges(['store', 'date', 'tax', 'total', 'items', 'jobIds', 'photoPath', 'note']);
     }
 
     // Collection-group queries for the Shopping and Tasks tabs. Read only: a write rule here
