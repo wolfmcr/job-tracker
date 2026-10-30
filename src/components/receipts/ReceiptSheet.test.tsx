@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from '@testing-library/react'
+import { cleanup, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { makeJob, makeReceipt } from '../../test/fixtures'
@@ -13,12 +13,27 @@ const service = vi.hoisted(() => ({
   newReceiptId: () => 'new-id',
 }))
 vi.mock('../../services/receiptService', () => service)
+const reader = vi.hoisted(() => ({ readReceipt: vi.fn() }))
+vi.mock('../../services/receiptReader', () => reader)
+vi.mock('../../lib/image', () => ({ shrinkImage: async (file: Blob) => file }))
 vi.mock('../../hooks/useJobs', () => ({
   useJobs: () => ({ jobs: [makeJob({ id: 'alder', name: 'Alder St' }), makeJob({ id: 'shop', name: 'The Shop' })], loading: false }),
 }))
 vi.mock('../../hooks/useReceipts', () => ({ useReceiptPhoto: () => null }))
 
-beforeEach(() => vi.clearAllMocks())
+beforeEach(() => {
+  vi.clearAllMocks()
+  service.uploadReceiptPhoto.mockResolvedValue('receipts/new-id.jpg')
+  URL.createObjectURL = () => 'blob:preview'
+  URL.revokeObjectURL = () => {}
+})
+
+async function pickPhoto() {
+  const user = userEvent.setup()
+  render(<ReceiptSheet onClose={() => {}} />)
+  await user.upload(screen.getByLabelText('Take or choose a photo'), new File(['x'], 'receipt.jpg', { type: 'image/jpeg' }))
+  return user
+}
 
 async function typeItIn() {
   const user = userEvent.setup()
@@ -132,5 +147,43 @@ describe('ReceiptSheet', () => {
     await user.click(screen.getByRole('button', { name: 'Delete' }))
     await user.click(screen.getByRole('button', { name: 'Tap again to delete' }))
     expect(service.deleteReceipt).toHaveBeenCalledWith(receipt)
+  })
+
+  it('reads a photo and pre-fills the form, every line unassigned', async () => {
+    reader.readReceipt.mockResolvedValue({ store: 'Hardware Co', date: '2026-10-29', tax: 2.52, total: 34.01, items: [{ name: 'Primer', amount: 24.99 }, { name: 'Tape', amount: 6.5 }] })
+    const user = await pickPhoto()
+    expect(await screen.findByLabelText(/Store/)).toHaveValue('Hardware Co')
+    expect(screen.getByLabelText(/Date/)).toHaveValue('2026-10-29')
+    expect(screen.getByLabelText('Line 2 amount')).toHaveValue('6.50')
+    expect(screen.getByLabelText('Line 1 job')).toHaveValue('')
+    expect(screen.getByLabelText(/Total/)).toHaveValue('34.01')
+    expect(service.uploadReceiptPhoto).toHaveBeenCalledWith('new-id', expect.any(Blob))
+
+    await user.click(screen.getByRole('button', { name: 'Save Receipt' }))
+    await waitFor(() => expect(service.addReceipt).toHaveBeenCalledWith('new-id', expect.objectContaining({ store: 'Hardware Co', total: 34.01 }), 'receipts/new-id.jpg'))
+    expect(service.discardReceiptPhoto).not.toHaveBeenCalled()
+  })
+
+  it('shows the photo while reading', async () => {
+    reader.readReceipt.mockReturnValue(new Promise(() => {}))
+    await pickPhoto()
+    expect(await screen.findByText('Reading receipt…')).toBeInTheDocument()
+  })
+
+  it('falls back to an empty form if the photo can’t be read', async () => {
+    reader.readReceipt.mockResolvedValue(null)
+    await pickPhoto()
+    expect(await screen.findByLabelText(/Store/)).toHaveValue('')
+    expect(screen.getByLabelText('Line 1 name')).toHaveValue('')
+  })
+
+  it('throws away the uploaded photo if the receipt isn’t saved', async () => {
+    reader.readReceipt.mockResolvedValue(null)
+    const user = await pickPhoto()
+    await screen.findByLabelText(/Store/)
+    await user.click(screen.getByRole('button', { name: 'Close' }))
+    // onClose is a no-op here; unmounting is what a real close does
+    cleanup()
+    await waitFor(() => expect(service.discardReceiptPhoto).toHaveBeenCalledWith('receipts/new-id.jpg'))
   })
 })

@@ -1,4 +1,4 @@
-import { CameraIcon, PlusIcon, TriangleAlertIcon, XIcon } from 'lucide-react'
+import { CameraIcon, LoaderIcon, PlusIcon, TriangleAlertIcon, XIcon } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { DEFAULT_JOB_COLOR } from '../../constants/colors'
 import { useJobs } from '../../hooks/useJobs'
@@ -15,6 +15,7 @@ import {
   updateReceipt,
   uploadReceiptPhoto,
 } from '../../services/receiptService'
+import { readReceipt } from '../../services/receiptReader'
 import type { Job, Receipt, ReceiptItem } from '../../types'
 import { BottomSheet } from '../ui/BottomSheet'
 import { DeleteButton } from '../ui/DeleteButton'
@@ -62,7 +63,7 @@ function parseMoney(text: string): number | null | undefined {
 export function ReceiptSheet({ receipt, onClose }: Props) {
   const { jobs } = useJobs()
   const [receiptId] = useState(() => receipt?.id ?? newReceiptId())
-  const [stage, setStage] = useState<'pick' | 'form'>(receipt ? 'form' : 'pick')
+  const [stage, setStage] = useState<'pick' | 'reading' | 'form'>(receipt ? 'form' : 'pick')
   const [photo, setPhoto] = useState<NewPhoto | null>(null)
   const [viewing, setViewing] = useState(false)
   const savedPhotoUrl = useReceiptPhoto(receipt?.photoPath)
@@ -88,13 +89,26 @@ export function ReceiptSheet({ receipt, onClose }: Props) {
   async function handlePhoto(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
+    let small: Blob
     try {
-      const small = await shrinkImage(file)
-      setPhoto({ url: URL.createObjectURL(small), upload: uploadReceiptPhoto(receiptId, small) })
+      small = await shrinkImage(file)
     } catch (error) {
-      console.error('[receipts] photo not read', error)
+      console.error('[receipts] photo not opened', error)
       showToast('Couldn’t open that photo. Try another, or type the receipt in.')
       return
+    }
+    // Upload while it's being read, so saving doesn't wait on it
+    setPhoto({ url: URL.createObjectURL(small), upload: uploadReceiptPhoto(receiptId, small) })
+    setStage('reading')
+    const reading = await readReceipt(small)
+    if (reading) {
+      setStore(reading.store)
+      setDate(reading.date)
+      setTax(reading.tax ? moneyText(reading.tax) : '')
+      setTotal(reading.total ? moneyText(reading.total) : '')
+      if (reading.items.length > 0) setLines(reading.items.map(item => toLine({ ...item, jobId: null })))
+    } else {
+      showToast('Couldn’t read that receipt. Please fill it in.')
     }
     setStage('form')
   }
@@ -140,6 +154,17 @@ export function ReceiptSheet({ receipt, onClose }: Props) {
           <button type="button" onClick={() => setStage('form')} className="w-full py-3 text-sm text-gray-500">
             Type it in instead
           </button>
+        </div>
+      </BottomSheet>
+    )
+  }
+
+  if (stage === 'reading') {
+    return (
+      <BottomSheet open onClose={onClose} title="Add Receipt">
+        <div role="status" className="flex flex-col items-center gap-3 py-8 text-gray-500">
+          {photo && <img src={photo.url} alt="" className="h-32 rounded-lg border border-gray-200 object-cover" />}
+          <p className="flex items-center gap-2 text-sm"><LoaderIcon size={16} className="animate-spin" /> Reading receipt…</p>
         </div>
       </BottomSheet>
     )
