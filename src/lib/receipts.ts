@@ -92,6 +92,12 @@ function toDate(value: unknown) {
     : today
 }
 
+// Receipts print store names in capitals; "CASCADE BUILDING SUPPLY" reads better as "Cascade Building Supply"
+function unshout(text: string) {
+  if (text !== text.toUpperCase() || text === text.toLowerCase()) return text
+  return text.toLowerCase().replace(/(^|[\s(\-/&])([a-z])/g, (_, before, letter) => before + letter.toUpperCase())
+}
+
 // Whatever the model sent back, as a draft that's safe to put in the form
 export function normalizeReading(raw: unknown): ReceiptReading {
   const r = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>
@@ -105,7 +111,7 @@ export function normalizeReading(raw: unknown): ReceiptReading {
     .filter((i): i is { name: string; printed?: string; amount: number } => i.name !== '' && i.amount !== null)
     .slice(0, MAX_ITEMS)
   return {
-    store: toText(r.store, 200),
+    store: unshout(toText(r.store, 200)),
     date: toDate(r.date),
     tax: toMoney(r.tax) ?? 0,
     total: toMoney(r.total) ?? 0,

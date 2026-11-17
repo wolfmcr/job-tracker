@@ -1,6 +1,7 @@
-import { ImageIcon, ReceiptIcon } from 'lucide-react'
+import { ChevronRightIcon, ReceiptIcon } from 'lucide-react'
 import { useState } from 'react'
 import { ReceiptSheet } from '../components/receipts/ReceiptSheet'
+import { ReceiptThumb } from '../components/receipts/ReceiptThumb'
 import { EmptyState } from '../components/ui/EmptyState'
 import { FAB } from '../components/ui/FAB'
 import { JobBadge } from '../components/ui/JobBadge'
@@ -57,27 +58,26 @@ export function ExpensesScreen() {
                 key={receipt.id}
                 type="button"
                 onClick={() => setOpen(receipt)}
-                className="w-full text-left px-4 py-3 border-b border-gray-100 active:bg-gray-50"
+                className="w-full flex items-center gap-3 text-left px-4 py-3 border-b border-gray-100 active:bg-gray-50"
               >
-                <div className="flex items-center justify-between gap-2">
-                  <span className="flex items-center gap-1.5 font-medium text-gray-900 min-w-0">
-                    <span className="truncate">{receipt.store}</span>
-                    {receipt.photoPath && <ImageIcon size={14} className="text-gray-400 shrink-0" aria-label="Has photo" />}
-                  </span>
-                  <span className="font-semibold text-gray-900 shrink-0">{formatMoney(receipt.total)}</span>
+                <ReceiptThumb photoPath={receipt.photoPath} />
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-gray-900 truncate">{receipt.store}</p>
+                  <p className="text-sm text-gray-500">{formatDate(receipt.date)}</p>
+                  <div className="flex flex-wrap gap-1">
+                    {receipt.jobIds.map(jobId => {
+                      const job = allJobs.find(j => j.id === jobId)
+                      return job ? <JobBadge key={jobId} name={job.name} color={job.color || DEFAULT_JOB_COLOR} /> : null
+                    })}
+                    {unassigned > 0 && (
+                      <span className="inline-block text-xs font-medium px-2 py-0.5 rounded-full mt-1 bg-amber-50 text-amber-700">
+                        {unassigned} unassigned
+                      </span>
+                    )}
+                  </div>
                 </div>
-                <p className="text-xs text-gray-400">{formatDate(receipt.date)}</p>
-                <div className="flex flex-wrap gap-1">
-                  {receipt.jobIds.map(jobId => {
-                    const job = allJobs.find(j => j.id === jobId)
-                    return job ? <JobBadge key={jobId} name={job.name} color={job.color || DEFAULT_JOB_COLOR} /> : null
-                  })}
-                  {unassigned > 0 && (
-                    <span className="inline-block text-xs font-medium px-2 py-0.5 rounded-full mt-1 bg-amber-50 text-amber-700">
-                      {unassigned} unassigned
-                    </span>
-                  )}
-                </div>
+                <span className="font-semibold text-gray-900 tabular-nums shrink-0">{formatMoney(receipt.total)}</span>
+                <ChevronRightIcon size={16} className="text-gray-300 shrink-0 -mr-1" />
               </button>
             )
           })}

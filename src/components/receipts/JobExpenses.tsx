@@ -1,4 +1,4 @@
-import { ImageIcon } from 'lucide-react'
+import { ChevronRightIcon } from 'lucide-react'
 import { useState } from 'react'
 import { useJobReceipts, useReceiptPhoto } from '../../hooks/useReceipts'
 import { formatDate, formatMoney } from '../../lib/format'
@@ -7,6 +7,7 @@ import type { Receipt } from '../../types'
 import { SectionHeader } from '../ui/SectionHeader'
 import { PhotoViewer } from './PhotoViewer'
 import { ReceiptSheet } from './ReceiptSheet'
+import { ReceiptThumb } from './ReceiptThumb'
 
 interface Props {
   jobId: string
@@ -26,36 +27,40 @@ export function JobExpenses({ jobId, color, readOnly }: Props) {
   return (
     <div className="mt-4">
       <SectionHeader title="Expenses" color={color} action={<span className="text-sm font-semibold text-gray-700">{formatMoney(total)}</span>} />
-      {groups.map(({ receipt, items, tax, total: groupTotal }) => (
-        <button
-          key={receipt.id}
-          type="button"
-          onClick={() => setOpen(receipt)}
-          disabled={readOnly && !receipt.photoPath}
-          className="w-full text-left px-4 py-3 border-b border-gray-100 active:bg-gray-50"
-        >
-          <div className="flex items-center justify-between gap-2 mb-1">
-            <span className="flex items-center gap-1.5 text-sm font-semibold text-gray-900 min-w-0">
-              <span className="truncate">{receipt.store}</span>
-              {receipt.photoPath && <ImageIcon size={14} className="text-gray-400 shrink-0" aria-label="Has photo" />}
-            </span>
-            <span className="text-xs text-gray-400 shrink-0">{formatDate(receipt.date)}</span>
+      <div className="flex flex-col gap-3 px-4 pt-3">
+        {groups.map(({ receipt, items, tax, total: groupTotal }) => (
+          <div key={receipt.id} className="rounded-2xl border border-gray-100 shadow-sm overflow-hidden bg-white">
+            <button
+              type="button"
+              onClick={() => setOpen(receipt)}
+              disabled={readOnly && !receipt.photoPath}
+              className="w-full flex items-center gap-3 px-3 py-3 text-left active:bg-gray-50"
+            >
+              <ReceiptThumb photoPath={receipt.photoPath} />
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-gray-900 truncate">{receipt.store}</p>
+                <p className="text-sm text-gray-500">{formatDate(receipt.date)} · {items.length} {items.length === 1 ? 'item' : 'items'}</p>
+              </div>
+              <span className="font-semibold text-gray-900 tabular-nums shrink-0">{formatMoney(groupTotal)}</span>
+              <ChevronRightIcon size={16} className="text-gray-300 shrink-0 -mr-1" />
+            </button>
+            <div className="px-4 pb-3 pt-2 border-t border-gray-100 flex flex-col gap-1">
+              {items.map((item, i) => (
+                <div key={i} className="flex justify-between gap-3 text-sm text-gray-700">
+                  <span className="truncate">{item.name}</span>
+                  <span className="shrink-0 tabular-nums">{formatMoney(item.amount)}</span>
+                </div>
+              ))}
+              {tax !== 0 && (
+                <div className="flex justify-between gap-3 text-sm text-gray-400">
+                  <span>Tax</span>
+                  <span className="tabular-nums">{formatMoney(tax)}</span>
+                </div>
+              )}
+            </div>
           </div>
-          {items.map((item, i) => (
-            <div key={i} className="flex justify-between gap-2 text-sm text-gray-600">
-              <span className="truncate">{item.name}</span>
-              <span className="shrink-0">{formatMoney(item.amount)}</span>
-            </div>
-          ))}
-          {tax !== 0 && (
-            <div className="flex justify-between text-sm text-gray-400">
-              <span>Tax</span>
-              <span>{formatMoney(tax)}</span>
-            </div>
-          )}
-          <div className="flex justify-end text-sm font-medium text-gray-800 mt-0.5">{formatMoney(groupTotal)}</div>
-        </button>
-      ))}
+        ))}
+      </div>
       {open && (readOnly
         ? <ReadOnlyPhoto receipt={open} onClose={() => setOpen(null)} />
         : <ReceiptSheet receipt={open} onClose={() => setOpen(null)} />)}

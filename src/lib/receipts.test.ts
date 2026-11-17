@@ -122,6 +122,13 @@ describe('normalizeReading', () => {
     ])
   })
 
+  it('turns a store name in capitals into normal case', () => {
+    expect(normalizeReading({ store: 'CASCADE BUILDING SUPPLY' }).store).toBe('Cascade Building Supply')
+    expect(normalizeReading({ store: "LOWE'S HOME CTR #14" }).store).toBe("Lowe's Home Ctr #14")
+    expect(normalizeReading({ store: 'Home Depot' }).store).toBe('Home Depot')
+    expect(normalizeReading({ store: 'ACE' }).store).toBe('Ace')
+  })
+
   it('drops items without a name or amount', () => {
     const r = normalizeReading({ items: [{ name: ' ', amount: 1 }, { name: 'Tape', amount: 'free' }, null, 'junk', { name: 'Caulk', amount: 4 }] })
     expect(r.items).toEqual([{ name: 'Caulk', amount: 4 }])

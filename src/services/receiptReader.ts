@@ -7,7 +7,7 @@ export const MODEL = 'gemini-3.8-flash'
 export const READ_TIMEOUT_MS = 30_000
 
 const PROMPT = `Read this store receipt and return:
-- store: the store's name as printed
+- store: the store's name, written normally (e.g. "Cascade Building Supply", not all capitals, no store number)
 - date: the purchase date as YYYY-MM-DD
 - items: every purchased line, top to bottom. A discount or return is its own line with a negative amount. Leave out subtotals, payments, change and loyalty points. For each:
   - printed: the item's text exactly as printed, on one line
