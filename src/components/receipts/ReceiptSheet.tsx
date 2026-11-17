@@ -207,7 +207,12 @@ export function ReceiptSheet({ receipt, onClose }: Props) {
   }
 
   return (
-    <BottomSheet open onClose={onClose} title={receipt ? 'Receipt' : 'Add Receipt'}>
+    <BottomSheet
+      open
+      onClose={onClose}
+      title={receipt ? 'Receipt' : 'Add Receipt'}
+      footer={selectedCount > 0 ? <JobBar jobs={jobs} count={selectedCount} onPick={putSelectedOn} onClear={() => setSelected(new Set())} /> : undefined}
+    >
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         {/* Store, date and total at a glance; tap Edit to change them */}
         <div className="flex items-center gap-3">
@@ -302,7 +307,7 @@ export function ReceiptSheet({ receipt, onClose }: Props) {
                         {job?.name ?? 'Archived job'}
                       </p>
                     ) : (
-                      <p className="text-xs text-amber-600">No job</p>
+                      <p className="text-xs text-gray-400">No job</p>
                     )}
                   </div>
                   <button
@@ -352,10 +357,6 @@ export function ReceiptSheet({ receipt, onClose }: Props) {
 
         <SubmitButton label={receipt ? 'Save' : 'Save Receipt'} disabled={!valid} />
         {receipt && <DeleteButton onDelete={handleDelete} />}
-
-        {selectedCount > 0 && (
-          <JobBar jobs={jobs} count={selectedCount} onPick={putSelectedOn} />
-        )}
       </form>
       {viewing && photoUrl && <PhotoViewer src={photoUrl} onClose={() => setViewing(false)} />}
     </BottomSheet>
@@ -388,35 +389,30 @@ function ItemEditor({ line, onChange, onRemove, onDone }: ItemEditorProps) {
   )
 }
 
-// Sits at the bottom while items are ticked: one tap puts them all on a job
-function JobBar({ jobs, count, onPick }: { jobs: Job[]; count: number; onPick: (jobId: string | null) => void }) {
+// Pinned under the list while items are ticked: one tap puts them all on a job
+function JobBar({ jobs, count, onPick, onClear }: { jobs: Job[]; count: number; onPick: (jobId: string | null) => void; onClear: () => void }) {
   return (
-    <div
-      role="toolbar"
-      aria-label="Put selected items on a job"
-      className="sticky bottom-0 -mx-6 -mb-6 px-6 pt-3 pb-4 bg-white border-t border-gray-200 shadow-[0_-8px_24px_rgba(0,0,0,0.06)]"
-      style={{ paddingBottom: 'calc(1rem + env(safe-area-inset-bottom))' }}
-    >
-      <p className="text-xs font-medium text-gray-500 mb-2">{count} selected · put on</p>
-      <div className="flex gap-2 overflow-x-auto -mx-6 px-6 pb-1">
-        {jobs.map(job => {
-          const color = jobColor(job)!
-          return (
-            <button
-              key={job.id}
-              type="button"
-              onClick={() => onPick(job.id)}
-              className="shrink-0 px-4 py-2 rounded-full text-sm font-semibold border active:opacity-70"
-              style={{ color, backgroundColor: `${color}15`, borderColor: `${color}40` }}
-            >
-              {job.name}
-            </button>
-          )
-        })}
+    <div role="toolbar" aria-label="Put selected items on a job">
+      <div className="flex items-center justify-between mb-2">
+        <p className="text-sm font-medium text-gray-700">{count} selected · put on…</p>
+        <button type="button" onClick={onClear} className="text-sm text-gray-500 py-1">Clear</button>
+      </div>
+      <div className="flex flex-wrap gap-2 max-h-[40vh] overflow-y-auto">
+        {jobs.map(job => (
+          <button
+            key={job.id}
+            type="button"
+            onClick={() => onPick(job.id)}
+            className="flex items-center gap-2 px-3.5 py-2 rounded-full text-sm font-medium border border-gray-200 bg-white text-gray-800 active:bg-gray-100"
+          >
+            <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: jobColor(job) }} />
+            {job.name}
+          </button>
+        ))}
         <button
           type="button"
           onClick={() => onPick(null)}
-          className="shrink-0 px-4 py-2 rounded-full text-sm font-semibold border border-gray-200 text-gray-500 active:bg-gray-50"
+          className="px-3.5 py-2 rounded-full text-sm font-medium border border-dashed border-gray-300 text-gray-500 active:bg-gray-100"
         >
           No job
         </button>
