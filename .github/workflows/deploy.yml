@@ -65,7 +65,8 @@ jobs:
       - name: Deploy Firestore and Storage rules, and indexes
         run: |
           printf '%s' "$SERVICE_ACCOUNT" > "$RUNNER_TEMP/sa.json"
-          npx firebase deploy --only firestore,storage --project job-tracker-9eef5 --non-interactive
+          # firebase.deploy.json names the bucket, so the deploy doesn't need permission to look it up
+          npx firebase deploy --config firebase.deploy.json --only firestore,storage --project job-tracker-9eef5 --non-interactive
         env:
           SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/sa.json
