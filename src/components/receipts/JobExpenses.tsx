@@ -7,7 +7,6 @@ import type { Receipt } from '../../types'
 import { SectionHeader } from '../ui/SectionHeader'
 import { PhotoViewer } from './PhotoViewer'
 import { ReceiptSheet } from './ReceiptSheet'
-import { ReceiptThumb } from './ReceiptThumb'
 
 interface Props {
   jobId: string
@@ -34,9 +33,8 @@ export function JobExpenses({ jobId, color, readOnly }: Props) {
               type="button"
               onClick={() => setOpen(receipt)}
               disabled={readOnly && !receipt.photoPath}
-              className="w-full flex items-center gap-3 px-3 py-3 text-left active:bg-gray-50"
+              className="w-full flex items-center gap-3 px-4 py-3 text-left active:bg-gray-50"
             >
-              <ReceiptThumb photoPath={receipt.photoPath} />
               <div className="flex-1 min-w-0">
                 <p className="font-semibold text-gray-900 truncate">{receipt.store}</p>
                 <p className="text-sm text-gray-500">{formatDate(receipt.date)} · {items.length} {items.length === 1 ? 'item' : 'items'}</p>
