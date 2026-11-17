@@ -72,7 +72,7 @@ export interface ReceiptReading {
   date: string
   tax: number
   total: number
-  items: { name: string; amount: number }[]
+  items: { name: string; printed?: string; amount: number }[]
 }
 
 function toMoney(value: unknown): number | null {
@@ -82,7 +82,7 @@ function toMoney(value: unknown): number | null {
 }
 
 function toText(value: unknown, max: number) {
-  return typeof value === 'string' ? value.trim().slice(0, max) : ''
+  return typeof value === 'string' ? value.replace(/\s+/g, ' ').trim().slice(0, max) : ''
 }
 
 function toDate(value: unknown) {
@@ -97,8 +97,12 @@ export function normalizeReading(raw: unknown): ReceiptReading {
   const r = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>
   const items = (Array.isArray(r.items) ? r.items : [])
     .map(i => (i && typeof i === 'object' ? i : {}) as Record<string, unknown>)
-    .map(i => ({ name: toText(i.name, 200), amount: toMoney(i.amount) }))
-    .filter((i): i is { name: string; amount: number } => i.name !== '' && i.amount !== null)
+    .map(i => {
+      const printed = toText(i.printed, 200)
+      // The plain-words name, or the printed text when the model didn't give one
+      return { name: toText(i.name, 200) || printed, ...(printed && { printed }), amount: toMoney(i.amount) }
+    })
+    .filter((i): i is { name: string; printed?: string; amount: number } => i.name !== '' && i.amount !== null)
     .slice(0, MAX_ITEMS)
   return {
     store: toText(r.store, 200),

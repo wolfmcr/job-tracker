@@ -150,17 +150,23 @@ describe('ReceiptSheet', () => {
   })
 
   it('reads a photo and pre-fills the form, every line unassigned', async () => {
-    reader.readReceipt.mockResolvedValue({ store: 'Hardware Co', date: '2026-10-29', tax: 2.52, total: 34.01, items: [{ name: 'Primer', amount: 24.99 }, { name: 'Tape', amount: 6.5 }] })
+    reader.readReceipt.mockResolvedValue({ store: 'Hardware Co', date: '2026-10-29', tax: 2.52, total: 34.01, items: [{ name: 'Primer, 1 gal', printed: 'PRMR 1G', amount: 24.99 }, { name: 'Tape', printed: 'Tape', amount: 6.5 }] })
     const user = await pickPhoto()
     expect(await screen.findByLabelText(/Store/)).toHaveValue('Hardware Co')
     expect(screen.getByLabelText(/Date/)).toHaveValue('2026-10-29')
     expect(screen.getByLabelText('Line 2 amount')).toHaveValue('6.50')
+    expect(screen.getByLabelText('Line 1 name')).toHaveValue('Primer, 1 gal')
+    expect(screen.getByText('Printed: PRMR 1G')).toBeInTheDocument()
+    expect(screen.queryByText('Printed: Tape')).not.toBeInTheDocument() // same as the name, so not repeated
     expect(screen.getByLabelText('Line 1 job')).toHaveValue('')
     expect(screen.getByLabelText(/Total/)).toHaveValue('34.01')
     expect(service.uploadReceiptPhoto).toHaveBeenCalledWith('new-id', expect.any(Blob))
 
     await user.click(screen.getByRole('button', { name: 'Save Receipt' }))
-    await waitFor(() => expect(service.addReceipt).toHaveBeenCalledWith('new-id', expect.objectContaining({ store: 'Hardware Co', total: 34.01 }), 'receipts/new-id.jpg'))
+    await waitFor(() => expect(service.addReceipt).toHaveBeenCalledWith('new-id', expect.objectContaining({ store: 'Hardware Co', total: 34.01, items: [
+      { name: 'Primer, 1 gal', printed: 'PRMR 1G', amount: 24.99, jobId: null },
+      { name: 'Tape', printed: 'Tape', amount: 6.5, jobId: null },
+    ] }), 'receipts/new-id.jpg'))
     expect(service.discardReceiptPhoto).not.toHaveBeenCalled()
   })
 

@@ -109,6 +109,19 @@ describe('normalizeReading', () => {
     expect(r.items).toEqual([{ name: 'Lumber', amount: 13 }])
   })
 
+  it('keeps the printed text alongside the plain name, and falls back to it', () => {
+    const r = normalizeReading({ items: [
+      { printed: 'JNT CMPD 4.5G\n  2 @ 8.74', name: 'Joint compound, 4.5 gal', amount: 17.48 },
+      { printed: 'SKU 48213', name: ' ', amount: 3 },
+      { printed: 42, name: 'Tape', amount: 2 },
+    ] })
+    expect(r.items).toEqual([
+      { name: 'Joint compound, 4.5 gal', printed: 'JNT CMPD 4.5G 2 @ 8.74', amount: 17.48 },
+      { name: 'SKU 48213', printed: 'SKU 48213', amount: 3 },
+      { name: 'Tape', amount: 2 },
+    ])
+  })
+
   it('drops items without a name or amount', () => {
     const r = normalizeReading({ items: [{ name: ' ', amount: 1 }, { name: 'Tape', amount: 'free' }, null, 'junk', { name: 'Caulk', amount: 4 }] })
     expect(r.items).toEqual([{ name: 'Caulk', amount: 4 }])

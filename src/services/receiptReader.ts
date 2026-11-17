@@ -9,7 +9,10 @@ export const READ_TIMEOUT_MS = 30_000
 const PROMPT = `Read this store receipt and return:
 - store: the store's name as printed
 - date: the purchase date as YYYY-MM-DD
-- items: every purchased line, top to bottom. name as printed (keep any quantity or size), amount is the line's total in dollars. A discount or return is its own line with a negative amount. Leave out subtotals, payments, change and loyalty points.
+- items: every purchased line, top to bottom. A discount or return is its own line with a negative amount. Leave out subtotals, payments, change and loyalty points. For each:
+  - printed: the item's text exactly as printed, on one line
+  - name: what the item is, written the way a person would: brand and product spelled out, size kept, sentence case, e.g. "SHW PNT EGSHL 1G" becomes "Sherwin-Williams eggshell paint, 1 gal". If more than one was bought, end with the count, e.g. "× 3"; leave out unit prices. Where you can't tell what an abbreviation means, keep that part as printed rather than guess.
+  - amount: the line's total in dollars
 - tax: the total tax, 0 if none
 - total: the amount paid`
 
@@ -39,7 +42,7 @@ export async function readReceipt(photo: Blob, timeoutMs = READ_TIMEOUT_MS): Pro
             store: Schema.string(),
             date: Schema.string({ description: 'YYYY-MM-DD' }),
             items: Schema.array({
-              items: Schema.object({ properties: { name: Schema.string(), amount: Schema.number() } }),
+              items: Schema.object({ properties: { printed: Schema.string(), name: Schema.string(), amount: Schema.number() } }),
             }),
             tax: Schema.number(),
             total: Schema.number(),

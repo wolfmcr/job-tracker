@@ -32,6 +32,7 @@ interface Props {
 interface Line {
   key: number
   name: string
+  printed?: string
   amount: string
   jobId: string | null
 }
@@ -48,7 +49,7 @@ const smallInputClass = 'px-3 py-2 border border-gray-300 rounded-lg text-base f
 const moneyText = (n: number | undefined) => (n === undefined ? '' : n.toFixed(2))
 
 let nextKey = 0
-const toLine = (item: Pick<ReceiptItem, 'name' | 'amount' | 'jobId'>): Line => ({ key: nextKey++, name: item.name, amount: moneyText(item.amount), jobId: item.jobId })
+const toLine = (item: ReceiptItem): Line => ({ key: nextKey++, name: item.name, printed: item.printed, amount: moneyText(item.amount), jobId: item.jobId })
 const blankLine = (): Line => ({ key: nextKey++, name: '', amount: '', jobId: null })
 
 // Blank is null; anything else must be a number, kept to whole cents
@@ -115,7 +116,7 @@ export function ReceiptSheet({ receipt, onClose }: Props) {
 
   // Lines left completely blank are ignored; any other line needs a name and an amount
   const filled = lines.filter(l => l.name.trim() !== '' || l.amount.trim() !== '')
-  const items: ReceiptItem[] = filled.map(l => ({ name: l.name.trim(), amount: parseMoney(l.amount) ?? NaN, jobId: l.jobId }))
+  const items: ReceiptItem[] = filled.map(l => ({ name: l.name.trim(), ...(l.printed && { printed: l.printed }), amount: parseMoney(l.amount) ?? NaN, jobId: l.jobId }))
   const linesValid = items.every(i => i.name !== '' && Number.isFinite(i.amount))
   const taxValue = parseMoney(tax)
   const totalValue = parseMoney(total)
@@ -227,6 +228,9 @@ export function ReceiptSheet({ receipt, onClose }: Props) {
                   <XIcon size={18} />
                 </button>
               </div>
+              {line.printed && line.printed !== line.name && (
+                <p className="text-xs text-gray-400 truncate">Printed: {line.printed}</p>
+              )}
               <JobSelect
                 jobs={jobs}
                 value={line.jobId}

@@ -59,7 +59,8 @@ export interface Payment {
 }
 
 export interface ReceiptItem {
-  name: string
+  name: string // plain words, e.g. "Joint compound, 4.5 gal"
+  printed?: string // the line exactly as on the receipt, when it was read from a photo
   amount: number // dollars; negative for discounts
   jobId: string | null // null = not for a job
 }
