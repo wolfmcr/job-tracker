@@ -8,6 +8,7 @@ vi.mock('firebase/ai', () => {
   return {
     getAI: () => ({}),
     GoogleAIBackend: class {},
+    ThinkingLevel: { LOW: 'LOW' },
     Schema: { object: schema, array: schema, string: schema, number: schema },
     getGenerativeModel: (...args: unknown[]) => {
       ai.getGenerativeModel(...args)
@@ -29,7 +30,7 @@ describe('readReceipt', () => {
     replies(JSON.stringify({ store: ' Hardware Co ', date: '2026-10-29', tax: '2.52', total: 34.01, items: [{ name: 'Primer', amount: 24.99 }, { name: '', amount: 1 }] }))
     const reading = await readReceipt(photo)
     expect(reading).toEqual({ store: 'Hardware Co', date: '2026-10-29', tax: 2.52, total: 34.01, items: [{ name: 'Primer', amount: 24.99 }] })
-    expect(ai.getGenerativeModel).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ model: MODEL }))
+    expect(ai.getGenerativeModel).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ model: MODEL, generationConfig: expect.objectContaining({ thinkingConfig: { thinkingLevel: 'LOW' } }) }))
     const [, image] = ai.generateContent.mock.calls[0][0]
     expect(image).toMatchObject({ type: 'inlineData', inlineData: { mimeType: 'image/jpeg', data: '/9g=' } })
   })

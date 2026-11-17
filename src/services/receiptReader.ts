@@ -27,10 +27,12 @@ function toBase64(blob: Blob) {
 export async function readReceipt(photo: Blob, timeoutMs = READ_TIMEOUT_MS): Promise<ReceiptReading | null> {
   try {
     // Loaded only when a receipt is read, so the rest of the app doesn't carry it
-    const { getAI, getGenerativeModel, GoogleAIBackend, Schema } = await import('firebase/ai')
+    const { getAI, getGenerativeModel, GoogleAIBackend, Schema, ThinkingLevel } = await import('firebase/ai')
     const model = getGenerativeModel(getAI(app, { backend: new GoogleAIBackend() }), {
       model: MODEL,
       generationConfig: {
+        // Reading a receipt needs little reasoning; low thinking halves the wait (about 2s instead of 5s)
+        thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
         responseMimeType: 'application/json',
         responseSchema: Schema.object({
           properties: {
