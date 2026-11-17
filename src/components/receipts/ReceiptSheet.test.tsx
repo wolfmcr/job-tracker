@@ -87,7 +87,7 @@ describe('ReceiptSheet', () => {
     expect(onClose).toHaveBeenCalled()
   })
 
-  it('ticks items and puts them on a job from the bar; the bar goes once they’re tagged', async () => {
+  it('ticks items and assigns them to a job from the bar; the bar goes once they’re tagged', async () => {
     const { user } = await typeItIn()
     await fillItem(user, 'Studs', '60')
     await user.click(screen.getByRole('button', { name: /Add item/ }))

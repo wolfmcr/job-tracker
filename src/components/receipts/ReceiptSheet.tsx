@@ -389,12 +389,12 @@ function ItemEditor({ line, onChange, onRemove, onDone }: ItemEditorProps) {
   )
 }
 
-// Pinned under the list while items are ticked: one tap puts them all on a job
+// Pinned under the list while items are ticked: one tap assigns them all to a job
 function JobBar({ jobs, count, onPick, onClear }: { jobs: Job[]; count: number; onPick: (jobId: string | null) => void; onClear: () => void }) {
   return (
-    <div role="toolbar" aria-label="Put selected items on a job">
+    <div role="toolbar" aria-label="Assign selected items to a job">
       <div className="flex items-center justify-between mb-2">
-        <p className="text-sm font-medium text-gray-700">{count} selected · put on…</p>
+        <p className="text-sm font-medium text-gray-700">Assign {count} {count === 1 ? 'item' : 'items'} to</p>
         <button type="button" onClick={onClear} className="text-sm text-gray-500 py-1">Clear</button>
       </div>
       <div className="flex flex-wrap gap-2 max-h-[40vh] overflow-y-auto">
