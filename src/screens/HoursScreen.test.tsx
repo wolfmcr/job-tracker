@@ -56,6 +56,7 @@ describe('HoursScreen timer', () => {
     await user.click(screen.getByRole('button', { name: 'Stop' }))
     expect(service.pauseTimer).toHaveBeenCalledWith('e', running)
     expect(screen.getByRole('textbox', { name: 'Hours' })).toHaveValue('7.75')
+    expect(screen.getByText('Timed 7:52:00, rounded to 7.75 hrs')).toBeInTheDocument()
     expect(screen.getByLabelText(/Date/)).toHaveValue('2026-11-16')
 
     await user.type(screen.getByRole('textbox', { name: 'Note' }), 'Framing')

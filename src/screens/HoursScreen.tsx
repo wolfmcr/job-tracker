@@ -1,4 +1,4 @@
-import { BanknoteIcon, ClockIcon, PencilIcon, PlayIcon } from 'lucide-react'
+import { BanknoteIcon, ClockIcon, PencilIcon } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { EmployeeForm } from '../components/hours/EmployeeForm'
 import { HoursPaidBar } from '../components/hours/HoursPaidBar'
@@ -13,7 +13,7 @@ import { SectionHeader } from '../components/ui/SectionHeader'
 import { useEmployee, useEmployeeLedger } from '../hooks/useEmployee'
 import { formatDate, formatHours, formatMoney } from '../lib/format'
 import { ledgerRows, summarizeLedger, type LedgerRow } from '../lib/ledger'
-import { elapsedMs, sessionDate, sessionHours } from '../lib/timer'
+import { elapsedMs, formatElapsed, sessionDate, sessionHours } from '../lib/timer'
 import {
   addEmployee,
   addPayment,
@@ -59,12 +59,14 @@ function EmployeeLedger({ employee }: { employee: Employee }) {
   const [addPaymentOpen, setAddPaymentOpen] = useState(false)
   const [editing, setEditing] = useState<LedgerRow | null>(null)
   // The stopped session waiting to be logged; the timer stays (paused) until it's saved or discarded
-  const [stopped, setStopped] = useState<{ date: string; value: number } | null>(null)
+  const [stopped, setStopped] = useState<{ date: string; value: number; detail: string } | null>(null)
   const { timer } = employee
 
   function handleStop() {
     if (!timer) return
-    setStopped({ date: sessionDate(timer), value: sessionHours(elapsedMs(timer, Date.now())) })
+    const worked = elapsedMs(timer, Date.now())
+    const hours = sessionHours(worked)
+    setStopped({ date: sessionDate(timer), value: hours, detail: `Timed ${formatElapsed(worked)}, rounded to ${formatHours(hours)}` })
     pauseTimer(employee.id, timer)
   }
 
@@ -110,27 +112,14 @@ function EmployeeLedger({ employee }: { employee: Employee }) {
         </div>
       </div>
 
-      {timer ? (
-        <TimerCard
-          timer={timer}
-          onPause={() => pauseTimer(employee.id, timer)}
-          onResume={() => resumeTimer(employee.id, timer)}
-          onStop={handleStop}
-          onSetStart={startMs => setTimerStart(employee.id, timer, startMs)}
-        />
-      ) : (
-        <div className="px-4 mb-3">
-          <button
-            type="button"
-            onClick={() => startTimer(employee.id)}
-            className="w-full flex items-center justify-center gap-2 py-3 text-white font-semibold rounded-xl text-base active:opacity-80"
-            style={{ backgroundColor: '#111827' }}
-          >
-            <PlayIcon size={18} />
-            Start timer
-          </button>
-        </div>
-      )}
+      <TimerCard
+        timer={timer}
+        onStart={() => startTimer(employee.id)}
+        onPause={() => timer && pauseTimer(employee.id, timer)}
+        onResume={() => timer && resumeTimer(employee.id, timer)}
+        onStop={handleStop}
+        onSetStart={startMs => timer && setTimerStart(employee.id, timer, startMs)}
+      />
 
       <div className="px-4 mb-4 flex gap-3">
         {!timer && (

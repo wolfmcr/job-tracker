@@ -12,7 +12,7 @@ interface Props {
   // Present when editing an existing entry
   initial?: { date: string; value: number; note: string; rate?: number }
   // Present when logging a timed session: fills in the form, but it's still a new entry
-  prefill?: { date: string; value: number }
+  prefill?: { date: string; value: number; detail?: string }
   onSave: (date: string, value: number, note: string) => void
   onDelete?: () => void
   onDiscard?: () => void
@@ -61,6 +61,7 @@ export function LedgerEntrySheet({ open, onClose, kind, initial, prefill, onSave
   return (
     <BottomSheet open={open} onClose={onClose} title={title}>
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        {prefill?.detail && <p className="text-sm text-gray-500 -mt-2">{prefill.detail}</p>}
         <Field label="Date" required>
           <input
             type="date"

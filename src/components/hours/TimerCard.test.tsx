@@ -14,12 +14,20 @@ beforeEach(() => {
 afterEach(() => vi.useRealTimers())
 
 function setup(timer: Partial<Timer> = {}) {
-  const props = { onPause: vi.fn(), onResume: vi.fn(), onStop: vi.fn(), onSetStart: vi.fn() }
+  const props = { onStart: vi.fn(), onPause: vi.fn(), onResume: vi.fn(), onStop: vi.fn(), onSetStart: vi.fn() }
   render(<TimerCard timer={{ startedAt: ts(now - 90 * MIN), pausedAt: null, pausedMs: 0, ...timer }} {...props} />)
   return props
 }
 
 describe('TimerCard', () => {
+  it('stays the same card when idle, with a start button', () => {
+    const onStart = vi.fn()
+    render(<TimerCard onStart={onStart} onPause={vi.fn()} onResume={vi.fn()} onStop={vi.fn()} onSetStart={vi.fn()} />)
+    expect(screen.getByText('Not running')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Start timer' }))
+    expect(onStart).toHaveBeenCalled()
+  })
+
   it('shows the time worked and ticks while running', () => {
     const { onPause, onStop } = setup()
     expect(screen.getByRole('timer')).toHaveTextContent('1:30:00')
