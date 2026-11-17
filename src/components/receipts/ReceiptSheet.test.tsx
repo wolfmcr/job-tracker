@@ -95,7 +95,7 @@ describe('ReceiptSheet', () => {
     expect(screen.queryByRole('toolbar')).not.toBeInTheDocument()
 
     await user.click(screen.getByRole('button', { name: 'Select all' }))
-    expect(screen.getByRole('toolbar')).toHaveTextContent('2 selected')
+    expect(screen.getByRole('toolbar')).toHaveTextContent('Assign 2 items to')
     await user.click(within(screen.getByRole('toolbar')).getByRole('button', { name: 'Alder St' }))
     expect(screen.queryByRole('toolbar')).not.toBeInTheDocument()
     expect(rowOf('Studs')).toContain('Alder St')
