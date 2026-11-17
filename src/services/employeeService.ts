@@ -1,5 +1,7 @@
-import { addDoc, collection, deleteDoc, doc, serverTimestamp, updateDoc } from 'firebase/firestore'
+import { addDoc, collection, deleteDoc, deleteField, doc, serverTimestamp, Timestamp, updateDoc, writeBatch } from 'firebase/firestore'
+import { pausedMsAt } from '../lib/timer'
 import { db } from '../lib/firebase'
+import type { Timer } from '../types'
 import { write } from './write'
 
 export function addEmployee(name: string, hourlyRate: number) {
@@ -47,4 +49,44 @@ export function updatePayment(employeeId: string, paymentId: string, date: strin
 
 export function deletePayment(employeeId: string, paymentId: string) {
   return write(deleteDoc(doc(db, 'employees', employeeId, 'payments', paymentId)))
+}
+
+// The timer's times come from this device's clock, like the rest of the session maths
+function setTimer(employeeId: string, timer: Timer) {
+  return write(updateDoc(doc(db, 'employees', employeeId), { timer }))
+}
+
+export function startTimer(employeeId: string) {
+  return setTimer(employeeId, { startedAt: Timestamp.now(), pausedAt: null, pausedMs: 0 })
+}
+
+export function pauseTimer(employeeId: string, timer: Timer) {
+  if (timer.pausedAt) return Promise.resolve(true)
+  return setTimer(employeeId, { ...timer, pausedAt: Timestamp.now() })
+}
+
+export function resumeTimer(employeeId: string, timer: Timer) {
+  return setTimer(employeeId, { ...timer, pausedAt: null, pausedMs: pausedMsAt(timer, Date.now()) })
+}
+
+export function setTimerStart(employeeId: string, timer: Timer, startMs: number) {
+  return setTimer(employeeId, { ...timer, startedAt: Timestamp.fromMillis(startMs) })
+}
+
+export function discardTimer(employeeId: string) {
+  return write(updateDoc(doc(db, 'employees', employeeId), { timer: deleteField() }))
+}
+
+// Logs the session and clears the timer together, so it's never logged twice or lost
+export function logTimerSession(employeeId: string, date: string, hours: number, rate: number, note: string) {
+  const batch = writeBatch(db)
+  batch.set(doc(collection(db, 'employees', employeeId, 'timeEntries')), {
+    date,
+    hours,
+    rate,
+    note,
+    createdAt: serverTimestamp(),
+  })
+  batch.update(doc(db, 'employees', employeeId), { timer: deleteField() })
+  return write(batch.commit())
 }

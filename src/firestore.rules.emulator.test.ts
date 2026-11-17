@@ -170,6 +170,19 @@ describe('employees and the ledger', () => {
     await assertFails(deleteDoc(doc(owner, 'employees/e')))
   })
 
+  it('employee can hold a valid timer, and only that besides name and rate', async () => {
+    const timer = { startedAt: past, pausedAt: null, pausedMs: 0 }
+    await assertSucceeds(updateDoc(doc(owner, 'employees/e'), { timer }))
+    await assertSucceeds(updateDoc(doc(owner, 'employees/e'), { timer: { ...timer, pausedAt: past, pausedMs: 60_000 } }))
+    await assertSucceeds(updateDoc(doc(owner, 'employees/e'), { timer: deleteField() }))
+    await assertFails(updateDoc(doc(owner, 'employees/e'), { timer: { ...timer, pausedMs: -1 } }))
+    await assertFails(updateDoc(doc(owner, 'employees/e'), { timer: { ...timer, startedAt: '07:30' } }))
+    await assertFails(updateDoc(doc(owner, 'employees/e'), { timer: { startedAt: past, pausedMs: 0 } }))
+    await assertFails(updateDoc(doc(owner, 'employees/e'), { timer: { ...timer, jobId: 'j' } }))
+    await assertFails(updateDoc(doc(owner, 'employees/e'), { timer: { ...timer, startedAt: Timestamp.fromMillis(Date.now() + 3_600_000) } }))
+    await assertFails(updateDoc(doc(owner, 'employees/e'), { createdAt: Timestamp.fromMillis(0), timer }))
+  })
+
   it('time entries need a date and positive hours, and keep their rate', async () => {
     const entry = { date: '2026-10-20', hours: 7.5, rate: 30, note: '', createdAt: serverTimestamp() }
     await assertSucceeds(addDoc(collection(owner, 'employees/e/timeEntries'), entry))

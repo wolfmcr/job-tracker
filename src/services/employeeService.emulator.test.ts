@@ -1,5 +1,6 @@
 import { collection, doc, getDoc, getDocs } from 'firebase/firestore'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import type { Timer } from '../types'
 import { clearEmulator } from '../test/emulatorDb'
 import {
   addEmployee,
@@ -7,6 +8,12 @@ import {
   addTimeEntry,
   deletePayment,
   deleteTimeEntry,
+  discardTimer,
+  logTimerSession,
+  pauseTimer,
+  resumeTimer,
+  setTimerStart,
+  startTimer,
   updateEmployee,
   updatePayment,
   updateTimeEntry,
@@ -60,5 +67,38 @@ describe('employee service', () => {
     expect(await data(`employees/${employeeId}/payments/${paymentId}`)).toMatchObject({ date: '2026-10-21', amount: 300, note: 'Venmo' })
     await deletePayment(employeeId, paymentId)
     expect(await data(`employees/${employeeId}/payments/${paymentId}`)).toBeUndefined()
+  })
+
+  it('starts, pauses, resumes and corrects the timer', async () => {
+    await addEmployee('Sam', 30)
+    const id = await onlyId('employees')
+    const timer = async () => (await data(`employees/${id}`))!.timer as Timer
+
+    await startTimer(id)
+    const started = await timer()
+    expect(started).toMatchObject({ pausedAt: null, pausedMs: 0 })
+    expect(Math.abs(started.startedAt.toMillis() - Date.now())).toBeLessThan(5_000)
+
+    await pauseTimer(id, started)
+    expect((await timer()).pausedAt).not.toBeNull()
+    await resumeTimer(id, await timer())
+    expect(await timer()).toMatchObject({ pausedAt: null })
+
+    const earlier = Date.now() - 3_600_000
+    await setTimerStart(id, await timer(), earlier)
+    expect((await timer()).startedAt.toMillis()).toBe(earlier)
+
+    await discardTimer(id)
+    expect(await data(`employees/${id}`)).not.toHaveProperty('timer')
+  })
+
+  it('logs a timed session and clears the timer in one go', async () => {
+    await addEmployee('Sam', 30)
+    const id = await onlyId('employees')
+    await startTimer(id)
+    expect(await logTimerSession(id, '2026-11-16', 7.75, 30, 'Framing')).toBe(true)
+    const entryId = await onlyId(`employees/${id}/timeEntries`)
+    expect(await data(`employees/${id}/timeEntries/${entryId}`)).toMatchObject({ date: '2026-11-16', hours: 7.75, rate: 30, note: 'Framing' })
+    expect(await data(`employees/${id}`)).not.toHaveProperty('timer')
   })
 })

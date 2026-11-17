@@ -102,13 +102,24 @@ service cloud.firestore {
     match /employees/{employeeId} {
       function isValidEmployee() {
         return isText(data().name, 1, 200)
-          && data().hourlyRate is number && data().hourlyRate >= 0 && data().hourlyRate <= 10000;
+          && data().hourlyRate is number && data().hourlyRate >= 0 && data().hourlyRate <= 10000
+          && (!('timer' in data()) || isValidTimer(data().timer));
+      }
+
+      // The Hours timer while a session is running or paused; removed when it's logged or discarded
+      function isValidTimer(timer) {
+        return timer is map
+          && timer.keys().hasOnly(['startedAt', 'pausedAt', 'pausedMs'])
+          && timer.keys().hasAll(['startedAt', 'pausedAt', 'pausedMs'])
+          && timer.startedAt is timestamp && timer.startedAt <= request.time + duration.value(5, 'm')
+          && (timer.pausedAt == null || timer.pausedAt is timestamp)
+          && timer.pausedMs is number && timer.pausedMs >= 0;
       }
 
       allow read: if isAllowed();
       allow create: if isAllowed() && isValidEmployee()
         && isValidCreate(['name', 'hourlyRate', 'createdAt'], ['name', 'hourlyRate', 'createdAt']);
-      allow update: if isAllowed() && isValidEmployee() && onlyChanges(['name', 'hourlyRate']);
+      allow update: if isAllowed() && isValidEmployee() && onlyChanges(['name', 'hourlyRate', 'timer']);
       allow delete: if false;
 
       match /timeEntries/{entryId} {

@@ -1,9 +1,10 @@
-import { BanknoteIcon, ClockIcon, PencilIcon } from 'lucide-react'
+import { BanknoteIcon, ClockIcon, PencilIcon, PlayIcon } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { EmployeeForm } from '../components/hours/EmployeeForm'
 import { HoursPaidBar } from '../components/hours/HoursPaidBar'
 import { LedgerChart } from '../components/hours/LedgerChart'
 import { LedgerEntrySheet } from '../components/hours/LedgerEntrySheet'
+import { TimerCard } from '../components/hours/TimerCard'
 import { BottomSheet } from '../components/ui/BottomSheet'
 import { EmptyState } from '../components/ui/EmptyState'
 import { LoadingSpinner } from '../components/ui/LoadingSpinner'
@@ -12,12 +13,19 @@ import { SectionHeader } from '../components/ui/SectionHeader'
 import { useEmployee, useEmployeeLedger } from '../hooks/useEmployee'
 import { formatDate, formatHours, formatMoney } from '../lib/format'
 import { ledgerRows, summarizeLedger, type LedgerRow } from '../lib/ledger'
+import { elapsedMs, sessionDate, sessionHours } from '../lib/timer'
 import {
   addEmployee,
   addPayment,
   addTimeEntry,
   deletePayment,
   deleteTimeEntry,
+  discardTimer,
+  logTimerSession,
+  pauseTimer,
+  resumeTimer,
+  setTimerStart,
+  startTimer,
   updateEmployee,
   updatePayment,
   updateTimeEntry,
@@ -50,6 +58,15 @@ function EmployeeLedger({ employee }: { employee: Employee }) {
   const [logHoursOpen, setLogHoursOpen] = useState(false)
   const [addPaymentOpen, setAddPaymentOpen] = useState(false)
   const [editing, setEditing] = useState<LedgerRow | null>(null)
+  // The stopped session waiting to be logged; the timer stays (paused) until it's saved or discarded
+  const [stopped, setStopped] = useState<{ date: string; value: number } | null>(null)
+  const { timer } = employee
+
+  function handleStop() {
+    if (!timer) return
+    setStopped({ date: sessionDate(timer), value: sessionHours(elapsedMs(timer, Date.now())) })
+    pauseTimer(employee.id, timer)
+  }
 
   const { totalHours, earned, paid, owed, owedHours } = summarizeLedger(timeEntries, payments, employee.hourlyRate)
   const rows = useMemo(() => ledgerRows(timeEntries, payments), [timeEntries, payments])
@@ -93,16 +110,39 @@ function EmployeeLedger({ employee }: { employee: Employee }) {
         </div>
       </div>
 
+      {timer ? (
+        <TimerCard
+          timer={timer}
+          onPause={() => pauseTimer(employee.id, timer)}
+          onResume={() => resumeTimer(employee.id, timer)}
+          onStop={handleStop}
+          onSetStart={startMs => setTimerStart(employee.id, timer, startMs)}
+        />
+      ) : (
+        <div className="px-4 mb-3">
+          <button
+            type="button"
+            onClick={() => startTimer(employee.id)}
+            className="w-full flex items-center justify-center gap-2 py-3 text-white font-semibold rounded-xl text-base active:opacity-80"
+            style={{ backgroundColor: '#111827' }}
+          >
+            <PlayIcon size={18} />
+            Start timer
+          </button>
+        </div>
+      )}
+
       <div className="px-4 mb-4 flex gap-3">
-        <button
-          type="button"
-          onClick={() => setLogHoursOpen(true)}
-          className="flex-1 flex items-center justify-center gap-2 py-3 text-white font-semibold rounded-xl text-base active:opacity-80"
-          style={{ backgroundColor: '#111827' }}
-        >
-          <ClockIcon size={18} />
-          Log hours
-        </button>
+        {!timer && (
+          <button
+            type="button"
+            onClick={() => setLogHoursOpen(true)}
+            className="flex-1 flex items-center justify-center gap-2 py-3 font-semibold rounded-xl text-base border border-gray-300 text-gray-800 active:bg-gray-50"
+          >
+            <ClockIcon size={18} />
+            Log hours
+          </button>
+        )}
         <button
           type="button"
           onClick={() => setAddPaymentOpen(true)}
@@ -166,6 +206,14 @@ function EmployeeLedger({ employee }: { employee: Employee }) {
         onClose={() => setLogHoursOpen(false)}
         kind="hours"
         onSave={(date, hours, note) => addTimeEntry(employee.id, date, hours, employee.hourlyRate, note)}
+      />
+      <LedgerEntrySheet
+        open={!!stopped}
+        onClose={() => setStopped(null)}
+        kind="hours"
+        prefill={stopped ?? undefined}
+        onSave={(date, hours, note) => logTimerSession(employee.id, date, hours, employee.hourlyRate, note)}
+        onDiscard={() => discardTimer(employee.id)}
       />
       <LedgerEntrySheet
         open={addPaymentOpen}

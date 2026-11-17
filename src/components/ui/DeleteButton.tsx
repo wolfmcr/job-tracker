@@ -2,9 +2,10 @@ import { useEffect, useState } from 'react'
 
 interface Props {
   onDelete: () => void
+  label?: string
 }
 
-export function DeleteButton({ onDelete }: Props) {
+export function DeleteButton({ onDelete, label = 'Delete' }: Props) {
   const [confirming, setConfirming] = useState(false)
 
   useEffect(() => {
@@ -24,7 +25,7 @@ export function DeleteButton({ onDelete }: Props) {
       onClick={handleClick}
       className={`w-full py-3 font-semibold rounded-xl text-base border ${confirming ? 'bg-red-500 text-white border-red-500 active:bg-red-600' : 'text-red-500 border-red-100 active:bg-red-50'}`}
     >
-      {confirming ? 'Tap again to delete' : 'Delete'}
+      {confirming ? `Tap again to ${label.toLowerCase()}` : label}
     </button>
   )
 }

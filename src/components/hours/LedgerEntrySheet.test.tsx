@@ -65,6 +65,26 @@ describe('LedgerEntrySheet', () => {
     expect(onDelete).toHaveBeenCalledOnce()
   })
 
+  it('logs a timed session from the filled-in hours', async () => {
+    const { onSave, user } = setup({ prefill: { date: '2026-10-21', value: 7.75 }, onDiscard: vi.fn() })
+    expect(screen.getByRole('heading', { name: 'Log Hours' })).toBeInTheDocument()
+    expect(screen.getByLabelText(/Date/)).toHaveValue('2026-10-21')
+    expect(screen.getByRole('textbox', { name: 'Hours' })).toHaveValue('7.75')
+    await user.click(screen.getByRole('button', { name: 'Log Hours' }))
+    expect(onSave).toHaveBeenCalledWith('2026-10-21', 7.75, '')
+  })
+
+  it('needs two taps to discard a timed session', async () => {
+    const onDiscard = vi.fn()
+    const { onSave, onClose, user } = setup({ prefill: { date: '2026-10-21', value: 2 }, onDiscard })
+    await user.click(screen.getByRole('button', { name: 'Discard session' }))
+    expect(onDiscard).not.toHaveBeenCalled()
+    await user.click(screen.getByRole('button', { name: 'Tap again to discard session' }))
+    expect(onDiscard).toHaveBeenCalledOnce()
+    expect(onSave).not.toHaveBeenCalled()
+    expect(onClose).toHaveBeenCalled()
+  })
+
   it('renders nothing when closed', () => {
     setup({ open: false })
     expect(screen.queryByRole('heading')).not.toBeInTheDocument()

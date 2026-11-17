@@ -30,7 +30,15 @@ export interface Employee {
   id: string
   name: string
   hourlyRate: number
+  timer?: Timer // only while a session is being timed
   createdAt: Timestamp
+}
+
+// A running (or paused) session. Elapsed time is worked out from these, never stored.
+export interface Timer {
+  startedAt: Timestamp
+  pausedAt: Timestamp | null // set while paused
+  pausedMs: number // total of earlier pauses
 }
 
 export interface TimeEntry {

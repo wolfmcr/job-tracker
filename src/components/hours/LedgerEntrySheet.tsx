@@ -11,24 +11,28 @@ interface Props {
   kind: 'hours' | 'payment'
   // Present when editing an existing entry
   initial?: { date: string; value: number; note: string; rate?: number }
+  // Present when logging a timed session: fills in the form, but it's still a new entry
+  prefill?: { date: string; value: number }
   onSave: (date: string, value: number, note: string) => void
   onDelete?: () => void
+  onDiscard?: () => void
 }
 
 const inputClass = 'w-full px-4 py-3 border border-gray-300 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-blue-500'
 
-export function LedgerEntrySheet({ open, onClose, kind, initial, onSave, onDelete }: Props) {
+export function LedgerEntrySheet({ open, onClose, kind, initial, prefill, onSave, onDelete, onDiscard }: Props) {
   const [date, setDate] = useState(todayISO())
   const [value, setValue] = useState('')
   const [note, setNote] = useState('')
 
   useEffect(() => {
     if (open) {
-      setDate(initial?.date ?? todayISO())
-      setValue(initial ? String(initial.value) : '')
+      const filled = initial ?? prefill
+      setDate(filled?.date ?? todayISO())
+      setValue(filled ? String(filled.value) : '')
       setNote(initial?.note ?? '')
     }
-  }, [open, initial])
+  }, [open, initial, prefill])
 
   const parsed = Number(value)
   const valid = value.trim() !== '' && Number.isFinite(parsed) && parsed > 0 && !!date
@@ -46,6 +50,11 @@ export function LedgerEntrySheet({ open, onClose, kind, initial, onSave, onDelet
 
   function handleDelete() {
     onDelete?.()
+    onClose()
+  }
+
+  function handleDiscard() {
+    onDiscard?.()
     onClose()
   }
 
@@ -85,6 +94,7 @@ export function LedgerEntrySheet({ open, onClose, kind, initial, onSave, onDelet
         )}
         <SubmitButton label={initial ? 'Save' : (isHours ? 'Log Hours' : 'Add Payment')} disabled={!valid} />
         {onDelete && <DeleteButton onDelete={handleDelete} />}
+        {onDiscard && <DeleteButton label="Discard session" onDelete={handleDiscard} />}
       </form>
     </BottomSheet>
   )

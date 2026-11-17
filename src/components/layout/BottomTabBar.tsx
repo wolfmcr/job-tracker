@@ -1,5 +1,6 @@
 import { Link, useRouterState } from '@tanstack/react-router'
 import { BriefcaseIcon, CheckSquareIcon, ClockIcon, ShoppingCartIcon } from 'lucide-react'
+import { useEmployee } from '../../hooks/useEmployee'
 
 const tabs = [
   { to: '/jobs', icon: BriefcaseIcon, label: 'Jobs', alsoActiveOn: ['/archive'] },
@@ -10,6 +11,8 @@ const tabs = [
 
 export function BottomTabBar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname })
+  const { employee } = useEmployee()
+  const timing = !!employee?.timer
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex z-20"
@@ -25,7 +28,12 @@ export function BottomTabBar() {
             {active && (
               <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-blue-600 rounded-full" />
             )}
-            <Icon size={22} />
+            <span className="relative">
+              <Icon size={22} />
+              {to === '/hours' && timing && (
+                <span className="absolute -top-0.5 -right-1 w-2.5 h-2.5 rounded-full bg-green-500 ring-2 ring-white" aria-label="Timer running" />
+              )}
+            </span>
             <span className="font-medium">{label}</span>
           </Link>
         )
