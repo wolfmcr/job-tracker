@@ -44,6 +44,18 @@ async function typeItIn() {
   return { user, onClose }
 }
 
+// The editor for the item being edited (only one is open at a time)
+async function fillItem(user: ReturnType<typeof userEvent.setup>, name: string, amount: string) {
+  await user.type(screen.getByLabelText(/Item name/), name)
+  await user.type(screen.getByLabelText(/Amount/), amount)
+  await user.click(screen.getByRole('button', { name: 'Done' }))
+}
+
+// The text of an item's row: name, amount and which job it's on
+function rowOf(itemName: string) {
+  return screen.getByLabelText(`Select ${itemName}`).parentElement!.textContent
+}
+
 describe('ReceiptSheet', () => {
   it('starts by asking for a photo, with typing it in as the alternative', () => {
     render(<ReceiptSheet onClose={() => {}} />)
@@ -51,14 +63,14 @@ describe('ReceiptSheet', () => {
     expect(screen.getByRole('button', { name: 'Type it in instead' })).toBeInTheDocument()
   })
 
-  it('saves a typed-in receipt with lines unassigned until tagged', async () => {
+  it('saves a typed-in receipt, items on no job until tagged', async () => {
     const { user, onClose } = await typeItIn()
-    await user.type(screen.getByLabelText('Line 1 name'), 'Studs')
-    await user.type(screen.getByLabelText('Line 1 amount'), '60')
-    await user.click(screen.getByRole('button', { name: /Add line/ }))
-    await user.type(screen.getByLabelText('Line 2 name'), 'Roller')
-    await user.type(screen.getByLabelText('Line 2 amount'), '15')
-    await user.selectOptions(screen.getByLabelText('Line 2 job'), 'The Shop')
+    // Typing it in opens with one item ready to fill
+    await fillItem(user, 'Studs', '60')
+    await user.click(screen.getByRole('button', { name: /Add item/ }))
+    await fillItem(user, 'Roller', '15')
+    await user.click(screen.getByLabelText('Select Roller'))
+    await user.click(within(screen.getByRole('toolbar')).getByRole('button', { name: 'The Shop' }))
     await user.type(screen.getByLabelText(/Tax/), '6')
     await user.type(screen.getByLabelText(/Total/), '81')
     await user.click(screen.getByRole('button', { name: 'Save Receipt' }))
@@ -75,69 +87,94 @@ describe('ReceiptSheet', () => {
     expect(onClose).toHaveBeenCalled()
   })
 
-  it('“All to…” puts every line on one job', async () => {
+  it('ticks items and puts them on a job from the bar; the bar goes once they’re tagged', async () => {
     const { user } = await typeItIn()
-    await user.type(screen.getByLabelText('Line 1 name'), 'Studs')
-    await user.type(screen.getByLabelText('Line 1 amount'), '60')
-    await user.click(screen.getByRole('button', { name: /Add line/ }))
-    await user.type(screen.getByLabelText('Line 2 name'), 'Screws')
-    await user.type(screen.getByLabelText('Line 2 amount'), '25')
-    await user.selectOptions(screen.getByLabelText('Put all lines on a job'), 'Alder St')
-    expect(screen.getByLabelText('Line 1 job')).toHaveValue('alder')
-    expect(screen.getByLabelText('Line 2 job')).toHaveValue('alder')
+    await fillItem(user, 'Studs', '60')
+    await user.click(screen.getByRole('button', { name: /Add item/ }))
+    await fillItem(user, 'Screws', '25')
+    expect(screen.queryByRole('toolbar')).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Select all' }))
+    expect(screen.getByRole('toolbar')).toHaveTextContent('2 selected')
+    await user.click(within(screen.getByRole('toolbar')).getByRole('button', { name: 'Alder St' }))
+    expect(screen.queryByRole('toolbar')).not.toBeInTheDocument()
+    expect(rowOf('Studs')).toContain('Alder St')
+    expect(rowOf('Screws')).toContain('Alder St')
+
+    // Tapping the row itself also selects it; "No job" takes the tag off again
+    await user.click(screen.getByText('Screws'))
+    await user.click(within(screen.getByRole('toolbar')).getByRole('button', { name: 'No job' }))
+    expect(rowOf('Screws')).toContain('No job')
+    expect(rowOf('Studs')).toContain('Alder St')
   })
 
-  it('warns, but still saves, when lines and tax don’t add up to the total', async () => {
+  it('warns, but still saves, when items and tax don’t add up to the total', async () => {
     const { user } = await typeItIn()
-    await user.type(screen.getByLabelText('Line 1 name'), 'Studs')
-    await user.type(screen.getByLabelText('Line 1 amount'), '60')
+    await fillItem(user, 'Studs', '60')
     await user.type(screen.getByLabelText(/Total/), '70')
-    expect(screen.getByRole('status')).toHaveTextContent('Lines plus tax come to $60.00, but the total is $70.00.')
+    expect(screen.getByRole('status')).toHaveTextContent('Items plus tax come to $60.00, but the total is $70.00.')
     expect(screen.getByRole('button', { name: 'Save Receipt' })).toBeEnabled()
   })
 
   it('shows what each job’s part comes to, tax included', async () => {
     const { user } = await typeItIn()
-    await user.type(screen.getByLabelText('Line 1 name'), 'Studs')
-    await user.type(screen.getByLabelText('Line 1 amount'), '60')
-    await user.selectOptions(screen.getByLabelText('Line 1 job'), 'Alder St')
-    await user.click(screen.getByRole('button', { name: /Add line/ }))
-    await user.type(screen.getByLabelText('Line 2 name'), 'Gloves')
-    await user.type(screen.getByLabelText('Line 2 amount'), '40')
+    await fillItem(user, 'Studs', '60')
+    await user.click(screen.getByLabelText('Select Studs'))
+    await user.click(within(screen.getByRole('toolbar')).getByRole('button', { name: 'Alder St' }))
+    await user.click(screen.getByRole('button', { name: /Add item/ }))
+    await fillItem(user, 'Gloves', '40')
     await user.type(screen.getByLabelText(/Tax/), '8')
     await user.type(screen.getByLabelText(/Total/), '108')
     expect(screen.getByText('$64.80')).toBeInTheDocument()
     expect(screen.getByText('$43.20')).toBeInTheDocument()
   })
 
-  it('needs a store, a total, and a name and amount on every line used', async () => {
+  it('needs a store, a total, and a name and amount on every item used', async () => {
     const { user } = await typeItIn()
     const save = screen.getByRole('button', { name: 'Save Receipt' })
     expect(save).toBeDisabled()
     await user.type(screen.getByLabelText(/Total/), '10')
     expect(save).toBeEnabled()
-    await user.type(screen.getByLabelText('Line 1 amount'), '10')
+    await user.type(screen.getByLabelText(/Amount/), '10')
     expect(save).toBeDisabled()
-    await user.type(screen.getByLabelText('Line 1 name'), 'Tape')
+    await user.type(screen.getByLabelText(/Item name/), 'Tape')
     expect(save).toBeEnabled()
   })
 
-  it('edits a saved receipt: re-tag a line, save, or delete', async () => {
+  it('edits an item’s name and amount, shows the receipt’s wording, and can remove it', async () => {
+    const user = userEvent.setup()
+    const receipt = makeReceipt({ id: 'r1', items: [{ name: 'Studs', printed: '2X4 STD', amount: 60, jobId: null }, { name: 'Tape', amount: 5, jobId: null }], total: 65 })
+    render(<ReceiptSheet receipt={receipt} onClose={() => {}} />)
+    await user.click(screen.getByLabelText('Edit Studs'))
+    expect(screen.getByText('2X4 STD')).toBeInTheDocument()
+    const name = screen.getByLabelText(/Item name/)
+    await user.clear(name)
+    await user.type(name, 'Studs × 3')
+    await user.click(screen.getByRole('button', { name: 'Done' }))
+    await user.click(screen.getByLabelText('Edit Tape'))
+    await user.click(screen.getByRole('button', { name: 'Remove item' }))
+    await user.click(screen.getByRole('button', { name: 'Save' }))
+    expect(service.updateReceipt).toHaveBeenCalledWith('r1', expect.objectContaining({ items: [{ name: 'Studs × 3', printed: '2X4 STD', amount: 60, jobId: null }] }))
+  })
+
+  it('edits a saved receipt: details start folded, re-tag an item, save', async () => {
     const user = userEvent.setup()
     const receipt = makeReceipt({ id: 'r1', items: [{ name: 'Studs', amount: 60, jobId: null }], total: 60 })
     render(<ReceiptSheet receipt={receipt} onClose={() => {}} />)
+    expect(screen.getByText('Hardware Co')).toBeInTheDocument()
+    expect(screen.queryByLabelText(/Store/)).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Edit' }))
     expect(screen.getByLabelText(/Store/)).toHaveValue('Hardware Co')
-    await user.selectOptions(screen.getByLabelText('Line 1 job'), 'Alder St')
+    await user.click(screen.getByLabelText('Select Studs'))
+    await user.click(within(screen.getByRole('toolbar')).getByRole('button', { name: 'Alder St' }))
     await user.click(screen.getByRole('button', { name: 'Save' }))
     expect(service.updateReceipt).toHaveBeenCalledWith('r1', expect.objectContaining({ items: [{ name: 'Studs', amount: 60, jobId: 'alder' }] }))
   })
 
-  it('a line tagged to an archived job keeps its tag', async () => {
+  it('an item tagged to an archived job keeps its tag', async () => {
     const receipt = makeReceipt({ items: [{ name: 'Studs', amount: 60, jobId: 'old-job' }] })
     render(<ReceiptSheet receipt={receipt} onClose={() => {}} />)
-    const select = screen.getByLabelText('Line 1 job')
-    expect(select).toHaveValue('old-job')
-    expect(within(select).getByRole('option', { name: 'Archived job' })).toBeInTheDocument()
+    expect(rowOf('Studs')).toContain('Archived job')
   })
 
   it('deletes after a second tap', async () => {
@@ -149,21 +186,18 @@ describe('ReceiptSheet', () => {
     expect(service.deleteReceipt).toHaveBeenCalledWith(receipt)
   })
 
-  it('reads a photo and pre-fills the form, every line unassigned', async () => {
+  it('reads a photo and pre-fills the form, every item on no job', async () => {
     reader.readReceipt.mockResolvedValue({ store: 'Hardware Co', date: '2026-10-29', tax: 2.52, total: 34.01, items: [{ name: 'Primer, 1 gal', printed: 'PRMR 1G', amount: 24.99 }, { name: 'Tape', printed: 'Tape', amount: 6.5 }] })
     const user = await pickPhoto()
-    expect(await screen.findByLabelText(/Store/)).toHaveValue('Hardware Co')
-    expect(screen.getByLabelText(/Date/)).toHaveValue('2026-10-29')
-    expect(screen.getByLabelText('Line 2 amount')).toHaveValue('6.50')
-    expect(screen.getByLabelText('Line 1 name')).toHaveValue('Primer, 1 gal')
-    expect(screen.getByText('Printed: PRMR 1G')).toBeInTheDocument()
-    expect(screen.queryByText('Printed: Tape')).not.toBeInTheDocument() // same as the name, so not repeated
-    expect(screen.getByLabelText('Line 1 job')).toHaveValue('')
-    expect(screen.getByLabelText(/Total/)).toHaveValue('34.01')
+    expect(await screen.findByText('Hardware Co')).toBeInTheDocument()
+    expect(screen.getByText('Primer, 1 gal')).toBeInTheDocument()
+    expect(screen.getByText('6.50')).toBeInTheDocument()
+    expect(rowOf('Tape')).toContain('No job')
+    expect(screen.queryByLabelText(/Store/)).not.toBeInTheDocument() // read fine, so details stay folded
     expect(service.uploadReceiptPhoto).toHaveBeenCalledWith('new-id', expect.any(Blob))
 
     await user.click(screen.getByRole('button', { name: 'Save Receipt' }))
-    await waitFor(() => expect(service.addReceipt).toHaveBeenCalledWith('new-id', expect.objectContaining({ store: 'Hardware Co', total: 34.01, items: [
+    await waitFor(() => expect(service.addReceipt).toHaveBeenCalledWith('new-id', expect.objectContaining({ store: 'Hardware Co', date: '2026-10-29', total: 34.01, items: [
       { name: 'Primer, 1 gal', printed: 'PRMR 1G', amount: 24.99, jobId: null },
       { name: 'Tape', printed: 'Tape', amount: 6.5, jobId: null },
     ] }), 'receipts/new-id.jpg'))
@@ -176,11 +210,11 @@ describe('ReceiptSheet', () => {
     expect(await screen.findByText('Reading receipt…')).toBeInTheDocument()
   })
 
-  it('falls back to an empty form if the photo can’t be read', async () => {
+  it('falls back to an empty form, details open, if the photo can’t be read', async () => {
     reader.readReceipt.mockResolvedValue(null)
     await pickPhoto()
     expect(await screen.findByLabelText(/Store/)).toHaveValue('')
-    expect(screen.getByLabelText('Line 1 name')).toHaveValue('')
+    expect(screen.getByText('No items yet.')).toBeInTheDocument()
   })
 
   it('throws away the uploaded photo if the receipt isn’t saved', async () => {
