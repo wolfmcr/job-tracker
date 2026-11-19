@@ -10,12 +10,12 @@ export const OWNER_UID = 'Eim2A7s7g7Rntq7X2oWd3jRdMbg1'
 export function createEmulatorDb() {
   const app = initializeApp({ projectId: PROJECT_ID, storageBucket: `${PROJECT_ID}.appspot.com` }, 'emulator-tests')
   const db = getFirestore(app)
-  connectFirestoreEmulator(db, '127.0.0.1', 8080, { mockUserToken: { sub: OWNER_UID } })
+  connectFirestoreEmulator(db, '127.0.0.1', 8088, { mockUserToken: { sub: OWNER_UID } })
   const storage = getStorage(app)
   connectStorageEmulator(storage, '127.0.0.1', STORAGE_PORT, { mockUserToken: { sub: OWNER_UID } })
   return { db, storage }
 }
 
 export async function clearEmulator() {
-  await fetch(`http://127.0.0.1:8080/emulator/v1/projects/${PROJECT_ID}/databases/(default)/documents`, { method: 'DELETE' })
+  await fetch(`http://127.0.0.1:8088/emulator/v1/projects/${PROJECT_ID}/databases/(default)/documents`, { method: 'DELETE' })
 }

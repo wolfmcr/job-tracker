@@ -34,6 +34,6 @@ export const storage = getStorage(app)
 // `npm run dev:local`: everything against local emulators, never the real project
 if (import.meta.env.VITE_EMULATORS === 'true') {
   connectAuthEmulator(auth, 'http://127.0.0.1:9099', { disableWarnings: true })
-  connectFirestoreEmulator(db, '127.0.0.1', 8080)
+  connectFirestoreEmulator(db, '127.0.0.1', 8088)
   connectStorageEmulator(storage, '127.0.0.1', 9199)
 }

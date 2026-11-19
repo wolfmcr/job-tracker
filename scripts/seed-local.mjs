@@ -16,7 +16,7 @@ const res = await fetch(`http://127.0.0.1:9099/identitytoolkit.googleapis.com/v1
 })
 if (!res.ok) throw new Error(`Couldn't create the test login: ${await res.text()}`)
 
-const env = await initializeTestEnvironment({ projectId: PROJECT_ID, firestore: { host: '127.0.0.1', port: 8080 } })
+const env = await initializeTestEnvironment({ projectId: PROJECT_ID, firestore: { host: '127.0.0.1', port: 8088 } })
 await env.withSecurityRulesDisabled(async ctx => {
   const db = ctx.firestore()
   const job = (name, color) => ({ name, address: '', color, isDone: false, isArchived: false, createdAt: serverTimestamp(), updatedAt: serverTimestamp() })
