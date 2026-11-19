@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
+import { useOnOpen } from '../../hooks/useOnOpen'
 import { formatMoney, todayISO } from '../../lib/format'
 import { BottomSheet } from '../ui/BottomSheet'
 import { DeleteButton } from '../ui/DeleteButton'
@@ -25,14 +26,12 @@ export function LedgerEntrySheet({ open, onClose, kind, initial, prefill, onSave
   const [value, setValue] = useState('')
   const [note, setNote] = useState('')
 
-  useEffect(() => {
-    if (open) {
-      const filled = initial ?? prefill
-      setDate(filled?.date ?? todayISO())
-      setValue(filled ? String(filled.value) : '')
-      setNote(initial?.note ?? '')
-    }
-  }, [open, initial, prefill])
+  useOnOpen(open, () => {
+    const filled = initial ?? prefill
+    setDate(filled?.date ?? todayISO())
+    setValue(filled ? String(filled.value) : '')
+    setNote(initial?.note ?? '')
+  })
 
   const parsed = Number(value)
   const valid = value.trim() !== '' && Number.isFinite(parsed) && parsed > 0 && !!date

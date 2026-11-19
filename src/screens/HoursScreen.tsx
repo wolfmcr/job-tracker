@@ -179,7 +179,6 @@ function EmployeeLedger({ employee }: { employee: Employee }) {
           <EmployeeForm
             initialName={employee.name}
             initialRate={employee.hourlyRate}
-            resetKey={editEmployeeOpen}
             submitLabel="Save"
             onSave={(name, rate) => {
               updateEmployee(employee.id, name, rate)

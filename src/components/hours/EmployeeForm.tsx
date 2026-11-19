@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Field } from '../ui/Field'
 import { SubmitButton } from '../ui/SubmitButton'
 
@@ -7,19 +7,14 @@ interface Props {
   initialRate?: number
   submitLabel: string
   onSave: (name: string, hourlyRate: number) => void
-  resetKey?: unknown
 }
 
 const inputClass = 'w-full px-4 py-3 border border-gray-300 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-blue-500'
 
-export function EmployeeForm({ initialName = '', initialRate, submitLabel, onSave, resetKey }: Props) {
+// Starts from the initial values when it mounts; the edit sheet mounts it afresh each time it opens
+export function EmployeeForm({ initialName = '', initialRate, submitLabel, onSave }: Props) {
   const [name, setName] = useState(initialName)
   const [rate, setRate] = useState(initialRate !== undefined ? String(initialRate) : '')
-
-  useEffect(() => {
-    setName(initialName)
-    setRate(initialRate !== undefined ? String(initialRate) : '')
-  }, [resetKey, initialName, initialRate])
 
   const parsedRate = Number(rate)
   const valid = name.trim() !== '' && rate.trim() !== '' && Number.isFinite(parsedRate) && parsedRate >= 0

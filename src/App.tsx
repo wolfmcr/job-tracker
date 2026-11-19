@@ -3,6 +3,7 @@ import { AppShell } from './components/layout/AppShell'
 import { ErrorBoundary, ErrorFallback } from './components/layout/ErrorBoundary'
 import { OfflineOverlay } from './components/layout/OfflineOverlay'
 import { Toaster } from './components/layout/Toaster'
+import { useAccess } from './hooks/useAccess'
 import { useAuth } from './hooks/useAuth'
 import { ArchiveScreen } from './screens/ArchiveScreen'
 import { CombinedShoppingScreen } from './screens/CombinedShoppingScreen'
@@ -12,6 +13,7 @@ import { HoursScreen } from './screens/HoursScreen'
 import { JobDetailScreen } from './screens/JobDetailScreen'
 import { JobsScreen } from './screens/JobsScreen'
 import { LoginScreen } from './screens/LoginScreen'
+import { NoAccessScreen } from './screens/NoAccessScreen'
 
 
 const rootRoute = createRootRoute({ component: () => <Outlet /> })
@@ -112,5 +114,11 @@ function AuthGate() {
 
   if (!user) return <LoginScreen />
 
+  return <SignedIn uid={user.uid} email={user.email} />
+}
+
+function SignedIn({ uid, email }: { uid: string; email: string | null }) {
+  const allowed = useAccess(uid)
+  if (!allowed) return <NoAccessScreen email={email} />
   return <RouterProvider router={router} />
 }

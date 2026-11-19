@@ -10,9 +10,13 @@ interface Props {
   footer?: React.ReactNode
 }
 
-export function BottomSheet({ open, onClose, title, children, footer }: Props) {
+// Every list row holds a closed sheet, so the viewport is only watched while one is open
+export function BottomSheet({ open, ...props }: Props) {
+  return open ? <OpenSheet {...props} /> : null
+}
+
+function OpenSheet({ onClose, title, children, footer }: Omit<Props, 'open'>) {
   const { keyboardOpen, keyboardInset, height } = useVisualViewport()
-  if (!open) return null
 
   // Brings the field being typed in into view once the keyboard has finished opening
   function handleFocus(e: React.FocusEvent<HTMLDivElement>) {

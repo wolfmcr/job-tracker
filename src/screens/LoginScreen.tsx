@@ -2,6 +2,7 @@ import { signInWithEmailAndPassword } from 'firebase/auth'
 import { BriefcaseIcon } from 'lucide-react'
 import { useState } from 'react'
 import { Field } from '../components/ui/Field'
+import { signInErrorMessage } from '../lib/authErrors'
 import { auth } from '../lib/firebase'
 
 export function LoginScreen() {
@@ -16,8 +17,8 @@ export function LoginScreen() {
     setLoading(true)
     try {
       await signInWithEmailAndPassword(auth, email, password)
-    } catch {
-      setError('Wrong email or password.')
+    } catch (error) {
+      setError(signInErrorMessage(error))
     } finally {
       setLoading(false)
     }

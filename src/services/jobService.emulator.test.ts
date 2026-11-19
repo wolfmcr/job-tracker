@@ -179,4 +179,14 @@ describe('tasks', () => {
     expect(items.map(i => i.name).sort()).toEqual(['Brush', 'Paint', 'Unrelated'])
     expect(items.every(i => !('taskId' in i))).toBe(true)
   })
+
+  it('deleteTask still deletes the task when one of its items was already deleted elsewhere', async () => {
+    const { jobId, taskId, taskItemIds } = await taskWithShopping()
+    await deleteShoppingItem(jobId, taskItemIds[0])
+    await expect(deleteTask(jobId, taskId, taskItemIds, false)).resolves.toBe(true)
+    expect(await data(`jobs/${jobId}/tasks/${taskId}`)).toBeUndefined()
+    const items = (await getDocs(collection(db, `jobs/${jobId}/shoppingItems`))).docs.map(d => d.data())
+    expect(items).toHaveLength(2)
+    expect(items.every(i => !('taskId' in i))).toBe(true)
+  })
 })

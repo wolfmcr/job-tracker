@@ -1,4 +1,4 @@
-import { addDoc, collection, deleteDoc, deleteField, doc, serverTimestamp, updateDoc, writeBatch } from 'firebase/firestore'
+import { addDoc, collection, deleteDoc, deleteField, doc, runTransaction, serverTimestamp, updateDoc, writeBatch } from 'firebase/firestore'
 import { db } from '../lib/firebase'
 import { write } from './write'
 import type { Job, ShoppingItem, Task } from '../types'
@@ -102,12 +102,20 @@ export function updateTask(jobId: string, taskId: string, { dueDate, ...fields }
 
 // The task's shopping items are either deleted with it or kept on the job's list without the task link
 export function deleteTask(jobId: string, taskId: string, shoppingItemIds: string[], deleteShopping: boolean) {
-  const batch = writeBatch(db)
-  batch.delete(doc(db, 'jobs', jobId, 'tasks', taskId))
-  for (const itemId of shoppingItemIds) {
-    const ref = doc(db, 'jobs', jobId, 'shoppingItems', itemId)
-    if (deleteShopping) batch.delete(ref)
-    else batch.update(ref, { taskId: deleteField() })
+  const taskRef = doc(db, 'jobs', jobId, 'tasks', taskId)
+  const itemRefs = shoppingItemIds.map(itemId => doc(db, 'jobs', jobId, 'shoppingItems', itemId))
+  if (deleteShopping) {
+    // Deleting a document that's already gone is fine, so a batch will do
+    const batch = writeBatch(db)
+    batch.delete(taskRef)
+    for (const ref of itemRefs) batch.delete(ref)
+    return write(batch.commit())
   }
-  return write(batch.commit())
+  // Unlinking an item deleted elsewhere since the list was shown would fail the whole delete,
+  // so check which still exist first and skip the rest
+  return write(runTransaction(db, async transaction => {
+    const items = await Promise.all(itemRefs.map(ref => transaction.get(ref)))
+    transaction.delete(taskRef)
+    for (const item of items) if (item.exists()) transaction.update(item.ref, { taskId: deleteField() })
+  }))
 }
