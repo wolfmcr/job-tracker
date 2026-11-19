@@ -1,7 +1,7 @@
 import { act, render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { Toaster } from '../components/layout/Toaster'
-import { SAVE_FAILED, SAVE_SLOW, SAVE_TIMEOUT_MS, write } from './write'
+import { SAVE_FAILED, SAVE_SLOW, SAVE_TIMEOUT_MS, UPLOAD_TIMEOUT_MS, write } from './write'
 
 beforeEach(() => {
   vi.useFakeTimers()
@@ -32,6 +32,15 @@ describe('write', () => {
     act(() => { vi.advanceTimersByTime(SAVE_TIMEOUT_MS - 1) })
     expect(screen.queryByText(SAVE_SLOW)).not.toBeInTheDocument()
     act(() => { vi.advanceTimersByTime(1) })
+    await expect(pending).resolves.toBe(false)
+    expect(screen.getByText(SAVE_SLOW)).toBeInTheDocument()
+  })
+
+  it('waits as long as the caller asks before giving up (photo uploads)', async () => {
+    const pending = write(new Promise(() => {}), UPLOAD_TIMEOUT_MS)
+    act(() => { vi.advanceTimersByTime(SAVE_TIMEOUT_MS) })
+    expect(screen.queryByText(SAVE_SLOW)).not.toBeInTheDocument()
+    act(() => { vi.advanceTimersByTime(UPLOAD_TIMEOUT_MS - SAVE_TIMEOUT_MS) })
     await expect(pending).resolves.toBe(false)
     expect(screen.getByText(SAVE_SLOW)).toBeInTheDocument()
   })

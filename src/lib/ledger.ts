@@ -3,6 +3,10 @@ import { parseISODate } from './format'
 
 export type Range = 'week' | 'month'
 
+// Money is added up in whole cents: summing dollars as floats drifts (4.35 h × $100 is 434.99999999999994),
+// which can turn a settled balance into "Paid ahead $0.00"
+const cents = (dollars: number) => Math.round(dollars * 100)
+
 export const PERIOD_COUNT: Record<Range, number> = { week: 26, month: 12 }
 
 export interface Bucket {
@@ -52,13 +56,13 @@ export function buildBuckets(timeEntries: TimeEntry[], payments: Payment[], rang
     const bucket = byKey.get(periodStart(parseISODate(e.date), range).toDateString())
     if (!bucket) continue
     bucket.hours += e.hours
-    bucket.earned += e.hours * e.rate
+    bucket.earned += cents(e.hours * e.rate)
   }
   for (const p of payments) {
     const bucket = byKey.get(periodStart(parseISODate(p.date), range).toDateString())
-    if (bucket) bucket.paid += p.amount
+    if (bucket) bucket.paid += cents(p.amount)
   }
-  return buckets
+  return buckets.map(b => ({ ...b, earned: b.earned / 100, paid: b.paid / 100 }))
 }
 
 // Round the axis max up to a 1/2/5 step so gridlines land on clean numbers
@@ -76,9 +80,11 @@ export function compactMoney(amount: number) {
 // All-time totals. owedHours is negative when paid ahead, and 0 with no rate set.
 export function summarizeLedger(timeEntries: TimeEntry[], payments: Payment[], hourlyRate: number) {
   const totalHours = timeEntries.reduce((sum, e) => sum + e.hours, 0)
-  const earned = timeEntries.reduce((sum, e) => sum + e.hours * e.rate, 0)
-  const paid = payments.reduce((sum, p) => sum + p.amount, 0)
-  const owed = earned - paid
+  const earnedCents = timeEntries.reduce((sum, e) => sum + cents(e.hours * e.rate), 0)
+  const paidCents = payments.reduce((sum, p) => sum + cents(p.amount), 0)
+  const earned = earnedCents / 100
+  const paid = paidCents / 100
+  const owed = (earnedCents - paidCents) / 100
   const owedHours = hourlyRate > 0 ? owed / hourlyRate : 0
   return { totalHours, earned, paid, owed, owedHours }
 }

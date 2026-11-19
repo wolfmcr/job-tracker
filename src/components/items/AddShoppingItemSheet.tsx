@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
+import { useOnOpen } from '../../hooks/useOnOpen'
 import type { ShoppingItemFields } from '../../services/jobService'
 import type { Job } from '../../types'
 import { BottomSheet } from '../ui/BottomSheet'
@@ -21,18 +22,18 @@ export function AddShoppingItemSheet({ open, onClose, onAdd, color = '#111827', 
   const [qty, setQty] = useState('')
   const [name, setName] = useState('')
   const [priority, setPriority] = useState(0)
-  const [selectedJobId, setSelectedJobId] = useState<string>(defaultJobId ?? '')
+  // '' until a job is picked; then the fixed job, else the first in the list (which may load after opening)
+  const [pickedJobId, setPickedJobId] = useState('')
+  const selectedJobId = pickedJobId || defaultJobId || jobs?.[0]?.id || ''
   const nameRef = useRef<HTMLInputElement>(null)
 
-  useEffect(() => {
-    if (open) {
-      setQty('')
-      setName('')
-      setPriority(0)
-      setSelectedJobId(defaultJobId ?? jobs?.[0]?.id ?? '')
-      setTimeout(() => nameRef.current?.focus(), 80)
-    }
-  }, [open, defaultJobId, jobs])
+  useOnOpen(open, () => {
+    setQty('')
+    setName('')
+    setPriority(0)
+    setPickedJobId('')
+    setTimeout(() => nameRef.current?.focus(), 80)
+  })
 
   const selectedJob = jobs?.find(j => j.id === selectedJobId)
   const submitColor = selectedJob?.color || color
@@ -48,7 +49,7 @@ export function AddShoppingItemSheet({ open, onClose, onAdd, color = '#111827', 
     <BottomSheet open={open} onClose={onClose} title="Add Shopping Item">
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         {jobs && jobs.length > 0 && (
-          <JobPicker jobs={jobs} value={selectedJobId} onChange={setSelectedJobId} />
+          <JobPicker jobs={jobs} value={selectedJobId} onChange={setPickedJobId} />
         )}
         <div className="flex gap-3">
           <Field label="Qty" className="w-24 shrink-0">

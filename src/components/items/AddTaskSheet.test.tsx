@@ -59,4 +59,24 @@ describe('AddTaskSheet', () => {
     rerender(<AddTaskSheet open {...props} />)
     expect(screen.getByRole('textbox', { name: 'Task' })).toHaveValue('')
   })
+
+  it('keeps what’s being typed when the job list updates', async () => {
+    const user = userEvent.setup()
+    const props = { open: true, onClose: vi.fn(), onAdd: vi.fn() }
+    const { rerender } = render(<AddTaskSheet {...props} jobs={[makeJob({ id: 'a' })]} />)
+    await user.type(screen.getByRole('textbox', { name: 'Task' }), 'Caulk')
+    rerender(<AddTaskSheet {...props} jobs={[makeJob({ id: 'a' }), makeJob({ id: 'b', name: 'Birch Ave' })]} />)
+    expect(screen.getByRole('textbox', { name: 'Task' })).toHaveValue('Caulk')
+  })
+
+  it('picks the first job once the list loads, if opened before it had', async () => {
+    const onAdd = vi.fn()
+    const user = userEvent.setup()
+    const props = { open: true, onClose: vi.fn(), onAdd }
+    const { rerender } = render(<AddTaskSheet {...props} jobs={[]} />)
+    rerender(<AddTaskSheet {...props} jobs={[makeJob({ id: 'a' }), makeJob({ id: 'b', name: 'Birch Ave' })]} />)
+    await user.type(screen.getByRole('textbox', { name: 'Task' }), 'Caulk')
+    await user.click(screen.getByRole('button', { name: 'Add' }))
+    expect(onAdd).toHaveBeenCalledWith('a', expect.objectContaining({ text: 'Caulk' }))
+  })
 })

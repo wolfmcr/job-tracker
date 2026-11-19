@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
+import { useOnOpen } from '../../hooks/useOnOpen'
 import type { TaskFields } from '../../services/jobService'
 import type { Timestamp } from 'firebase/firestore'
 import type { ShoppingItem, Task } from '../../types'
@@ -40,16 +41,14 @@ export function EditTaskSheet({ open, onClose, task, shoppingItems, onUpdate, on
   const [priority, setPriority] = useState(task.priority ?? 0)
   const [dueDate, setDueDate] = useState(task.dueDate ?? '')
 
-  useEffect(() => {
-    if (open) {
-      setEditing(false)
-      setChoosingDelete(false)
-      setText(task.text)
-      setBullets(task.bullets ?? [])
-      setPriority(task.priority ?? 0)
-      setDueDate(task.dueDate ?? '')
-    }
-  }, [open, task])
+  useOnOpen(open, () => {
+    setEditing(false)
+    setChoosingDelete(false)
+    setText(task.text)
+    setBullets(task.bullets ?? [])
+    setPriority(task.priority ?? 0)
+    setDueDate(task.dueDate ?? '')
+  })
 
   const created = formatTimestamp(task.createdAt)
   const completed = task.isDone ? formatTimestamp(task.completedAt) : null

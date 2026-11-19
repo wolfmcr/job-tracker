@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
+import { useOnOpen } from '../../hooks/useOnOpen'
 import { updateJob } from '../../services/jobService'
 import type { Job } from '../../types'
 import { BottomSheet } from '../ui/BottomSheet'
@@ -15,9 +16,7 @@ interface Props {
 export function JobNotesSheet({ job, open, onClose, color }: Props) {
   const [notes, setNotes] = useState(job.notes ?? '')
 
-  useEffect(() => {
-    if (open) setNotes(job.notes ?? '')
-  }, [open, job])
+  useOnOpen(open, () => setNotes(job.notes ?? ''))
 
   function handleSave(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()

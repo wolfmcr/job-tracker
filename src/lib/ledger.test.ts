@@ -77,6 +77,13 @@ describe('summarizeLedger', () => {
     expect(summarizeLedger([hours('a', '2026-10-01', 1, 30)], [], 0).owedHours).toBe(0)
   })
 
+  it('adds money up in whole cents, so a settled balance is exactly zero', () => {
+    // 4.35 × 100 is 434.99999999999994 as a float, which used to read as "Paid ahead"
+    const s = summarizeLedger([hours('a', '2026-10-01', 4.35, 100)], [payment('p', '2026-10-01', 435)], 100)
+    expect(s.owed).toBe(0)
+    expect(s.earned).toBe(435)
+  })
+
   it('is all zeros with no history', () => {
     expect(summarizeLedger([], [], 30)).toEqual({ totalHours: 0, earned: 0, paid: 0, owed: 0, owedHours: 0 })
   })

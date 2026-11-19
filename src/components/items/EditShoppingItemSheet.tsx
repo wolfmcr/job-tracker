@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
+import { useOnOpen } from '../../hooks/useOnOpen'
 import type { ShoppingItemFields } from '../../services/jobService'
 import type { ShoppingItem } from '../../types'
 import { BottomSheet } from '../ui/BottomSheet'
@@ -25,13 +26,11 @@ export function EditShoppingItemSheet({ open, onClose, item, onUpdate, onDelete,
   const [name, setName] = useState(item.name)
   const [priority, setPriority] = useState(item.priority ?? 0)
 
-  useEffect(() => {
-    if (open) {
-      setQty(item.qty)
-      setName(item.name)
-      setPriority(item.priority ?? 0)
-    }
-  }, [open, item])
+  useOnOpen(open, () => {
+    setQty(item.qty)
+    setName(item.name)
+    setPriority(item.priority ?? 0)
+  })
 
   function handleSave(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()

@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
+import { useOnOpen } from '../../hooks/useOnOpen'
 import { DEFAULT_JOB_COLOR } from '../../constants/colors'
 import { updateJob } from '../../services/jobService'
 import type { Job } from '../../types'
@@ -22,15 +23,13 @@ export function EditJobSheet({ job, open, onClose }: Props) {
   const [clientPhone, setClientPhone] = useState(formatPhone(job.clientPhone ?? ''))
   const colorRef = useRef<HTMLInputElement>(null)
 
-  useEffect(() => {
-    if (open) {
-      setName(job.name)
-      setAddress(job.address)
-      setColor(job.color || DEFAULT_JOB_COLOR)
-      setClientName(job.clientName ?? '')
-      setClientPhone(formatPhone(job.clientPhone ?? ''))
-    }
-  }, [open, job])
+  useOnOpen(open, () => {
+    setName(job.name)
+    setAddress(job.address)
+    setColor(job.color || DEFAULT_JOB_COLOR)
+    setClientName(job.clientName ?? '')
+    setClientPhone(formatPhone(job.clientPhone ?? ''))
+  })
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()

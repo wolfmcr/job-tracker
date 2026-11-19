@@ -3,7 +3,7 @@ import { deleteObject, ref, uploadBytes } from 'firebase/storage'
 import { db, storage } from '../lib/firebase'
 import { receiptJobIds } from '../lib/receipts'
 import type { Receipt } from '../types'
-import { write } from './write'
+import { UPLOAD_TIMEOUT_MS, write } from './write'
 
 export type ReceiptFields = Pick<Receipt, 'store' | 'date' | 'tax' | 'total' | 'items' | 'note'>
 
@@ -19,7 +19,7 @@ export function receiptPhotoPath(receiptId: string) {
 // Resolves to the photo's path, or null if it didn't upload (the user has been told)
 export async function uploadReceiptPhoto(receiptId: string, photo: Blob) {
   const path = receiptPhotoPath(receiptId)
-  return (await write(uploadBytes(ref(storage, path), photo, { contentType: 'image/jpeg' }))) ? path : null
+  return (await write(uploadBytes(ref(storage, path), photo, { contentType: 'image/jpeg' }), UPLOAD_TIMEOUT_MS)) ? path : null
 }
 
 export function addReceipt(receiptId: string, fields: ReceiptFields, photoPath: string | null) {

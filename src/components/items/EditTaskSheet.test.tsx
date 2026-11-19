@@ -53,6 +53,25 @@ describe('EditTaskSheet', () => {
     expect(onDelete).toHaveBeenCalledWith(true)
   })
 
+  it('keeps what’s being typed when a live update hands it a fresh copy of the task', async () => {
+    const handlers = { onClose: vi.fn(), onUpdate: vi.fn(), onDelete: vi.fn() }
+    const user = userEvent.setup()
+    const { rerender } = render(<EditTaskSheet open task={makeTask()} shoppingItems={[]} {...handlers} />)
+    await user.click(screen.getByRole('button', { name: 'Edit' }))
+    await user.type(screen.getByRole('textbox', { name: 'Task' }), ' twice')
+    rerender(<EditTaskSheet open task={makeTask()} shoppingItems={[]} {...handlers} />)
+    expect(screen.getByRole('textbox', { name: 'Task' })).toHaveValue('Paint door twice')
+  })
+
+  it('starts from the latest saved task each time it opens', async () => {
+    const handlers = { onClose: vi.fn(), onUpdate: vi.fn(), onDelete: vi.fn() }
+    const { rerender } = render(<EditTaskSheet open={false} task={makeTask()} shoppingItems={[]} {...handlers} />)
+    rerender(<EditTaskSheet open={false} task={makeTask({ text: 'Paint back door' })} shoppingItems={[]} {...handlers} />)
+    rerender(<EditTaskSheet open task={makeTask({ text: 'Paint back door' })} shoppingItems={[]} {...handlers} />)
+    await userEvent.setup().click(screen.getByRole('button', { name: 'Edit' }))
+    expect(screen.getByRole('textbox', { name: 'Task' })).toHaveValue('Paint back door')
+  })
+
   it('is view-only for archived jobs', () => {
     setup({ readOnly: true })
     expect(screen.queryByRole('button', { name: 'Edit' })).not.toBeInTheDocument()

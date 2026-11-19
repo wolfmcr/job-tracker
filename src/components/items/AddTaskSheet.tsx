@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
+import { useOnOpen } from '../../hooks/useOnOpen'
 import type { Job } from '../../types'
 import type { TaskFields } from '../../services/jobService'
 import { BottomSheet } from '../ui/BottomSheet'
@@ -25,19 +26,19 @@ export function AddTaskSheet({ open, onClose, onAdd, color = '#111827', jobs, de
   const [bullets, setBullets] = useState<string[]>([])
   const [priority, setPriority] = useState(0)
   const [dueDate, setDueDate] = useState('')
-  const [selectedJobId, setSelectedJobId] = useState<string>(defaultJobId ?? '')
+  // '' until a job is picked; then the fixed job, else the first in the list (which may load after opening)
+  const [pickedJobId, setPickedJobId] = useState('')
+  const selectedJobId = pickedJobId || defaultJobId || jobs?.[0]?.id || ''
   const textRef = useRef<HTMLInputElement>(null)
 
-  useEffect(() => {
-    if (open) {
-      setText('')
-      setBullets([])
-      setPriority(0)
-      setDueDate('')
-      setSelectedJobId(defaultJobId ?? jobs?.[0]?.id ?? '')
-      setTimeout(() => textRef.current?.focus(), 80)
-    }
-  }, [open, defaultJobId, jobs])
+  useOnOpen(open, () => {
+    setText('')
+    setBullets([])
+    setPriority(0)
+    setDueDate('')
+    setPickedJobId('')
+    setTimeout(() => textRef.current?.focus(), 80)
+  })
 
   const selectedJob = jobs?.find(j => j.id === selectedJobId)
   const submitColor = selectedJob?.color || color
@@ -53,7 +54,7 @@ export function AddTaskSheet({ open, onClose, onAdd, color = '#111827', jobs, de
     <BottomSheet open={open} onClose={onClose} title="Add Task">
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         {jobs && jobs.length > 0 && (
-          <JobPicker jobs={jobs} value={selectedJobId} onChange={setSelectedJobId} />
+          <JobPicker jobs={jobs} value={selectedJobId} onChange={setPickedJobId} />
         )}
         <Field label="Task" required>
           <input
