@@ -47,6 +47,14 @@ node scripts/admin.ts --project <project-id> businesses | members <businessId>
 
 `add-member` creates the login and prints a link for the person to set their password. "Forgot password?" on the sign-in screen sends the same kind of link.
 
+To move the original single-owner data into a business (from the live project into the beta project), with a key for each project:
+
+```sh
+FROM_CREDENTIALS=~/keys/<live-project>-admin.json node scripts/admin.ts --project <beta-project> import-live <businessId> --from <live-project> --dry-run
+```
+
+`--dry-run` only counts what would be copied; leave it out to copy. It never changes the live project, and running it again updates rather than duplicates.
+
 ## Deploying
 
 Every push runs CI (lint, typecheck, unit and emulator tests). A push to `main` that passes deploys the app to Firebase Hosting, along with the Firestore and Storage rules and the indexes. There's no manual deploy step.
