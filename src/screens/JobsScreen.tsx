@@ -1,7 +1,8 @@
 import { useNavigate } from '@tanstack/react-router'
-import { ArchiveIcon, BriefcaseIcon, ChevronRightIcon } from 'lucide-react'
+import { ArchiveIcon, BriefcaseIcon, ChevronRightIcon, UserIcon } from 'lucide-react'
 import { useState } from 'react'
 import { AddJobSheet } from '../components/jobs/AddJobSheet'
+import { AccountSheet } from '../components/layout/AccountSheet'
 import { JobRow } from '../components/jobs/JobRow'
 import { FAB } from '../components/ui/FAB'
 import { EmptyState } from '../components/ui/EmptyState'
@@ -13,6 +14,7 @@ export function JobsScreen() {
   const { jobs, loading } = useJobs()
   const navigate = useNavigate()
   const [sheetOpen, setSheetOpen] = useState(false)
+  const [accountOpen, setAccountOpen] = useState(false)
 
   if (loading) {
     return <LoadingSpinner />
@@ -20,7 +22,14 @@ export function JobsScreen() {
 
   return (
     <>
-      <ScreenHeader title="Jobs" />
+      <ScreenHeader
+        title="Jobs"
+        right={
+          <button type="button" onClick={() => setAccountOpen(true)} aria-label="Account" className="p-2 -mr-2 text-gray-500 self-center">
+            <UserIcon size={22} />
+          </button>
+        }
+      />
 
       {jobs.length === 0 ? (
         <EmptyState
@@ -55,6 +64,7 @@ export function JobsScreen() {
 
       <FAB onClick={() => setSheetOpen(true)} color="#111827" label="Add job" />
       <AddJobSheet open={sheetOpen} onClose={() => setSheetOpen(false)} />
+      <AccountSheet open={accountOpen} onClose={() => setAccountOpen(false)} />
     </>
   )
 }

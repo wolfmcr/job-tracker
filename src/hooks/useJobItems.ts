@@ -1,20 +1,20 @@
-import { collection, orderBy, query } from 'firebase/firestore'
-import { db } from '../lib/firebase'
+import { orderBy, query, where } from 'firebase/firestore'
+import { bizCollection } from '../lib/business'
 import type { ShoppingItem, Task } from '../types'
-import { useLiveQuery, withJobId } from './useLive'
+import { useLiveQuery, withId } from './useLive'
 
 export function useShoppingItems(jobId: string) {
   return useLiveQuery(
     `shoppingItems:${jobId}`,
-    () => query(collection(db, 'jobs', jobId, 'shoppingItems'), orderBy('createdAt', 'asc')),
-    withJobId<ShoppingItem>,
+    () => query(bizCollection('shoppingItems'), where('jobId', '==', jobId), orderBy('createdAt', 'asc')),
+    withId<ShoppingItem>,
   )
 }
 
 export function useTasks(jobId: string) {
   return useLiveQuery(
     `tasks:${jobId}`,
-    () => query(collection(db, 'jobs', jobId, 'tasks'), orderBy('createdAt', 'asc')),
-    withJobId<Task>,
+    () => query(bizCollection('tasks'), where('jobId', '==', jobId), orderBy('createdAt', 'asc')),
+    withId<Task>,
   )
 }

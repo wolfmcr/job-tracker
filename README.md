@@ -23,7 +23,7 @@ To run against the real project, put the `VITE_FIREBASE_*` keys (and optionally 
 
 | Command | What it does |
 | --- | --- |
-| `npm run dev:local` | Runs the app against local emulators with seed data. Sign in as `test@example.test` / `local-test-only`. |
+| `npm run dev:local` | Runs the app against local emulators with two seeded businesses. Sign in as `test@example.test` (Alder Builders) or `other@example.test` (Birch Co), password `local-test-only`. |
 | `npm run dev` | Runs the app against the real Firebase project (needs `.env.local`). |
 | `npm test` | Unit tests. |
 | `npm run test:emulator` | Tests the security rules and services against the Firestore and Storage emulators. |
@@ -31,9 +31,21 @@ To run against the real project, put the `VITE_FIREBASE_*` keys (and optionally 
 
 The emulators use ports 9099 (Auth), 8088 (Firestore) and 9199 (Storage), set in `firebase.json`. On a Mac without Java on the PATH, set `JAVA21_HOME`.
 
-## Access
+## Businesses and access
 
-Only accounts listed in `firestore.rules` and `storage.rules` can use the app; keep the two lists the same. Anyone else who signs in sees a "No access" screen.
+Each business's data lives under `businesses/{id}` in Firestore, and its receipt photos under `businesses/{id}/receipts/` in Storage. The rules let an account in only if it's listed in that business's `members`. Every account belongs to exactly one business; anyone signed in without one sees a "No access" screen.
+
+There's no sign-up: people are added with the admin script, which uses a service account key for the project.
+
+```sh
+export GOOGLE_APPLICATION_CREDENTIALS=~/keys/<project>-admin.json   # keep it outside the repo
+node scripts/admin.ts --project <project-id> add-business "Alder Builders"   # prints the business ID
+node scripts/admin.ts --project <project-id> add-member <businessId> pat@example.com
+node scripts/admin.ts --project <project-id> remove-member <businessId> pat@example.com
+node scripts/admin.ts --project <project-id> businesses | members <businessId>
+```
+
+`add-member` creates the login and prints a link for the person to set their password. "Forgot password?" on the sign-in screen sends the same kind of link.
 
 ## Deploying
 

@@ -42,7 +42,7 @@ export function TaskShoppingList({ task, items, jobColor, readOnly = false }: Pr
                 type="checkbox"
                 checked={item.isGot}
                 aria-label={`Got: ${item.name}`}
-                onChange={() => toggleShoppingItem(task.jobId, item.id, !item.isGot)}
+                onChange={() => toggleShoppingItem(item.id, !item.isGot)}
                 disabled={readOnly}
                 className="w-5 h-5 shrink-0"
                 style={{ accentColor: jobColor ?? '#2563eb' }}
@@ -54,7 +54,7 @@ export function TaskShoppingList({ task, items, jobColor, readOnly = false }: Pr
               {!readOnly && (
                 <button
                   type="button"
-                  onClick={() => deleteShoppingItem(task.jobId, item.id)}
+                  onClick={() => deleteShoppingItem(item.id)}
                   aria-label={`Remove ${item.name}`}
                   className="p-1.5 -mr-1.5 shrink-0 text-gray-400 active:opacity-60"
                 >

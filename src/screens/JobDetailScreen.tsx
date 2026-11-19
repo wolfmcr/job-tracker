@@ -78,9 +78,9 @@ export function JobDetailScreen() {
         key={item.id}
         item={item}
         taskName={taskName(item.taskId)}
-        onToggle={readOnly ? () => {} : () => toggleShoppingItem(jobId, item.id, !item.isGot)}
-        onDelete={readOnly ? () => {} : () => deleteShoppingItem(jobId, item.id)}
-        onUpdate={readOnly ? () => {} : (fields) => updateShoppingItem(jobId, item.id, fields)}
+        onToggle={readOnly ? () => {} : () => toggleShoppingItem(item.id, !item.isGot)}
+        onDelete={readOnly ? () => {} : () => deleteShoppingItem(item.id)}
+        onUpdate={readOnly ? () => {} : (fields) => updateShoppingItem(item.id, fields)}
         readOnly={readOnly}
       />
     )
@@ -92,9 +92,9 @@ export function JobDetailScreen() {
         key={task.id}
         task={task}
         shoppingItems={shoppingFor(task.id)}
-        onToggle={readOnly ? () => {} : () => toggleTask(jobId, task.id, !task.isDone)}
-        onDelete={readOnly ? () => {} : (deleteShopping) => deleteTask(jobId, task.id, shoppingFor(task.id).map(i => i.id), deleteShopping)}
-        onUpdate={readOnly ? () => {} : (fields) => updateTask(jobId, task.id, fields)}
+        onToggle={readOnly ? () => {} : () => toggleTask(task.id, !task.isDone)}
+        onDelete={readOnly ? () => {} : (deleteShopping) => deleteTask(task.id, shoppingFor(task.id).map(i => i.id), deleteShopping)}
+        onUpdate={readOnly ? () => {} : (fields) => updateTask(task.id, fields)}
         readOnly={readOnly}
       />
     )

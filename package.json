@@ -12,7 +12,7 @@
     "typecheck": "tsc -b",
     "test": "vitest run --project unit",
     "test:watch": "vitest --project unit",
-    "test:emulator": "PATH=\"${JAVA21_HOME:-/opt/homebrew/opt/openjdk@21}/bin:$PATH\" firebase emulators:exec --only firestore,storage --project demo-job-tracker 'vitest run --project emulator'"
+    "test:emulator": "PATH=\"${JAVA21_HOME:-/opt/homebrew/opt/openjdk@21}/bin:$PATH\" firebase emulators:exec --only auth,firestore,storage --project demo-job-tracker 'vitest run --project emulator'"
   },
   "dependencies": {
     "@tanstack/react-router": "^1.170.44",
@@ -35,6 +35,7 @@
     "@vitejs/plugin-react": "^6.1.1",
     "@vitest/coverage-v8": "^5.0.5",
     "autoprefixer": "^10.6.1",
+    "firebase-admin": "^14.5.1",
     "firebase-tools": "15.34.1",
     "jsdom": "^29.1.1",
     "oxlint": "^1.81.0",

@@ -1,8 +1,7 @@
-import { signOut } from 'firebase/auth'
 import { LockIcon } from 'lucide-react'
-import { auth } from '../lib/firebase'
+import { signOutAndReload } from '../lib/session'
 
-// Signed in, but the account isn't on the allow-list in firestore.rules
+// Signed in, but the account isn't a member of any business (or was removed from one)
 export function NoAccessScreen({ email }: { email: string | null }) {
   return (
     <div role="alert" className="flex flex-col items-center justify-center gap-3 min-h-dvh px-8 text-center">
@@ -13,7 +12,7 @@ export function NoAccessScreen({ email }: { email: string | null }) {
       </p>
       <button
         type="button"
-        onClick={() => signOut(auth)}
+        onClick={signOutAndReload}
         className="mt-2 px-6 py-3 rounded-xl bg-gray-900 text-white font-semibold active:opacity-80"
       >
         Sign out

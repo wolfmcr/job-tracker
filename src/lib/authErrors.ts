@@ -17,3 +17,12 @@ export function signInErrorMessage(error: unknown) {
       return 'Couldn’t sign in. Please try again.'
   }
 }
+
+// A reset request says the same thing whether or not the email has an account, so the login
+// screen can't be used to find out who does. null means "tell them a link is on its way".
+export function resetErrorMessage(error: unknown) {
+  const code = error && typeof error === 'object' && 'code' in error ? String(error.code) : ''
+  if (code === 'auth/user-not-found') return null
+  if (code === 'auth/invalid-email' || code === 'auth/missing-email') return 'That doesn’t look like an email address.'
+  return signInErrorMessage(error)
+}

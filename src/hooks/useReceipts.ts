@@ -1,14 +1,15 @@
-import { collection, orderBy, query, where } from 'firebase/firestore'
+import { orderBy, query, where } from 'firebase/firestore'
 import { getDownloadURL, ref } from 'firebase/storage'
 import { useEffect, useState } from 'react'
-import { db, storage } from '../lib/firebase'
+import { bizCollection } from '../lib/business'
+import { storage } from '../lib/firebase'
 import type { Receipt } from '../types'
 import { useLiveQuery, withId } from './useLive'
 
 export function useReceipts() {
   const { items, loading } = useLiveQuery(
     'receipts',
-    () => query(collection(db, 'receipts'), orderBy('date', 'desc')),
+    () => query(bizCollection('receipts'), orderBy('date', 'desc')),
     withId<Receipt>,
   )
   return { receipts: items, loading }
@@ -18,7 +19,7 @@ export function useReceipts() {
 export function useJobReceipts(jobId: string) {
   const { items, loading } = useLiveQuery(
     `receipts:${jobId}`,
-    () => query(collection(db, 'receipts'), where('jobIds', 'array-contains', jobId), orderBy('date', 'desc')),
+    () => query(bizCollection('receipts'), where('jobIds', 'array-contains', jobId), orderBy('date', 'desc')),
     withId<Receipt>,
   )
   return { receipts: items, loading }

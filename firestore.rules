@@ -2,11 +2,14 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Accounts allowed to use the app. Add a user's UID here to give them access (and in storage.rules).
-    function isAllowed() {
-      return request.auth != null && request.auth.uid in [
-        'Eim2A7s7g7Rntq7X2oWd3jRdMbg1',
-      ];
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    // Membership is the only way in. Members are added and removed by scripts/admin.mjs (the Admin
+    // SDK, which these rules don't apply to); the app can never write it.
+    function isMember(bizId) {
+      return signedIn() && exists(/databases/$(database)/documents/businesses/$(bizId)/members/$(request.auth.uid));
     }
 
     function data() {
@@ -41,28 +44,46 @@ service cloud.firestore {
       return value is string && value.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$');
     }
 
-    match /jobs/{jobId} {
-      function isValidJob() {
-        return isText(data().name, 1, 200)
-          && isText(data().address, 0, 500)
-          && optionalText('color', 20)
-          && optionalText('clientName', 200)
-          && optionalText('clientPhone', 50)
-          && optionalText('notes', 10000)
-          && data().isDone is bool
-          && data().isArchived is bool
-          && data().updatedAt == request.time;
+    // Which business an account belongs to (one each), so the app knows where to look.
+    // Only its own account can read it; only scripts/admin.mjs writes it.
+    match /users/{uid} {
+      allow read: if signedIn() && request.auth.uid == uid;
+    }
+
+    // Everything a business has lives under its document, so the path alone decides who gets in
+    match /businesses/{bizId} {
+      // Members read it for the business's name
+      allow read: if isMember(bizId);
+
+      // A task or shopping item must name a job of this same business
+      function isJobHere(jobId) {
+        return jobId is string && exists(/databases/$(database)/documents/businesses/$(bizId)/jobs/$(jobId));
       }
 
-      allow read: if isAllowed();
-      allow create: if isAllowed() && isValidJob() && isValidCreate(
-        ['name', 'address', 'color', 'clientName', 'clientPhone', 'notes', 'isDone', 'isArchived', 'createdAt', 'updatedAt'],
-        ['name', 'address', 'isDone', 'isArchived', 'createdAt', 'updatedAt']);
-      allow update: if isAllowed() && isValidJob()
-        && onlyChanges(['name', 'address', 'color', 'clientName', 'clientPhone', 'notes', 'isDone', 'isArchived', 'updatedAt']);
-      // The app archives jobs rather than deleting them
-      allow delete: if false;
+      match /jobs/{jobId} {
+        function isValidJob() {
+          return isText(data().name, 1, 200)
+            && isText(data().address, 0, 500)
+            && optionalText('color', 20)
+            && optionalText('clientName', 200)
+            && optionalText('clientPhone', 50)
+            && optionalText('notes', 10000)
+            && data().isDone is bool
+            && data().isArchived is bool
+            && data().updatedAt == request.time;
+        }
 
+        allow read: if isMember(bizId);
+        allow create: if isMember(bizId) && isValidJob() && isValidCreate(
+          ['name', 'address', 'color', 'clientName', 'clientPhone', 'notes', 'isDone', 'isArchived', 'createdAt', 'updatedAt'],
+          ['name', 'address', 'isDone', 'isArchived', 'createdAt', 'updatedAt']);
+        allow update: if isMember(bizId) && isValidJob()
+          && onlyChanges(['name', 'address', 'color', 'clientName', 'clientPhone', 'notes', 'isDone', 'isArchived', 'updatedAt']);
+        // The app archives jobs rather than deleting them
+        allow delete: if false;
+      }
+
+      // The job's id is a field (not the path), so the Shopping tab can list the whole business's items
       match /shoppingItems/{itemId} {
         function isValidItem() {
           return isText(data().qty, 0, 50)
@@ -72,11 +93,12 @@ service cloud.firestore {
             && optionalPriority();
         }
 
-        allow read, delete: if isAllowed();
-        allow create: if isAllowed() && isValidItem() && isValidCreate(
-          ['qty', 'name', 'taskId', 'isGot', 'priority', 'createdAt'],
-          ['qty', 'name', 'isGot', 'createdAt']);
-        allow update: if isAllowed() && isValidItem()
+        allow read, delete: if isMember(bizId);
+        allow create: if isMember(bizId) && isValidItem() && isJobHere(data().jobId) && isValidCreate(
+          ['jobId', 'qty', 'name', 'taskId', 'isGot', 'priority', 'createdAt'],
+          ['jobId', 'qty', 'name', 'isGot', 'createdAt']);
+        // jobId isn't in the list, so an item can't be moved to another job
+        allow update: if isMember(bizId) && isValidItem()
           && onlyChanges(['qty', 'name', 'taskId', 'isGot', 'priority']);
       }
 
@@ -90,100 +112,90 @@ service cloud.firestore {
             && optionalPriority();
         }
 
-        allow read, delete: if isAllowed();
-        allow create: if isAllowed() && isValidTask() && isValidCreate(
-          ['text', 'bullets', 'isDone', 'completedAt', 'dueDate', 'priority', 'createdAt'],
-          ['text', 'isDone', 'createdAt']);
-        allow update: if isAllowed() && isValidTask()
+        allow read, delete: if isMember(bizId);
+        allow create: if isMember(bizId) && isValidTask() && isJobHere(data().jobId) && isValidCreate(
+          ['jobId', 'text', 'bullets', 'isDone', 'completedAt', 'dueDate', 'priority', 'createdAt'],
+          ['jobId', 'text', 'isDone', 'createdAt']);
+        allow update: if isMember(bizId) && isValidTask()
           && onlyChanges(['text', 'bullets', 'isDone', 'completedAt', 'dueDate', 'priority']);
       }
-    }
 
-    match /employees/{employeeId} {
-      function isValidEmployee() {
-        return isText(data().name, 1, 200)
-          && data().hourlyRate is number && data().hourlyRate >= 0 && data().hourlyRate <= 10000
-          && (!('timer' in data()) || isValidTimer(data().timer));
-      }
-
-      // The Hours timer while a session is running or paused; removed when it's logged or discarded
-      function isValidTimer(timer) {
-        return timer is map
-          && timer.keys().hasOnly(['startedAt', 'pausedAt', 'pausedMs'])
-          && timer.keys().hasAll(['startedAt', 'pausedAt', 'pausedMs'])
-          && timer.startedAt is timestamp && timer.startedAt <= request.time + duration.value(5, 'm')
-          && (timer.pausedAt == null || timer.pausedAt is timestamp)
-          && timer.pausedMs is number && timer.pausedMs >= 0;
-      }
-
-      allow read: if isAllowed();
-      allow create: if isAllowed() && isValidEmployee()
-        && isValidCreate(['name', 'hourlyRate', 'createdAt'], ['name', 'hourlyRate', 'createdAt']);
-      allow update: if isAllowed() && isValidEmployee() && onlyChanges(['name', 'hourlyRate', 'timer']);
-      allow delete: if false;
-
-      match /timeEntries/{entryId} {
-        function isValidEntry() {
-          return isISODate(data().date)
-            && data().hours is number && data().hours > 0 && data().hours <= 1000
-            && data().rate is number && data().rate >= 0
-            && isText(data().note, 0, 1000);
+      match /employees/{employeeId} {
+        function isValidEmployee() {
+          return isText(data().name, 1, 200)
+            && data().hourlyRate is number && data().hourlyRate >= 0 && data().hourlyRate <= 10000
+            && (!('timer' in data()) || isValidTimer(data().timer));
         }
 
-        allow read, delete: if isAllowed();
-        allow create: if isAllowed() && isValidEntry()
-          && isValidCreate(['date', 'hours', 'rate', 'note', 'createdAt'], ['date', 'hours', 'rate', 'note', 'createdAt']);
-        // The rate stays as logged so later rate changes don't rewrite history
-        allow update: if isAllowed() && isValidEntry() && onlyChanges(['date', 'hours', 'note']);
-      }
-
-      match /payments/{paymentId} {
-        function isValidPayment() {
-          return isISODate(data().date)
-            && data().amount is number && data().amount > 0 && data().amount <= 1000000
-            && isText(data().note, 0, 1000);
+        // The Hours timer while a session is running or paused; removed when it's logged or discarded
+        function isValidTimer(timer) {
+          return timer is map
+            && timer.keys().hasOnly(['startedAt', 'pausedAt', 'pausedMs'])
+            && timer.keys().hasAll(['startedAt', 'pausedAt', 'pausedMs'])
+            && timer.startedAt is timestamp && timer.startedAt <= request.time + duration.value(5, 'm')
+            && (timer.pausedAt == null || timer.pausedAt is timestamp)
+            && timer.pausedMs is number && timer.pausedMs >= 0;
         }
 
-        allow read, delete: if isAllowed();
-        allow create: if isAllowed() && isValidPayment()
-          && isValidCreate(['date', 'amount', 'note', 'createdAt'], ['date', 'amount', 'note', 'createdAt']);
-        allow update: if isAllowed() && isValidPayment() && onlyChanges(['date', 'amount', 'note']);
+        allow read: if isMember(bizId);
+        allow create: if isMember(bizId) && isValidEmployee()
+          && isValidCreate(['name', 'hourlyRate', 'createdAt'], ['name', 'hourlyRate', 'createdAt']);
+        allow update: if isMember(bizId) && isValidEmployee() && onlyChanges(['name', 'hourlyRate', 'timer']);
+        allow delete: if false;
+
+        match /timeEntries/{entryId} {
+          function isValidEntry() {
+            return isISODate(data().date)
+              && data().hours is number && data().hours > 0 && data().hours <= 1000
+              && data().rate is number && data().rate >= 0
+              && isText(data().note, 0, 1000);
+          }
+
+          allow read, delete: if isMember(bizId);
+          allow create: if isMember(bizId) && isValidEntry()
+            && isValidCreate(['date', 'hours', 'rate', 'note', 'createdAt'], ['date', 'hours', 'rate', 'note', 'createdAt']);
+          // The rate stays as logged so later rate changes don't rewrite history
+          allow update: if isMember(bizId) && isValidEntry() && onlyChanges(['date', 'hours', 'note']);
+        }
+
+        match /payments/{paymentId} {
+          function isValidPayment() {
+            return isISODate(data().date)
+              && data().amount is number && data().amount > 0 && data().amount <= 1000000
+              && isText(data().note, 0, 1000);
+          }
+
+          allow read, delete: if isMember(bizId);
+          allow create: if isMember(bizId) && isValidPayment()
+            && isValidCreate(['date', 'amount', 'note', 'createdAt'], ['date', 'amount', 'note', 'createdAt']);
+          allow update: if isMember(bizId) && isValidPayment() && onlyChanges(['date', 'amount', 'note']);
+        }
       }
-    }
 
-    match /receipts/{receiptId} {
-      // Saved as printed; anything worked out from it (like each job's share of tax) is done in the app
-      function isMoney(value) {
-        return value is number && value >= -1000000 && value <= 1000000;
+      match /receipts/{receiptId} {
+        // Saved as printed; anything worked out from it (like each job's share of tax) is done in the app
+        function isMoney(value) {
+          return value is number && value >= -1000000 && value <= 1000000;
+        }
+
+        function isValidReceipt() {
+          return isText(data().store, 1, 200)
+            && isISODate(data().date)
+            && isMoney(data().tax)
+            && isMoney(data().total)
+            && data().items is list && data().items.size() <= 100
+            && data().jobIds is list && data().jobIds.size() <= 100
+            && isText(data().note, 0, 1000)
+            && (!('photoPath' in data()) || data().photoPath == 'businesses/' + bizId + '/receipts/' + receiptId + '.jpg');
+        }
+
+        allow read, delete: if isMember(bizId);
+        allow create: if isMember(bizId) && isValidReceipt() && isValidCreate(
+          ['store', 'date', 'tax', 'total', 'items', 'jobIds', 'photoPath', 'note', 'createdAt'],
+          ['store', 'date', 'tax', 'total', 'items', 'jobIds', 'note', 'createdAt']);
+        allow update: if isMember(bizId) && isValidReceipt()
+          && onlyChanges(['store', 'date', 'tax', 'total', 'items', 'jobIds', 'photoPath', 'note']);
       }
-
-      function isValidReceipt() {
-        return isText(data().store, 1, 200)
-          && isISODate(data().date)
-          && isMoney(data().tax)
-          && isMoney(data().total)
-          && data().items is list && data().items.size() <= 100
-          && data().jobIds is list && data().jobIds.size() <= 100
-          && isText(data().note, 0, 1000)
-          && (!('photoPath' in data()) || data().photoPath == 'receipts/' + receiptId + '.jpg');
-      }
-
-      allow read, delete: if isAllowed();
-      allow create: if isAllowed() && isValidReceipt() && isValidCreate(
-        ['store', 'date', 'tax', 'total', 'items', 'jobIds', 'photoPath', 'note', 'createdAt'],
-        ['store', 'date', 'tax', 'total', 'items', 'jobIds', 'note', 'createdAt']);
-      allow update: if isAllowed() && isValidReceipt()
-        && onlyChanges(['store', 'date', 'tax', 'total', 'items', 'jobIds', 'photoPath', 'note']);
-    }
-
-    // Collection-group queries for the Shopping and Tasks tabs. Read only: a write rule here
-    // would bypass the validation above, since any matching rule allows the request.
-    match /{path=**}/shoppingItems/{itemId} {
-      allow read: if isAllowed();
-    }
-
-    match /{path=**}/tasks/{taskId} {
-      allow read: if isAllowed();
     }
   }
 }

@@ -2,18 +2,18 @@ rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
 
-    // Same accounts as firestore.rules; keep the two lists in step
-    function isAllowed() {
-      return request.auth != null && request.auth.uid in [
-        'Eim2A7s7g7Rntq7X2oWd3jRdMbg1',
-      ];
+    // The same membership firestore.rules uses, looked up in Firestore, so there's one list of who's in.
+    // Reading Firestore from here needs a one-time IAM grant, offered on the first rules deploy.
+    function isMember(bizId) {
+      return request.auth != null
+        && firestore.exists(/databases/(default)/documents/businesses/$(bizId)/members/$(request.auth.uid));
     }
 
     // Receipt photos, one per receipt, named after the receipt's Firestore ID.
     // The app shrinks them to a JPEG well under this size before uploading.
-    match /receipts/{fileName} {
-      allow read, delete: if isAllowed();
-      allow create, update: if isAllowed()
+    match /businesses/{bizId}/receipts/{fileName} {
+      allow read, delete: if isMember(bizId);
+      allow create, update: if isMember(bizId)
         && fileName.matches('^[A-Za-z0-9]{1,40}[.]jpg$')
         && request.resource.contentType == 'image/jpeg'
         && request.resource.size < 5 * 1024 * 1024;

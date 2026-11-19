@@ -1,6 +1,7 @@
 import { collection, doc, getDoc, getDocs, Timestamp } from 'firebase/firestore'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { clearEmulator } from '../test/emulatorDb'
+import { setBusiness } from '../lib/business'
+import { BIZ, BUSINESS_ID, resetEmulator } from '../test/emulatorDb'
 import {
   addJob,
   addShoppingItem,
@@ -24,6 +25,7 @@ vi.mock('../lib/firebase', async () => {
 })
 
 const { db } = await import('../lib/firebase')
+setBusiness({ id: BUSINESS_ID, name: 'Alder Builders' })
 
 async function data(path: string) {
   return (await getDoc(doc(db, path))).data()
@@ -37,15 +39,15 @@ async function only(path: string) {
 
 async function newJob() {
   await addJob({ name: 'Alder St', address: '1 Alder St', color: '#ff0000', clientName: 'Pat', clientPhone: '(503) 555-1234' })
-  return (await only('jobs')).id
+  return (await only(`${BIZ}/jobs`)).id
 }
 
-beforeEach(clearEmulator)
+beforeEach(resetEmulator)
 
 describe('jobs', () => {
   it('addJob stores the fields as an active job with timestamps', async () => {
     await newJob()
-    const job = await only('jobs')
+    const job = await only(`${BIZ}/jobs`)
     expect(job).toMatchObject({ name: 'Alder St', address: '1 Alder St', color: '#ff0000', clientName: 'Pat', isDone: false, isArchived: false })
     expect(job.createdAt).toBeInstanceOf(Timestamp)
     expect(job.updatedAt).toBeInstanceOf(Timestamp)
@@ -53,10 +55,10 @@ describe('jobs', () => {
 
   it('updateJob changes only the given fields and bumps updatedAt', async () => {
     const id = await newJob()
-    const before = (await data(`jobs/${id}`))!
+    const before = (await data(`${BIZ}/jobs/${id}`))!
     await new Promise(r => setTimeout(r, 5))
     await updateJob(id, { notes: 'Gate code 1234' })
-    const after = (await data(`jobs/${id}`))!
+    const after = (await data(`${BIZ}/jobs/${id}`))!
     expect(after).toMatchObject({ name: 'Alder St', notes: 'Gate code 1234' })
     expect(after.updatedAt.toMillis()).toBeGreaterThan(before.updatedAt.toMillis())
     expect(after.createdAt).toEqual(before.createdAt)
@@ -65,13 +67,13 @@ describe('jobs', () => {
   it('complete, archive and restore set the right flags', async () => {
     const id = await newJob()
     await completeJob(id)
-    expect(await data(`jobs/${id}`)).toMatchObject({ isDone: true, isArchived: true })
+    expect(await data(`${BIZ}/jobs/${id}`)).toMatchObject({ isDone: true, isArchived: true })
     await restoreJob(id)
-    expect(await data(`jobs/${id}`)).toMatchObject({ isDone: false, isArchived: false })
+    expect(await data(`${BIZ}/jobs/${id}`)).toMatchObject({ isDone: false, isArchived: false })
     await archiveJob(id)
-    expect(await data(`jobs/${id}`)).toMatchObject({ isDone: false, isArchived: true })
+    expect(await data(`${BIZ}/jobs/${id}`)).toMatchObject({ isDone: false, isArchived: true })
     await toggleJobDone(id, true)
-    expect(await data(`jobs/${id}`)).toMatchObject({ isDone: true, isArchived: true })
+    expect(await data(`${BIZ}/jobs/${id}`)).toMatchObject({ isDone: true, isArchived: true })
   })
 })
 
@@ -80,7 +82,7 @@ describe('failed writes', () => {
     vi.spyOn(console, 'error').mockImplementation(() => {})
     const id = await newJob()
     await expect(updateJob(id, { name: '' })).resolves.toBe(false)
-    expect(await data(`jobs/${id}`)).toMatchObject({ name: 'Alder St' })
+    expect(await data(`${BIZ}/jobs/${id}`)).toMatchObject({ name: 'Alder St' })
     vi.restoreAllMocks()
   })
 
@@ -94,26 +96,26 @@ describe('shopping items', () => {
   it('addShoppingItem only stores taskId when given', async () => {
     const jobId = await newJob()
     await addShoppingItem(jobId, { qty: '2', name: 'Primer', priority: 1 })
-    const item = await only(`jobs/${jobId}/shoppingItems`)
-    expect(item).toMatchObject({ qty: '2', name: 'Primer', priority: 1, isGot: false })
+    const item = await only(`${BIZ}/shoppingItems`)
+    expect(item).toMatchObject({ jobId, qty: '2', name: 'Primer', priority: 1, isGot: false })
     expect(item).not.toHaveProperty('taskId')
     expect(item.createdAt).toBeInstanceOf(Timestamp)
 
-    await deleteShoppingItem(jobId, item.id)
+    await deleteShoppingItem(item.id)
     await addShoppingItem(jobId, { qty: '', name: 'Tape' }, 'task-1')
-    expect(await only(`jobs/${jobId}/shoppingItems`)).toMatchObject({ name: 'Tape', taskId: 'task-1' })
+    expect(await only(`${BIZ}/shoppingItems`)).toMatchObject({ name: 'Tape', taskId: 'task-1' })
   })
 
   it('toggle, update and delete', async () => {
     const jobId = await newJob()
     await addShoppingItem(jobId, { qty: '', name: 'Primer' })
-    const { id } = await only(`jobs/${jobId}/shoppingItems`)
-    await toggleShoppingItem(jobId, id, true)
-    expect(await data(`jobs/${jobId}/shoppingItems/${id}`)).toMatchObject({ isGot: true })
-    await updateShoppingItem(jobId, id, { qty: '3', name: 'Primer (grey)', priority: 2 })
-    expect(await data(`jobs/${jobId}/shoppingItems/${id}`)).toMatchObject({ qty: '3', name: 'Primer (grey)', priority: 2, isGot: true })
-    await deleteShoppingItem(jobId, id)
-    expect(await data(`jobs/${jobId}/shoppingItems/${id}`)).toBeUndefined()
+    const { id } = await only(`${BIZ}/shoppingItems`)
+    await toggleShoppingItem(id, true)
+    expect(await data(`${BIZ}/shoppingItems/${id}`)).toMatchObject({ isGot: true })
+    await updateShoppingItem(id, { qty: '3', name: 'Primer (grey)', priority: 2 })
+    expect(await data(`${BIZ}/shoppingItems/${id}`)).toMatchObject({ qty: '3', name: 'Primer (grey)', priority: 2, isGot: true })
+    await deleteShoppingItem(id)
+    expect(await data(`${BIZ}/shoppingItems/${id}`)).toBeUndefined()
   })
 })
 
@@ -121,18 +123,18 @@ describe('tasks', () => {
   it('addTask leaves out an empty due date', async () => {
     const jobId = await newJob()
     await addTask(jobId, { text: 'Sand trim', bullets: ['120 grit'], priority: 0, dueDate: '' })
-    const task = await only(`jobs/${jobId}/tasks`)
-    expect(task).toMatchObject({ text: 'Sand trim', bullets: ['120 grit'], isDone: false })
+    const task = await only(`${BIZ}/tasks`)
+    expect(task).toMatchObject({ jobId, text: 'Sand trim', bullets: ['120 grit'], isDone: false })
     expect(task).not.toHaveProperty('dueDate')
   })
 
   it('updateTask sets and clears the due date', async () => {
     const jobId = await newJob()
     await addTask(jobId, { text: 'Sand trim', priority: 0, dueDate: '2026-10-30' })
-    const { id } = await only(`jobs/${jobId}/tasks`)
-    expect(await data(`jobs/${jobId}/tasks/${id}`)).toMatchObject({ dueDate: '2026-10-30' })
-    await updateTask(jobId, id, { text: 'Sand all trim', priority: 1, dueDate: '' })
-    const task = (await data(`jobs/${jobId}/tasks/${id}`))!
+    const { id } = await only(`${BIZ}/tasks`)
+    expect(await data(`${BIZ}/tasks/${id}`)).toMatchObject({ dueDate: '2026-10-30' })
+    await updateTask(id, { text: 'Sand all trim', priority: 1, dueDate: '' })
+    const task = (await data(`${BIZ}/tasks/${id}`))!
     expect(task).toMatchObject({ text: 'Sand all trim', priority: 1 })
     expect(task).not.toHaveProperty('dueDate')
   })
@@ -140,13 +142,13 @@ describe('tasks', () => {
   it('toggleTask records completedAt and removes it when un-done', async () => {
     const jobId = await newJob()
     await addTask(jobId, { text: 'Sand trim', priority: 0, dueDate: '' })
-    const { id } = await only(`jobs/${jobId}/tasks`)
-    await toggleTask(jobId, id, true)
-    const done = (await data(`jobs/${jobId}/tasks/${id}`))!
+    const { id } = await only(`${BIZ}/tasks`)
+    await toggleTask(id, true)
+    const done = (await data(`${BIZ}/tasks/${id}`))!
     expect(done.isDone).toBe(true)
     expect(done.completedAt).toBeInstanceOf(Timestamp)
-    await toggleTask(jobId, id, false)
-    const undone = (await data(`jobs/${jobId}/tasks/${id}`))!
+    await toggleTask(id, false)
+    const undone = (await data(`${BIZ}/tasks/${id}`))!
     expect(undone.isDone).toBe(false)
     expect(undone).not.toHaveProperty('completedAt')
   })
@@ -154,38 +156,38 @@ describe('tasks', () => {
   async function taskWithShopping() {
     const jobId = await newJob()
     await addTask(jobId, { text: 'Paint door', priority: 0, dueDate: '' })
-    const { id: taskId } = await only(`jobs/${jobId}/tasks`)
+    const { id: taskId } = await only(`${BIZ}/tasks`)
     await addShoppingItem(jobId, { qty: '', name: 'Paint' }, taskId)
     await addShoppingItem(jobId, { qty: '', name: 'Brush' }, taskId)
     await addShoppingItem(jobId, { qty: '', name: 'Unrelated' })
-    const items = (await getDocs(collection(db, `jobs/${jobId}/shoppingItems`))).docs
+    const items = (await getDocs(collection(db, `${BIZ}/shoppingItems`))).docs
     const taskItemIds = items.filter(d => d.data().taskId === taskId).map(d => d.id)
     return { jobId, taskId, taskItemIds }
   }
 
   it('deleteTask can delete the task’s shopping items with it', async () => {
-    const { jobId, taskId, taskItemIds } = await taskWithShopping()
-    await deleteTask(jobId, taskId, taskItemIds, true)
-    expect(await data(`jobs/${jobId}/tasks/${taskId}`)).toBeUndefined()
-    const left = (await getDocs(collection(db, `jobs/${jobId}/shoppingItems`))).docs.map(d => d.data().name)
+    const { taskId, taskItemIds } = await taskWithShopping()
+    await deleteTask(taskId, taskItemIds, true)
+    expect(await data(`${BIZ}/tasks/${taskId}`)).toBeUndefined()
+    const left = (await getDocs(collection(db, `${BIZ}/shoppingItems`))).docs.map(d => d.data().name)
     expect(left).toEqual(['Unrelated'])
   })
 
   it('deleteTask can keep the shopping items on the job list, unlinked', async () => {
-    const { jobId, taskId, taskItemIds } = await taskWithShopping()
-    await deleteTask(jobId, taskId, taskItemIds, false)
-    expect(await data(`jobs/${jobId}/tasks/${taskId}`)).toBeUndefined()
-    const items = (await getDocs(collection(db, `jobs/${jobId}/shoppingItems`))).docs.map(d => d.data())
+    const { taskId, taskItemIds } = await taskWithShopping()
+    await deleteTask(taskId, taskItemIds, false)
+    expect(await data(`${BIZ}/tasks/${taskId}`)).toBeUndefined()
+    const items = (await getDocs(collection(db, `${BIZ}/shoppingItems`))).docs.map(d => d.data())
     expect(items.map(i => i.name).sort()).toEqual(['Brush', 'Paint', 'Unrelated'])
     expect(items.every(i => !('taskId' in i))).toBe(true)
   })
 
   it('deleteTask still deletes the task when one of its items was already deleted elsewhere', async () => {
-    const { jobId, taskId, taskItemIds } = await taskWithShopping()
-    await deleteShoppingItem(jobId, taskItemIds[0])
-    await expect(deleteTask(jobId, taskId, taskItemIds, false)).resolves.toBe(true)
-    expect(await data(`jobs/${jobId}/tasks/${taskId}`)).toBeUndefined()
-    const items = (await getDocs(collection(db, `jobs/${jobId}/shoppingItems`))).docs.map(d => d.data())
+    const { taskId, taskItemIds } = await taskWithShopping()
+    await deleteShoppingItem(taskItemIds[0])
+    await expect(deleteTask(taskId, taskItemIds, false)).resolves.toBe(true)
+    expect(await data(`${BIZ}/tasks/${taskId}`)).toBeUndefined()
+    const items = (await getDocs(collection(db, `${BIZ}/shoppingItems`))).docs.map(d => d.data())
     expect(items).toHaveLength(2)
     expect(items.every(i => !('taskId' in i))).toBe(true)
   })

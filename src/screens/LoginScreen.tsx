@@ -1,19 +1,41 @@
-import { signInWithEmailAndPassword } from 'firebase/auth'
+import { sendPasswordResetEmail, signInWithEmailAndPassword } from 'firebase/auth'
 import { BriefcaseIcon } from 'lucide-react'
 import { useState } from 'react'
 import { Field } from '../components/ui/Field'
-import { signInErrorMessage } from '../lib/authErrors'
+import { resetErrorMessage, signInErrorMessage } from '../lib/authErrors'
 import { auth } from '../lib/firebase'
 
 export function LoginScreen() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
+  const [notice, setNotice] = useState('')
   const [loading, setLoading] = useState(false)
+
+  // Also how invited people set their first password
+  async function handleForgot() {
+    setError('')
+    setNotice('')
+    if (!email.trim()) {
+      setError('Enter your email above, then tap “Forgot password?” again.')
+      return
+    }
+    try {
+      await sendPasswordResetEmail(auth, email.trim())
+    } catch (error) {
+      const message = resetErrorMessage(error)
+      if (message) {
+        setError(message)
+        return
+      }
+    }
+    setNotice('If that email has an account, a link to set a new password is on its way. Check your spam folder too.')
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError('')
+    setNotice('')
     setLoading(true)
     try {
       await signInWithEmailAndPassword(auth, email, password)
@@ -54,13 +76,17 @@ export function LoginScreen() {
               required
             />
           </Field>
-          {error && <p className="text-red-600 text-sm text-center">{error}</p>}
+          {error && <p role="alert" className="text-red-600 text-sm text-center">{error}</p>}
+          {notice && <p role="status" className="text-gray-600 text-sm text-center">{notice}</p>}
           <button
             type="submit"
             disabled={loading}
             className="w-full py-3 bg-blue-600 text-white font-semibold rounded-xl text-base disabled:opacity-50 active:bg-blue-700"
           >
             {loading ? 'Signing in…' : 'Sign In'}
+          </button>
+          <button type="button" onClick={handleForgot} className="text-sm font-medium text-blue-600 py-1">
+            Forgot password?
           </button>
         </form>
       </div>

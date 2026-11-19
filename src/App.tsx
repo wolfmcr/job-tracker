@@ -3,7 +3,7 @@ import { AppShell } from './components/layout/AppShell'
 import { ErrorBoundary, ErrorFallback } from './components/layout/ErrorBoundary'
 import { OfflineOverlay } from './components/layout/OfflineOverlay'
 import { Toaster } from './components/layout/Toaster'
-import { useAccess } from './hooks/useAccess'
+import { useBusiness } from './hooks/useBusiness'
 import { useAuth } from './hooks/useAuth'
 import { ArchiveScreen } from './screens/ArchiveScreen'
 import { CombinedShoppingScreen } from './screens/CombinedShoppingScreen'
@@ -104,21 +104,25 @@ export function App() {
 function AuthGate() {
   const { user, loading } = useAuth()
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-dvh">
-        <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
-      </div>
-    )
-  }
+  if (loading) return <FullScreenSpinner />
 
   if (!user) return <LoginScreen />
 
   return <SignedIn uid={user.uid} email={user.email} />
 }
 
+// Nothing below this reads data until the business is known, since every path starts with it
 function SignedIn({ uid, email }: { uid: string; email: string | null }) {
-  const allowed = useAccess(uid)
-  if (!allowed) return <NoAccessScreen email={email} />
+  const business = useBusiness(uid)
+  if (business.status === 'loading') return <FullScreenSpinner />
+  if (business.status === 'no-access') return <NoAccessScreen email={email} />
   return <RouterProvider router={router} />
+}
+
+function FullScreenSpinner() {
+  return (
+    <div className="flex items-center justify-center min-h-dvh">
+      <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+    </div>
+  )
 }

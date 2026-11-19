@@ -88,8 +88,3 @@ export function useLiveDoc<T>(key: string | null, makeRef: () => DocumentReferen
 export function withId<T>(doc: DocumentSnapshot) {
   return { id: doc.id, ...doc.data() } as T
 }
-
-// For docs in jobs/{jobId}/…: adds the parent job's id
-export function withJobId<T>(doc: DocumentSnapshot) {
-  return { id: doc.id, jobId: doc.ref.parent.parent!.id, ...doc.data() } as T
-}

@@ -1,5 +1,5 @@
-import { collection, limit, orderBy, query } from 'firebase/firestore'
-import { db } from '../lib/firebase'
+import { limit, orderBy, query } from 'firebase/firestore'
+import { bizCollection } from '../lib/business'
 import type { Employee, Payment, TimeEntry } from '../types'
 import { useLiveQuery, withId } from './useLive'
 
@@ -7,7 +7,7 @@ import { useLiveQuery, withId } from './useLive'
 export function useEmployee() {
   const { items, loading } = useLiveQuery(
     'employee',
-    () => query(collection(db, 'employees'), orderBy('createdAt', 'asc'), limit(1)),
+    () => query(bizCollection('employees'), orderBy('createdAt', 'asc'), limit(1)),
     withId<Employee>,
   )
   return { employee: items[0] ?? null, loading }
@@ -16,12 +16,12 @@ export function useEmployee() {
 export function useEmployeeLedger(employeeId: string | undefined) {
   const { items: timeEntries } = useLiveQuery(
     employeeId ? `timeEntries:${employeeId}` : null,
-    () => collection(db, 'employees', employeeId!, 'timeEntries'),
+    () => bizCollection('employees', employeeId!, 'timeEntries'),
     withId<TimeEntry>,
   )
   const { items: payments } = useLiveQuery(
     employeeId ? `payments:${employeeId}` : null,
-    () => collection(db, 'employees', employeeId!, 'payments'),
+    () => bizCollection('employees', employeeId!, 'payments'),
     withId<Payment>,
   )
   return { timeEntries, payments }

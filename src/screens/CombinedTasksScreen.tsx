@@ -47,9 +47,9 @@ export function CombinedTasksScreen() {
         shoppingItems={shoppingFor(task.id)}
         jobColor={job?.color || DEFAULT_JOB_COLOR}
         jobName={job?.name}
-        onToggle={() => toggleTask(task.jobId, task.id, !task.isDone)}
-        onDelete={(deleteShopping) => deleteTask(task.jobId, task.id, shoppingFor(task.id).map(i => i.id), deleteShopping)}
-        onUpdate={(fields) => updateTask(task.jobId, task.id, fields)}
+        onToggle={() => toggleTask(task.id, !task.isDone)}
+        onDelete={(deleteShopping) => deleteTask(task.id, shoppingFor(task.id).map(i => i.id), deleteShopping)}
+        onUpdate={(fields) => updateTask(task.id, fields)}
       />
     )
   }
