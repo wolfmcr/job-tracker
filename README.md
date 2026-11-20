@@ -57,4 +57,11 @@ FROM_CREDENTIALS=~/keys/<live-project>-admin.json node scripts/admin.ts --projec
 
 ## Deploying
 
-Every push runs CI (lint, typecheck, unit and emulator tests). A push to `main` that passes deploys the app to Firebase Hosting, along with the Firestore and Storage rules and the indexes. There's no manual deploy step.
+Every push runs CI (lint, typecheck, unit and emulator tests). A push to `main` or `beta` that passes deploys the app to Firebase Hosting, along with the Firestore and Storage rules and the indexes. There's no manual deploy step.
+
+| Branch | Project | Secrets |
+| --- | --- | --- |
+| `main` | `job-tracker-9eef5` (live) | the repository's secrets |
+| `beta` | `job-tracker-beta` | the `beta` GitHub Environment's secrets |
+
+Each needs `FIREBASE_SERVICE_ACCOUNT`, the `VITE_FIREBASE_*` keys and `VITE_RECAPTCHA_SITE_KEY`. An environment falls back to the repository's secrets for any it's missing, so the deploy first checks that the service account and app config are for the branch's project, and stops if not.

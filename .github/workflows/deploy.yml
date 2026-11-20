@@ -28,12 +28,30 @@ jobs:
       - run: npm test
       - run: npm run test:emulator
 
+  # main deploys to production, beta to the beta project. Each GitHub Environment holds that
+  # project's secrets; production's are still the repository-level ones.
   deploy:
     needs: check
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/beta')
     runs-on: ubuntu-latest
+    environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'beta' }}
+    env:
+      PROJECT_ID: ${{ github.ref == 'refs/heads/main' && 'job-tracker-9eef5' || 'job-tracker-beta' }}
     steps:
       - uses: actions/checkout@v7
+
+      # An environment falls back to the repository's secrets for any it doesn't have, which are
+      # production's. Stop rather than build or deploy with another project's settings.
+      - name: Check the secrets are for this project
+        run: |
+          if [ "$(jq -r .project_id <<< "$SERVICE_ACCOUNT")" != "$PROJECT_ID" ] || [ "$CONFIG_PROJECT" != "$PROJECT_ID" ] || [ "$CONFIG_BUCKET" != "$PROJECT_ID.firebasestorage.app" ]; then
+            echo "::error::This branch deploys to $PROJECT_ID, but the service account or app config secrets in its environment are for another project"
+            exit 1
+          fi
+        env:
+          SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          CONFIG_PROJECT: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
+          CONFIG_BUCKET: ${{ secrets.VITE_FIREBASE_STORAGE_BUCKET }}
 
       - uses: actions/setup-node@v7
         with:
@@ -56,7 +74,7 @@ jobs:
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-          projectId: job-tracker-9eef5
+          projectId: ${{ env.PROJECT_ID }}
           channelId: live
           # Pinned so CLI upgrades (and any new IAM permissions they need) happen deliberately
           firebaseToolsVersion: 15.34.1
@@ -66,7 +84,9 @@ jobs:
         run: |
           printf '%s' "$SERVICE_ACCOUNT" > "$RUNNER_TEMP/sa.json"
           # firebase.deploy.json names the bucket, so the deploy doesn't need permission to look it up
-          npx firebase deploy --config firebase.deploy.json --only firestore,storage --project job-tracker-9eef5 --non-interactive
+          jq --arg bucket "$PROJECT_ID.firebasestorage.app" '.storage[0].bucket = $bucket' firebase.deploy.json > "$RUNNER_TEMP/deploy.json"
+          mv "$RUNNER_TEMP/deploy.json" firebase.deploy.json
+          npx firebase deploy --config firebase.deploy.json --only firestore,storage --project "$PROJECT_ID" --non-interactive
         env:
           SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/sa.json
